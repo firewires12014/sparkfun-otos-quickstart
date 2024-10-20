@@ -14,48 +14,25 @@ public class intake {
     public double open = 0;
     public double closed = 1;
     public Servo intakeServo;
-    public DcMotorEx motorMotor;
     public double error = 0;
     public double kP = 0;
     public double pos = 1;
 
     public intake (HardwareMap hardwareMap){
         intakeServo = hardwareMap.get(Servo.class, "intakeServo");
-        motorMotor = hardwareMap.get(DcMotorEx.class, "left_front");
 
     }
     public void update (){
-        motorMotor.getCurrentPosition();
-        error = pos - motorMotor.getCurrentPosition();
-        motorMotor.setPower(error*kP);
     }
-    public Action moveMotorMotor (double pos) {
-        this.pos = pos;
-        return new ActionUtil.RunnableAction(() -> {
-            if(motorMotor.getCurrentPosition() > pos){
-                error = 0;
-                this.pos = motorMotor.getCurrentPosition();
-                return true;
-            }
-            else return false;
-        });
-    }
+
     public Action intakeOn () {
-        return new ActionUtil.RunnableAction(() -> {
-            intakeServo.setPosition(open);
-            return (true);
-        });
-    }
-    public Action intakeYay () {
-        return new ActionUtil.ServoPositionAction(intakeServo, 0.5);
+        return new ActionUtil.ServoPositionAction(intakeServo, open);
     }
 
     public Action intakeOff () {
-        return new ActionUtil.RunnableAction(() -> {
-            intakeServo.setPosition(closed);
-            return (true);
-            });
+        return new ActionUtil.ServoPositionAction(intakeServo, closed);
     }
+
     public Action Lift () {
         return null;
     }
