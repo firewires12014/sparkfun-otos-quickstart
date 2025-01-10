@@ -5,6 +5,7 @@ import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -22,6 +23,12 @@ public class Hang {
     public static double ptoRightInactive = 0;
     public static double ptoLeftInactive = 0;
 
+    public static double targetPosition;
+    public static double kp = 0.0018;
+    public static double manualPower = 0;
+    public static double hangOutPosition = 3000;
+    public static double hangInPosition = 100;
+
 
     public static double hangPosition = 0;
 
@@ -33,14 +40,13 @@ public class Hang {
         hangmotor1 = hardwareMap.get(DcMotorEx.class, "hang");
         ptoLeft = hardwareMap.get(Servo.class, "ptoLeft");
         ptoRight = hardwareMap.get(Servo.class, "ptoRight");
+
+        hangmotor1.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     public void update() {
-        controller.targetPosition = hangPosition;
-        controller.update(hangmotor1.getCurrentPosition());
-        double output = controller.update(hangmotor1.getCurrentPosition());
 
-        hangmotor1.setPower(output);
+
     }
 
     public Action getHangReady() {
@@ -54,6 +60,22 @@ public class Hang {
                 new ActionUtil.ServoPositionAction(ptoLeft, ptoLeftActive),
                 new ActionUtil.ServoPositionAction(ptoRight, ptoRightActive));
     }
+    public Action hangOut () {targetPosition = hangOutPosition;
+        return new ActionUtil.RunnableAction(()-> {
+            double output = (targetPosition - hangmotor1.getCurrentPosition()) * kp;
+            hangmotor1.setPower(output);
+            return Math.abs(targetPosition - hangmotor1.getCurrentPosition())> 50;
+        });
+    }
+
+    public Action hangIn() {targetPosition = hangInPosition;
+        return new ActionUtil.RunnableAction(()-> {
+            double output = (targetPosition - hangmotor1.getCurrentPosition()) * kp;
+            hangmotor1.setPower(output);
+            return Math.abs(targetPosition - hangmotor1.getCurrentPosition())> 50;
+        });
+    }
+
         public Action disengagePto () {
             return new ParallelAction(
                     new ActionUtil.ServoPositionAction(ptoLeft, ptoLeftInactive),

@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.InstantAction;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -20,10 +21,10 @@ public class Intake {
     RevColorSensorV3 forward;
 
     public static double targetPosition;
-    public static double kp = 0;
+    public static double kp = .003;
     public static double manualPower = 0;
-    public static double fourbarUp = 1;
-    public static double fourbarDown = 0;
+    public static double fourbarUp = .8;
+    public static double fourbarDown = 0.6;
     public static double submerisbleBarDistance = 15;
 
     public Intake(HardwareMap hardwareMap) {
@@ -57,11 +58,15 @@ public class Intake {
         return new ActionUtil.ServoPositionAction(down, fourbarUp);
     }
 
+    public Action intakePosition (double position) {
+       return new InstantAction (()-> {targetPosition = position; });
+    }
+
     public Action manualControl (Gamepad gamepad) {
         return new ActionUtil.RunnableAction(()-> {
 
             double temperary = kp;
-            kp = 0;
+            kp = .003;
             manualPower = -gamepad.left_stick_y;
 
            return  gamepad.left_stick_y != 0;
