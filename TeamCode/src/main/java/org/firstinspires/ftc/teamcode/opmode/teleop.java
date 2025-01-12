@@ -27,22 +27,23 @@ teleop extends LinearOpMode {
         Robot robot = new Robot(hardwareMap);
         waitForStart();
         while (opModeIsActive() && ! isStopRequested()) {
-            robot.hang.hangmotor1.setPower(-gamepad1.left_stick_y);
-//            if (gamepad1.square) {
-//                scheduler.queueAction(robot.hang.engagePto());
-//            }
-//            if (gamepad1.circle) {
-//                scheduler.queueAction(robot.hang.disengagePto());
-//            }
-            scheduler.queueAction(
-                    robot.intake.manualControl(gamepad2)
-            );
-            if (gamepad2.right_bumper) {
-               robot.intake.down.setPosition(Intake.fourbarDown);
-               robot.intake.spin.setPower(1);
-            }
+            // Driver
+            robot.drive.setDrivePowers(new PoseVelocity2d(
+                    new Vector2d(
+                            -gamepad1.left_stick_y,
+                            -gamepad1.left_stick_x
+                    ),
+                    -gamepad1.right_stick_x
+            ));
 
-            else if ((gamepad2.right_trigger > 0.1 && robot.intake.downSensor.getDistance(DistanceUnit.MM) < Intake.submerisbleBarDistance)|| r2Toggle) {
+            // Operator
+            // Intake
+            if (gamepad2.left_bumper) {
+                robot.intake.spin.setPower(-1);
+            } else if (gamepad2.right_bumper) {
+                robot.intake.down.setPosition(Intake.fourbarDown);
+                robot.intake.spin.setPower(1);
+            } else if ((gamepad2.right_trigger > 0.1 && robot.intake.downSensor.getDistance(DistanceUnit.MM) < Intake.submerisbleBarDistance)|| r2Toggle) { // doesn't work
                 r2Toggle = true;
                 robot.intake.down.setPosition(Intake.fourbarDown);
                 robot.intake.spin.setPower(1);
@@ -52,25 +53,21 @@ teleop extends LinearOpMode {
                 robot.intake.spin.setPower(0);
             }
 
+            robot.intake.manualControl(-gamepad2.left_stick_y);
+
+            // Hang
             if (gamepad2.cross) {
-                scheduler.queueAction(
-                        robot.hang.hangIn()
-                );
+                scheduler.queueAction(robot.hang.hangIn());
             }
-
             if (gamepad2.triangle) {
-                scheduler.queueAction(
-                        robot.hang.hangOut()
-                );
+                scheduler.queueAction(robot.hang.hangOut());
             }
 
+            robot.hang.manualControl(-gamepad2.right_stick_y);
 
-
-
-            robot.drive.setDrivePowers(new PoseVelocity2d(new Vector2d(-gamepad1.right_stick_y, 0),0));
-            robot.lift.lift.setPower(-gamepad1.right_stick_y);
             robot.update();
             scheduler.update();
+
             telemetry.addData("LiftPower", robot.lift.lift.getPower());
             telemetry.addData("extensionDistance", robot.intake.extension.getCurrentPosition());
             telemetry.addData("distanceSensor", robot.intake.downSensor.getDistance(DistanceUnit.MM));
@@ -79,6 +76,7 @@ teleop extends LinearOpMode {
             telemetry.addData("hangInPosition", Hang.targetPosition);
             telemetry.addData("liftTarget", robot.lift.lift.getCurrentPosition());
             telemetry.addData("liftPosition", Lift.liftPosition);
+            telemetry.addData("Intake Staet", robot.intake.state);
             telemetry.update();
         }
 

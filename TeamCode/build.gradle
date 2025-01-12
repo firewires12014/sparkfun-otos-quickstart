@@ -1,3 +1,5 @@
+
+
 //
 // build.gradle in TeamCode
 //
@@ -14,9 +16,13 @@
 // Include common definitions from above.
 apply from: '../build.common.gradle'
 apply from: '../build.dependencies.gradle'
+apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
     namespace = 'org.firstinspires.ftc.teamcode'
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
 
     packagingOptions {
         jniLibs.useLegacyPackaging true
@@ -39,4 +45,5 @@ dependencies {
     implementation "com.acmerobotics.roadrunner:actions:1.0.0"
     implementation "com.acmerobotics.dashboard:dashboard:0.4.16"
     implementation "page.j5155.roadrunner:ftc-otos:0.1.2+0.1.14"
+    implementation 'androidx.core:core-ktx:1.10.1'
 }

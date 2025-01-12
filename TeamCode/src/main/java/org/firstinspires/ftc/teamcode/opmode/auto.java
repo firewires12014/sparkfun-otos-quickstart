@@ -19,12 +19,7 @@ public class auto extends LinearOpMode {
         scheduler = new AutoActionScheduler(robot::update);
         waitForStart();
         while (opModeIsActive() && ! isStopRequested()) {
-            scheduler.addAction(
-                    robot.lift.setLiftPosition(3000)
-            );
-            scheduler.addAction(
-                    robot.intake.intakePosition(600)
-            );
+
             scheduler.addAction(
                     robot.intake.fourbarOut()
             );
@@ -35,12 +30,7 @@ public class auto extends LinearOpMode {
             scheduler.run();
             scheduler.addAction(new SleepAction(1));
 
-            scheduler.addAction(
-                    robot.lift.setLiftPosition(0)
-            );
-            scheduler.addAction(
-                    robot.intake.intakePosition(0)
-            );
+
             scheduler.addAction(
                     robot.intake.fourbarIn()
             );

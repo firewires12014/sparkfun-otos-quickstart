@@ -21,10 +21,9 @@ public class auto2 extends LinearOpMode {
         waitForStart();
         while (opModeIsActive() && ! isStopRequested()) {
             scheduler.addAction(new ParallelAction(
-                    robot.lift.setLiftPosition(3000),
-                    robot.intake.intakePosition(600),
+                    //robot.lift.setLiftPosition(3000),
                     robot.intake.fourbarOut()
-            );
+            ));
             scheduler.addAction(robot.drive.actionBuilder(startingPosition)
                     .strafeToLinearHeading(new Vector2d(5.5, 15), Math.toRadians(-22))
                     .build());
@@ -32,12 +31,6 @@ public class auto2 extends LinearOpMode {
             scheduler.run();
             scheduler.addAction(new SleepAction(1));
 
-            scheduler.addAction(
-                    robot.lift.setLiftPosition(0)
-            );
-            scheduler.addAction(
-                    robot.intake.intakePosition(0)
-            );
             scheduler.addAction(
                     robot.intake.fourbarIn()
             );
