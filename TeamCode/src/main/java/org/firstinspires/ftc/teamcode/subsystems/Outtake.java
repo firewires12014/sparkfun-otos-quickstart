@@ -103,14 +103,14 @@ public class Outtake {
     public Action moveOuttakeIn() {
         return new InstantAction(() -> {
             // Check if outtake is at the target position
-            if (getOuttakePosition() == OUTTAKE_TARGET_POSITION_OUT) {
-                stopOuttake(); // Stop Servo
-            } else {
-                // Flip Outtake up and start moving in
-                flipOuttake("up");
-                // If outtake is not at the target position start moving in
-                extension.setPower(EXTENSION_DIRECTION); // Start Servo moving in
-            }
+//            if (getOuttakePosition() == OUTTAKE_TARGET_POSITION_IN) {
+//                stopOuttake(); // Stop Servo
+//            } else {
+//                // Flip Outtake up and start moving in
+//                // If outtake is not at the target position start moving in
+//                extension.setPower(EXTENSION_DIRECTION); // Start Servo moving in
+//            }
+            flipOuttake("up");
         });
     }
 
@@ -119,13 +119,13 @@ public class Outtake {
      */
     public Action moveOuttakeOut() {
         return new InstantAction(() -> {
-            if (getOuttakePosition() == OUTTAKE_TARGET_POSITION_IN) {
-                stopOuttake(); // Stop Servo
-                // Flip Outtake down when at position
-                flipOuttake("down");
-            } else {
-                extension.setPower(-EXTENSION_DIRECTION); // Start Servo moving out
-            }
+//            if (getOuttakePosition() == OUTTAKE_TARGET_POSITION_OUT) {
+//                stopOuttake(); // Stop Servo
+//                // Flip Outtake down when at position
+//            } else {
+//                extension.setPower(-EXTENSION_DIRECTION); // Start Servo moving out
+//            }
+            flipOuttake("down");
         });
     }
 
