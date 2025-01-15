@@ -19,14 +19,6 @@ public class Outtake {
     public static double OUTTAKE_TARGET_POSITION_IN = 0;
     public static double EXTENSION_DIRECTION = 1; // Set to positive or negative depending on direction of servo
 
-    Gamepad.RumbleEffect RUMBLE_EFFECT = new Gamepad.RumbleEffect.Builder()
-            .addStep(0.0, 1.0, 500)  //  Rumble right motor 100% for 500 mSec
-            .addStep(0.0, 0.0, 300)  //  Pause for 300 mSec
-            .addStep(1.0, 0.0, 250)  //  Rumble left motor 100% for 250 mSec
-            .addStep(0.0, 0.0, 250)  //  Pause for 250 mSec
-            .addStep(1.0, 0.0, 250)  //  Rumble left motor 100% for 250 mSec
-            .build();
-
     public CRServo extension;
     public Servo grab;
     public Servo flip;
@@ -35,8 +27,6 @@ public class Outtake {
     public double posCurrent; // Current servo position in degrees
     public double posPrevious; // Previous servo position in degrees
     public double delta; // Change in position in degrees
-
-    //private ExtensionSensor extensionSensor; // Your sensor instance
 
     public enum ExtensionControl {
         IN,
@@ -117,7 +107,6 @@ public class Outtake {
             // Check if outtake is at the target position
             if (getOuttakePosition() == OUTTAKE_TARGET_POSITION_OUT) {
                 stopOuttake(); // Stop Servo
-                //rumble(); // Start rumble to let driver know outtake is in
             } else {
                 // Flip Outtake up and start moving in
                 flipOuttake("up");
