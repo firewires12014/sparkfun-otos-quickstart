@@ -34,18 +34,6 @@ public class Outtake {
     }
 
     /**
-     * Update the outtake position
-     */
-    public void update() {
-        // Calculate the current position from the sensor's voltage
-        rawServoPosition = (extensionSensor.getVoltage() / 3.3) * 360;
-        delta = rawServoPosition - posPrevious;
-        posPrevious = rawServoPosition;
-        posCurrent += delta;
-    }
-
-
-    /**
      * Constructor for the Outtake class
      *
      * @param hardwareMap The hardware map from the OpMode
@@ -56,8 +44,18 @@ public class Outtake {
         grab = hardwareMap.get(Servo.class, "grab");
         flip = hardwareMap.get(Servo.class, "flip");
     }
-
-
+    
+    /**
+     * Update the outtake position
+     */
+    public void update() {
+        // Calculate the current position from the sensor's voltage
+        rawServoPosition = (extensionSensor.getVoltage() / 3.3) * 360;
+        delta = rawServoPosition - posPrevious;
+        posPrevious = rawServoPosition;
+        posCurrent += delta;
+    }
+    
     /**
     public Outtake.moveOuttake state = Outtake.ExtensionControl.IN;
      * Move the outtake in or out based on the current state
