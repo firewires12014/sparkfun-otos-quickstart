@@ -169,11 +169,11 @@ public class Outtake {
 /*
     Call via:
     if (gamepad2.a) {
-        robot.outtake.moveOuttakeIn();
-    } else if (gamepad2.b) {
-        robot.outtake.moveOuttakeOut();
-    } else {
-        robot.outtake.stopOuttake();
+        scheduler.queueAction(robot.outtake.moveOuttakeOut());
+    }
+    
+    if (gamepad2.b) {
+        scheduler.queueAction(robot.outtake.moveOuttakeIn());
     }
 */
 
