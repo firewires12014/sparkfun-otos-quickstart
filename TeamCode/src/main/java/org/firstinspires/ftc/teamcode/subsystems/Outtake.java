@@ -11,12 +11,12 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 @Config
 public class Outtake {
-    public static double FLIP_POSITION_UP = 0;
-    public static double FLIP_POSITION_DOWN = 1;
+    public static double FLIP_POSITION_UP = 1;
+    public static double FLIP_POSITION_DOWN = 0;
     public static double GRAB_POSITION_UP = 0;
     public static double GRAB_POSITION_DOWN = 1;
     public static double OUTTAKE_TARGET_POSITION_OUT = 360;
-    public static double OUTTAKE_TARGET_POSITION_IN = 0;
+    public static double OUTTAKE_TARGET_POSITION_IN = 1;
     public static double EXTENSION_DIRECTION = 1; // Set to positive or negative depending on direction of servo
 
     public CRServo extension;
@@ -103,14 +103,14 @@ public class Outtake {
     public Action moveOuttakeIn() {
         return new InstantAction(() -> {
             // Check if outtake is at the target position
-//            if (getOuttakePosition() == OUTTAKE_TARGET_POSITION_IN) {
-//                stopOuttake(); // Stop Servo
-//            } else {
-//                // Flip Outtake up and start moving in
-//                // If outtake is not at the target position start moving in
-//                extension.setPower(EXTENSION_DIRECTION); // Start Servo moving in
-//            }
-            flipOuttake("up");
+            if (getOuttakePosition() == OUTTAKE_TARGET_POSITION_IN) {
+                stopOuttake(); // Stop Servop-
+            } else {
+                // Flip Outtake up and start moving in
+                // If outtake is not at the target position start moving in
+                extension.setPower(EXTENSION_DIRECTION); // Start Servo moving in
+            }
+//            flipOuttake("up");
         });
     }
 
@@ -119,13 +119,13 @@ public class Outtake {
      */
     public Action moveOuttakeOut() {
         return new InstantAction(() -> {
-//            if (getOuttakePosition() == OUTTAKE_TARGET_POSITION_OUT) {
-//                stopOuttake(); // Stop Servo
-//                // Flip Outtake down when at position
-//            } else {
-//                extension.setPower(-EXTENSION_DIRECTION); // Start Servo moving out
-//            }
-            flipOuttake("down");
+            if (getOuttakePosition() == OUTTAKE_TARGET_POSITION_OUT) {
+                stopOuttake(); // Stop Servo
+                // Flip Outtake down when at position
+            } else {
+                extension.setPower(-EXTENSION_DIRECTION); // Start Servo moving out
+            }
+//            flipOuttake("down");
         });
     }
 

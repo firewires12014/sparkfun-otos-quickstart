@@ -28,6 +28,10 @@ teleop extends LinearOpMode {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         ActionScheduler scheduler = new ActionScheduler();
         Robot robot = new Robot(hardwareMap);
+
+        // Init
+        robot.outtake.flipOuttake("up");
+
         waitForStart();
         while (opModeIsActive() && !isStopRequested()) {
             // Driver
@@ -41,7 +45,7 @@ teleop extends LinearOpMode {
 
             // Operator
             // Intake
-            if (gamepad2.left_bumper) {
+            if (gamepad2.dpad_up) {
                 robot.intake.spin.setPower(.75);
                 robot.intake.lock.setPosition(Intake.GEEKED);
             } else if (gamepad2.right_bumper) {
@@ -73,12 +77,20 @@ teleop extends LinearOpMode {
             robot.lift.lift.setPower(-gamepad2.right_stick_y);
 
 
-            if (gamepad2.square) {
+            if (gamepad2.left_bumper) {
                 scheduler.queueAction(robot.outtake.moveOuttakeIn());
             }
 
-            if (gamepad2.circle) {
+            if (gamepad2.left_trigger > .1) {
                 scheduler.queueAction(robot.outtake.moveOuttakeOut());
+            }
+
+            if (gamepad2.circle) {
+                robot.outtake.flipOuttake("up");
+            }
+
+            if (gamepad2.square) {
+                robot.outtake.flipOuttake("down");
             }
 
                 robot.update();
