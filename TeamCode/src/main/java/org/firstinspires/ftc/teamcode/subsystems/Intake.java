@@ -31,14 +31,16 @@ public class Intake {
     PIDFController pid;
 
     public static double targetPosition = 0;
-    public static double fourbarUp = 0.75;
-    public static double fourbarDown = 0.28;
+    public static double fourbarUp = 0.715;
+    public static double fourbarDown = 0;
+    public static double fourbarResting = .6;
     public static double submerisbleBarDistance = 15;
 
     public static double GEEKED = 0.1;
-    public static double LOCKED = 0.63;
+    public static double LOCKED = 0.8;
+    public static double SOMETHING_IN_BETWEEN = .71;
 
-    public static double tolerance = 25;
+    public static double tolerance = 75;
     public static double joystickDeadzone = 0.05;
 
     public static boolean PID_ENABLED = true;
@@ -64,7 +66,7 @@ public class Intake {
         extension.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         extension.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        coef = new PIDCoefficients(0.003, 0, 0);
+        coef = new PIDCoefficients(0.005, 0, 0);
         pid = new PIDFController(coef, 0, 0,0,(t, x, v)-> 0.0);
     }
 
@@ -126,7 +128,7 @@ public class Intake {
         return new Intake.TargetPositionAction(position, true);
     }
 
-    public Action intakeOn () {return new ActionUtil.DcMotorExPowerAction(spin,0.7);
+    public Action intakeOn () {return new ActionUtil.DcMotorExPowerAction(spin,1);
     }
 
     public Action intakeOff () {

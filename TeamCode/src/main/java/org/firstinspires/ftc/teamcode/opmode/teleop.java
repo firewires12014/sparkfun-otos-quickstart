@@ -1,20 +1,17 @@
 package org.firstinspires.ftc.teamcode.opmode;
 
-import android.os.strictmode.CredentialProtectedWhileLockedViolation;
-
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
-import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.subsystems.Hang;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Lift;
+import org.firstinspires.ftc.teamcode.subsystems.Outtake;
 import org.firstinspires.ftc.teamcode.subsystems.Robot;
 import org.firstinspires.ftc.teamcode.util.ActionScheduler;
 
@@ -27,10 +24,10 @@ teleop extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         ActionScheduler scheduler = new ActionScheduler();
-        Robot robot = new Robot(hardwareMap);
+        Robot robot = new Robot(telemetry, hardwareMap);
 
         // Init
-        robot.outtake.flipOuttake("up");
+        robot.outtake.flipIn();
 
         waitForStart();
         while (opModeIsActive() && !isStopRequested()) {
@@ -51,7 +48,7 @@ teleop extends LinearOpMode {
             } else if (gamepad2.right_bumper) {
                 robot.intake.down.setPosition(Intake.fourbarDown);
                 robot.intake.spin.setPower(-1);
-                robot.intake.lock.setPosition(Intake.LOCKED);
+                robot.intake.lock.setPosition(Intake.SOMETHING_IN_BETWEEN);
             } else if ((gamepad2.right_trigger > 0.1 && robot.intake.downSensor.getDistance(DistanceUnit.MM) < Intake.submerisbleBarDistance) || r2Toggle) { // doesn't work
                 r2Toggle = true;
                 robot.intake.down.setPosition(Intake.fourbarDown);
@@ -59,8 +56,8 @@ teleop extends LinearOpMode {
                 robot.intake.lock.setPosition(Intake.GEEKED);
             } else {
                 r2Toggle = false;
-                robot.intake.down.setPosition(Intake.fourbarUp);
-                robot.intake.spin.setPower(0);
+                robot.intake.down.setPosition(Intake.fourbarResting);
+                if (!scheduler.isBusy()) robot.intake.spin.setPower(0);
             }
 
             // Hang
@@ -74,23 +71,43 @@ teleop extends LinearOpMode {
             // Manual Control
 //            robot.hang.manualControl(-gamepad2.right_stick_y);
             robot.intake.manualControl(-gamepad2.left_stick_y);
-            robot.lift.lift.setPower(-gamepad2.right_stick_y);
-
-
-            if (gamepad2.left_bumper) {
-                scheduler.queueAction(robot.outtake.moveOuttakeIn());
+            if (!scheduler.isBusy()) {
+               robot.lift.manualControl(-gamepad2.right_stick_y);
             }
 
-            if (gamepad2.left_trigger > .1) {
-                scheduler.queueAction(robot.outtake.moveOuttakeOut());
-            }
+//            if (gamepad2.left_bumper) {
+//                scheduler.queueAction(robot.outtake.moveOuttakeIn());
+//            }
+//
+//            if (gamepad2.left_trigger > .1) {
+//                scheduler.queueAction(robot.outtake.moveOuttakeOut());
+//            }
 
             if (gamepad2.circle) {
-                robot.outtake.flipOuttake("up");
+                robot.outtake.flipOut();
             }
 
             if (gamepad2.square) {
-                robot.outtake.flipOuttake("down");
+                robot.outtake.flipIn();
+            }
+
+            if (gamepad2.dpad_left) {
+                scheduler.queueAction(robot.depositOuttake());
+            }
+            if (gamepad2.left_trigger > .01) {
+                scheduler.queueAction(robot.dropAndReturn());
+            }
+
+            if (gamepad2.dpad_right) {
+                scheduler.queueAction(robot.outtakeSpecimen());
+            }
+
+            if (gamepad2.dpad_up) {
+                scheduler.queueAction(robot.outtakeBucket());
+            }
+
+            if (gamepad2.dpad_down) {
+                scheduler.queueAction(robot.transfer());
             }
 
                 robot.update();
@@ -104,6 +121,13 @@ teleop extends LinearOpMode {
                 telemetry.addData("hangInPosition", Hang.targetPosition);
                 telemetry.addData("liftTarget", robot.lift.lift.getCurrentPosition());
                 telemetry.addData("Intake State", robot.intake.state);
+                telemetry.addData("outtakeTargetPosition", Outtake.posCurrent);
+                telemetry.addData("outtakeSetPosition", Outtake.targetPosition);
+                telemetry.addData("liftSetPosition", Lift.targetPosition);
+                telemetry.addData("Lift State", robot.lift.state);
+                telemetry.addData("Lift PID", Lift.PID_ENABLED);
+                telemetry.addData("Lift PID error", robot.lift.pid.getLastError());
+                telemetry.addData("Lift new POewr", robot.lift.newPower);
                 telemetry.update();
 
         }

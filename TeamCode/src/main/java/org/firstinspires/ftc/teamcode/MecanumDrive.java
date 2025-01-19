@@ -39,6 +39,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.messages.DriveCommandMessage;
@@ -63,14 +64,14 @@ public class MecanumDrive {
                 RevHubOrientationOnRobot.UsbFacingDirection.UP;
 
         // drive model parameters
-        public double inPerTick = 1; // If you're using OTOS/Pinpoint leave this at 1 (all values will be in inches, 1 tick = 1 inch)
-        public double lateralInPerTick = inPerTick; // Tune this with LateralRampLogger (even if you use OTOS/Pinpoint)
+        public double inPerTick = 100.0/2925; // If you're using OTOS/Pinpoint leave this at 1 (all values will be in inches, 1 tick = 1 inch)
+        public double lateralInPerTick = 100/2755.25 ; // Tune this with LateralRampLogger (even if you use OTOS/Pinpoint)
         public double trackWidthTicks = 11.37239956907749;
 
         // feedforward parameters (in tick units)
-        public double kS = 1.863222873770559;
-        public double kV = 0.1;
-        public double kA = .05;
+        public double kS =  2.2;
+        public double kV =  0.0045;
+        public double kA = 0.0009;
 
         // path profile parameters (in inches)
         public double maxWheelVel = 60;
@@ -82,9 +83,9 @@ public class MecanumDrive {
         public double maxAngAccel = Math.PI;
 
         // path controller gains
-        public double axialGain = 4.0;
-        public double lateralGain = 4.0;
-        public double headingGain = 0.0; // shared with turn
+        public double axialGain = 20.0;
+        public double lateralGain = 20.0;
+        public double headingGain = 450.0; // shared with turn
 
         public double axialVelGain = 0.0;
         public double lateralVelGain = 0.0;
@@ -139,8 +140,8 @@ public class MecanumDrive {
             imu = lazyImu.get();
 
             // TODO: reverse encoders if needed
-               rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
-               rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
+               //rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
+               //rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
                leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
                leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
         }

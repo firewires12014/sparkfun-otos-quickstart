@@ -22,6 +22,10 @@ public class ActionScheduler {
       actions.add(action);
    }
 
+   public boolean isBusy() {
+      return !actions.isEmpty();
+   }
+
    public void queueActionParallel(Action action) {
       if (actions.peek() == null) {
          action.preview(canvas);

@@ -16,7 +16,7 @@ public class auto2 extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         AutoActionScheduler scheduler;
         Pose2d startingPosition = new Pose2d(0, 0, Math.toRadians(0));
-        Robot robot = new Robot(hardwareMap);
+        Robot robot = new Robot(telemetry, hardwareMap);
         scheduler = new AutoActionScheduler(robot::update);
         waitForStart();
         while (opModeIsActive() && ! isStopRequested()) {

@@ -11,20 +11,24 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 @Config
 public class Outtake {
-    public static double FLIP_POSITION_UP = 1;
-    public static double FLIP_POSITION_DOWN = 0;
+    public static double FLIP_POSITION_UP = 0.2;
+    public static double FLIP_POSITION_DOWN = 1;
+    public static double FLIP_POSITION_SPECIMEN = 0.75;
     public static double GRAB_POSITION_UP = 0;
     public static double GRAB_POSITION_DOWN = 1;
-    public static double OUTTAKE_TARGET_POSITION_OUT = 360;
+    public static double OUTTAKE_TARGET_POSITION_OUT = 480;
     public static double OUTTAKE_TARGET_POSITION_IN = 1;
     public static double EXTENSION_DIRECTION = 1; // Set to positive or negative depending on direction of servo
+    public static double kp = 0;
+    public static double targetPosition = 0;
+    public static double power = 0;
 
     public CRServo extension;
     public Servo grab;
     public Servo flip;
     public AnalogInput extensionSensor;
     public double rawServoPosition; // Current servo position in degrees
-    public double posCurrent; // Current servo position in degrees
+    public static double posCurrent; // Current servo position in degrees
     public double posPrevious; // Previous servo position in degrees
     public double delta; // Change in position in degrees
 
@@ -54,6 +58,10 @@ public class Outtake {
         delta = rawServoPosition - posPrevious;
         posPrevious = rawServoPosition;
         posCurrent += delta;
+
+        extension.setPower(power);
+
+       // extension.setPower(-kp * (targetPosition - posCurrent));
     }
     
     /**
@@ -85,17 +93,17 @@ public class Outtake {
      *
      * @param targetPosition The target position to move the outtake to
      */
-    public Action moveOuttaketoPosition(double targetPosition) {
-        return new InstantAction(() -> {
-            if (getOuttakePosition() == targetPosition) {
-                stopOuttake(); // Stop Servo
-            } else if (getOuttakePosition() < targetPosition) {
-                extension.setPower(EXTENSION_DIRECTION); // Start Servo moving in
-            } else {
-                extension.setPower(-EXTENSION_DIRECTION); // Start Servo moving out
-            }
-        });
-    }
+//    public Action moveOuttaketoPosition(double targetPosition) {
+//        return new InstantAction(() -> {
+//            if (getOuttakePosition() == targetPosition) {
+//                stopOuttake(); // Stop Servo
+//            } else if (getOuttakePosition() < targetPosition) {
+//                extension.setPower(EXTENSION_DIRECTION); // Start Servo moving in
+//            } else {
+//                extension.setPower(-EXTENSION_DIRECTION); // Start Servo moving out
+//            }
+//        });
+//    }
 
     /**
      * Move the outtake in
@@ -108,7 +116,7 @@ public class Outtake {
             } else {
                 // Flip Outtake up and start moving in
                 // If outtake is not at the target position start moving in
-                extension.setPower(EXTENSION_DIRECTION); // Start Servo moving in
+                power = (EXTENSION_DIRECTION); // Start Servo moving in
             }
 //            flipOuttake("up");
         });
@@ -123,32 +131,59 @@ public class Outtake {
                 stopOuttake(); // Stop Servo
                 // Flip Outtake down when at position
             } else {
-                extension.setPower(-EXTENSION_DIRECTION); // Start Servo moving out
+                 power = (-EXTENSION_DIRECTION); // Start Servo moving out
             }
 //            flipOuttake("down");
         });
     }
 
+//    public Action moveOuttakeOut () {
+//        return new InstantAction(()-> targetPosition = OUTTAKE_TARGET_POSITION_OUT);
+//    }
+//
+//    public Action moveOuttakeIn () {
+//        return new InstantAction (()-> targetPosition = OUTTAKE_TARGET_POSITION_IN);
+//    }
+
     /**
      * Stop the outtake
      */
     public void stopOuttake() {
-        extension.setPower(0); // Stop Servo
+        power = (0); // Stop Servo
     }
 
     /**
      * Flip the outtake up or down
      *
-     * @param direction The direction to flip the outtake
      */
-    public void flipOuttake(String direction) {
-        if (direction.equalsIgnoreCase("up")) {
-            flip.setPosition(FLIP_POSITION_UP);
-            grab.setPosition(GRAB_POSITION_UP);
-        } else {
-            flip.setPosition(FLIP_POSITION_DOWN);
-            grab.setPosition(GRAB_POSITION_DOWN);
-        }
+//    public void flipOuttake(String direction) {
+//        if (direction.equalsIgnoreCase("up")) {
+//            flip.setPosition(FLIP_POSITION_UP);
+//            grab.setPosition(GRAB_POSITION_UP);
+//        } else {
+//            flip.setPosition(FLIP_POSITION_DOWN);
+//            grab.setPosition(GRAB_POSITION_DOWN);
+//        }
+//    }
+
+    public void flipOut () {
+        flip.setPosition(FLIP_POSITION_UP);
+    }
+
+    public void flipIn () {
+        flip.setPosition(FLIP_POSITION_DOWN);
+    }
+
+    public void flipSpecimen () {
+        flip.setPosition(FLIP_POSITION_SPECIMEN);
+    }
+
+    public void drop () {
+        grab.setPosition(GRAB_POSITION_DOWN);
+    }
+
+    public void hold () {
+        grab.setPosition(GRAB_POSITION_UP);
     }
 
 }
