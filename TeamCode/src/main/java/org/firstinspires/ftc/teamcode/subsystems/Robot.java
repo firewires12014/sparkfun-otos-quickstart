@@ -14,6 +14,7 @@ import com.acmerobotics.roadrunner.SleepAction;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.SparkFunOTOSDrive;
 import org.firstinspires.ftc.teamcode.util.ActionUtil;
@@ -77,12 +78,27 @@ public class Robot {
     public Action dropAndReturn() {
         return new SequentialAction(
                 new InstantAction(outtake::drop),
-                new SleepAction(.2),
+                new SleepAction(.5),
                 outtake.moveOuttakeIn(),
                 new InstantAction(outtake::flipIn),
                 new InstantAction(outtake::hold),
-                lift.setTargetPositionAction(0)
+                returnLift()
         );
+    }
+
+    public Action returnLift() {
+        return new ActionUtil.RunnableAction(()-> {
+           if (lift.lift.getCurrent(CurrentUnit.MILLIAMPS) > 8000) {
+               Lift.targetPosition = lift.lift.getCurrentPosition();
+               lift.lift.setPower(0);
+               Lift.PID_ENABLED = true;
+               return false;
+           } else {
+               Lift.PID_ENABLED = false;
+               lift.lift.setPower(-1);
+               return true;
+           }
+        });
     }
 
     public Action outtakeSpecimen () {
@@ -106,6 +122,7 @@ public class Robot {
 
     public Action transfer () {
         return new SequentialAction(
+                new InstantAction(outtake::flipIn),
                 new InstantAction(()->{
                     //lift.manualControl(-0.7);
                     lift.PID_ENABLED = false;
@@ -120,7 +137,7 @@ public class Robot {
                 new InstantAction(()-> Outtake.power = 1),
                 new InstantAction(intake::intakeOff),
                 new InstantAction(()->intake.lock.setPosition(GEEKED)),
-                new InstantAction(outtake::flipSpecimen),
+//                new InstantAction(outtake::flipSpecimen),
         new InstantAction(()->{
             //lift.manualControl(-0.7);
             lift.PID_ENABLED = true;

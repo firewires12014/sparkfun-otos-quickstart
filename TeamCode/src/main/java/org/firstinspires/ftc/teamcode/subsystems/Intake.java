@@ -9,6 +9,7 @@ import com.acmerobotics.roadrunner.InstantAction;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -25,20 +26,20 @@ public class Intake {
     public Servo down;
     public Servo lock;
     public RevColorSensorV3 downSensor;
-    RevColorSensorV3 forward;
+    DistanceSensor forward;
 
     PIDCoefficients coef;
     PIDFController pid;
 
     public static double targetPosition = 0;
-    public static double fourbarUp = 0.715;
-    public static double fourbarDown = 0;
+    public static double fourbarUp = 0.74;
+    public static double fourbarDown = 0.2;
     public static double fourbarResting = .6;
     public static double submerisbleBarDistance = 15;
 
     public static double GEEKED = 0.1;
     public static double LOCKED = 0.8;
-    public static double SOMETHING_IN_BETWEEN = .71;
+    public static double SOMETHING_IN_BETWEEN = .73;
 
     public static double tolerance = 75;
     public static double joystickDeadzone = 0.05;
@@ -59,7 +60,7 @@ public class Intake {
         down = hardwareMap.get(Servo.class, "intakeDown");
         lock = hardwareMap.get(Servo.class, "intakeLock");
         downSensor = hardwareMap.get(RevColorSensorV3.class, "intakeDownSensor");
-        forward = hardwareMap.get(RevColorSensorV3.class, "intakeForward");
+        forward = hardwareMap.get(DistanceSensor.class, "intakeForward");
 
         resetEncoder();
 

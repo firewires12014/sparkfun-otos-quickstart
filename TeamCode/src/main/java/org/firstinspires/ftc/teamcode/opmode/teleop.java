@@ -7,6 +7,7 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.subsystems.Hang;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
@@ -42,10 +43,8 @@ teleop extends LinearOpMode {
 
             // Operator
             // Intake
-            if (gamepad2.dpad_up) {
-                robot.intake.spin.setPower(.75);
-                robot.intake.lock.setPosition(Intake.GEEKED);
-            } else if (gamepad2.right_bumper) {
+
+              if (gamepad2.right_trigger > 0.1) {
                 robot.intake.down.setPosition(Intake.fourbarDown);
                 robot.intake.spin.setPower(-1);
                 robot.intake.lock.setPosition(Intake.SOMETHING_IN_BETWEEN);
@@ -54,10 +53,15 @@ teleop extends LinearOpMode {
                 robot.intake.down.setPosition(Intake.fourbarDown);
                 robot.intake.spin.setPower(1);
                 robot.intake.lock.setPosition(Intake.GEEKED);
-            } else {
+            }  else if (gamepad2.left_trigger > 0.1) {
+                  robot.intake.down.setPosition(Intake.fourbarDown);
+                  robot.intake.spin.setPower(1);
+              } else {
                 r2Toggle = false;
-                robot.intake.down.setPosition(Intake.fourbarResting);
-                if (!scheduler.isBusy()) robot.intake.spin.setPower(0);
+                if (!scheduler.isBusy()) {
+                    robot.intake.spin.setPower(0);
+                    robot.intake.down.setPosition(Intake.fourbarResting);
+                }
             }
 
             // Hang
@@ -83,6 +87,8 @@ teleop extends LinearOpMode {
 //                scheduler.queueAction(robot.outtake.moveOuttakeOut());
 //            }
 
+            if (gamepad2.touchpad) robot.lift.resetEncoder();
+
             if (gamepad2.circle) {
                 robot.outtake.flipOut();
             }
@@ -94,7 +100,7 @@ teleop extends LinearOpMode {
             if (gamepad2.dpad_left) {
                 scheduler.queueAction(robot.depositOuttake());
             }
-            if (gamepad2.left_trigger > .01) {
+            if (gamepad2.left_bumper && !scheduler.isBusy()) {
                 scheduler.queueAction(robot.dropAndReturn());
             }
 
@@ -106,7 +112,7 @@ teleop extends LinearOpMode {
                 scheduler.queueAction(robot.outtakeBucket());
             }
 
-            if (gamepad2.dpad_down) {
+            if (gamepad2.right_bumper && !scheduler.isBusy()) {
                 scheduler.queueAction(robot.transfer());
             }
 
@@ -128,6 +134,7 @@ teleop extends LinearOpMode {
                 telemetry.addData("Lift PID", Lift.PID_ENABLED);
                 telemetry.addData("Lift PID error", robot.lift.pid.getLastError());
                 telemetry.addData("Lift new POewr", robot.lift.newPower);
+                telemetry.addData("Lift current", robot.lift.lift.getCurrent(CurrentUnit.MILLIAMPS));
                 telemetry.update();
 
         }
