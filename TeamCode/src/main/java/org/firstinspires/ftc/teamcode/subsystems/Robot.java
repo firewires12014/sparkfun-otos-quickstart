@@ -3,6 +3,9 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import static org.firstinspires.ftc.teamcode.subsystems.Intake.GEEKED;
 import static org.firstinspires.ftc.teamcode.subsystems.Intake.LOCKED;
 
+import static org.firstinspires.ftc.teamcode.subsystems.Outtake.OUTTAKE_TARGET_POSITION_IN;
+import static org.firstinspires.ftc.teamcode.subsystems.Outtake.OUTTAKE_TARGET_POSITION_OUT;
+
 import android.annotation.SuppressLint;
 
 import com.acmerobotics.roadrunner.Action;
@@ -130,14 +133,20 @@ public class Robot {
                 }),
                 new InstantAction(()-> intake.lock.setPosition(LOCKED)),
                 new InstantAction(()->intake.spin.setPower(-0.5)),
-                new InstantAction(()-> Outtake.power = 1),
+                new InstantAction(()-> Outtake.power = -1),
+                new SleepAction(.5),
+                new InstantAction(()-> Outtake.power = 0),
                 intake.fourbarIn(),
                 intake.setTargetPositionAction(-50),
                 new SleepAction(1),
                 new InstantAction(()-> Outtake.power = 1),
                 new InstantAction(intake::intakeOff),
+                new SleepAction(1),
                 new InstantAction(()->intake.lock.setPosition(GEEKED)),
-//                new InstantAction(outtake::flipSpecimen),
+                new SleepAction(1),
+                new InstantAction(outtake::flipSpecimen),
+                new SleepAction(.5),
+                new InstantAction(()-> intake.fourbarOut()),
         new InstantAction(()->{
             //lift.manualControl(-0.7);
             lift.PID_ENABLED = true;

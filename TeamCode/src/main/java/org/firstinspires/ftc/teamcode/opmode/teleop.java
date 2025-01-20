@@ -16,9 +16,8 @@ import org.firstinspires.ftc.teamcode.subsystems.Outtake;
 import org.firstinspires.ftc.teamcode.subsystems.Robot;
 import org.firstinspires.ftc.teamcode.util.ActionScheduler;
 
-@TeleOp
-public class
-teleop extends LinearOpMode {
+@TeleOp(name="Teleop", group="Into the Deep")
+public class teleop extends LinearOpMode {
     boolean r2Toggle = false;
 
     @Override

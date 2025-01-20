@@ -9,14 +9,17 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Lift;
 import org.firstinspires.ftc.teamcode.subsystems.Outtake;
 import org.firstinspires.ftc.teamcode.subsystems.Robot;
 import org.firstinspires.ftc.teamcode.util.AutoActionScheduler;
-@Autonomous
+
+@Autonomous(name="Auto", group="Into the Deep")
 public class auto extends LinearOpMode {
     Robot robot;
     AutoActionScheduler scheduler;
@@ -39,6 +42,7 @@ public class auto extends LinearOpMode {
         while (opModeIsActive() && ! isStopRequested()) {
             preload();
             returnLiftAndIntake();
+            scoreSecond();
 
             scheduler.addAction(robot.endAuto(telemetry, 30));
             scheduler.run();
@@ -80,7 +84,11 @@ public class auto extends LinearOpMode {
 
             Outtake.power = 1; // could cause issues if it isn't set to zero later
         }));
-        while (!(robot.intake.downSensor.getDistance(DistanceUnit.MM) < 20)) {}
+//        while ((robot.intake.downSensor.getDistance(DistanceUnit.MM) < 20) || !(robot.intake.extension.getCurrentPosition()> 1000)) {}
+        while (robot.intake.downSensor.getDistance(DistanceUnit.MM) > 20) {}
+
+        telemetry.addData("Past sensor area", robot.intake.extension.getCurrentPosition() );
+        telemetry.update();
         scheduler.run();
 
         scheduler.addAction(robot.transfer());
@@ -89,7 +97,7 @@ public class auto extends LinearOpMode {
             robot.intake.spin.setPower(0);
         }));
 
-        while (!(robot.lift.lift.getCurrentPosition() < 0)) {} // maybe set higher or lower to make it transfer faster
+        while (!(robot.lift.lift.getCurrentPosition() < 100) || !(robot.lift.lift.getCurrent(CurrentUnit.MILLIAMPS)> 6000)) {} // maybe set higher or lower to make it transfer faster
         scheduler.run();
     }
 
@@ -100,7 +108,7 @@ public class auto extends LinearOpMode {
 
     public void update(){
         robot.update();
-
+        telemetry.addData("intakeDownSensor", robot.intake.downSensor.getDistance(DistanceUnit.MM));
         telemetry.addData("Lift Encoder Position", robot.lift.lift.getCurrentPosition());
         telemetry.update();
     }
