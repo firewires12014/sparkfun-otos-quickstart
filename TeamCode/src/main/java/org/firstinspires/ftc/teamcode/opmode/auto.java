@@ -40,70 +40,121 @@ public class auto extends LinearOpMode {
 
         waitForStart();
         while (opModeIsActive() && ! isStopRequested()) {
-            preload();
-            returnLiftAndIntake();
-            scoreSecond();
-
-            scheduler.addAction(robot.endAuto(telemetry, 30));
+            scheduler.addAction(robot.outtakeBucket());
+            scheduler.addAction(robot.intake.setTargetPositionAction(600));
+            scheduler.addAction(robot.intake.fourbarOut());
+            scheduler.addAction(robot.drive.actionBuilder(startingPosition)
+                    .strafeToLinearHeading(new Vector2d(16.5, 22), Math.toRadians(-21))
+                    .build());
+            scheduler.addAction(new SleepAction(1));
+            scheduler.addAction(new InstantAction(()-> robot.outtake.grab.setPosition(Outtake.GRAB_POSITION_DOWN)));
+            scheduler.addAction(new InstantAction(()-> {
+                robot.intake.spin.setPower(-1);
+                robot.intake.fourbarOut();
+            }));
+            scheduler.addAction(new InstantAction(()-> {
+                Intake.PID_ENABLED = false;
+                robot.intake.extension.setPower(0.5);
+                robot.intake.lock.setPosition(Intake.SOMETHING_IN_BETWEEN);
+            }));
+            scheduler.addAction(robot.dropAndReturn());
             scheduler.run();
-            return;
-        }
-    }
+//            telemetry.addLine("Preload Complete");
+//                telemetry.update();
 
-    public void preload() {
-        scheduler.addAction(robot.outtakeBucket());
-        scheduler.addAction(robot.intake.setTargetPositionAction(600));
-        scheduler.addAction(robot.intake.fourbarOut());
-        scheduler.addAction(robot.drive.actionBuilder(startingPosition)
-                .strafeToLinearHeading(new Vector2d(17.7, 21.86), Math.toRadians(-25.4))
-                .build());
-        scheduler.addAction(new SleepAction(1));
-        scheduler.addAction(new InstantAction(()-> robot.outtake.grab.setPosition(Outtake.GRAB_POSITION_DOWN)));
-        scheduler.addAction(new InstantAction(()-> {
-            robot.intake.spin.setPower(-1);
-            robot.intake.fourbarOut();
-        }));
-        scheduler.addAction(new InstantAction(()-> {
-            Intake.PID_ENABLED = false;
-            robot.intake.extension.setPower(0.5);
-            robot.intake.lock.setPosition(Intake.SOMETHING_IN_BETWEEN);
-        }));
-        scheduler.addAction(robot.dropAndReturn());
-        scheduler.run();
-    }
+            scheduler.addAction(new InstantAction(()-> {
+                Lift.PID_ENABLED = false;
+                robot.lift.lift.setPower(-1);
+                robot.intake.intakeOff();
+                robot.intake.fourbarIn();
 
-    public void returnLiftAndIntake() {
-        scheduler.addAction(new InstantAction(()-> {
-            Lift.PID_ENABLED = false;
-            robot.lift.lift.setPower(-1);
-            robot.intake.intakeOff();
-            robot.intake.fourbarIn();
+                robot.intake.extension.setPower(0);
+                Intake.PID_ENABLED = true;
 
-            robot.intake.extension.setPower(0);
-            Intake.PID_ENABLED = true;
-
-            Outtake.power = 1; // could cause issues if it isn't set to zero later
-        }));
+                Outtake.power = 1; // could cause issues if it isn't set to zero later
+            }));
 //        while ((robot.intake.downSensor.getDistance(DistanceUnit.MM) < 20) || !(robot.intake.extension.getCurrentPosition()> 1000)) {}
-        while (robot.intake.downSensor.getDistance(DistanceUnit.MM) > 20) {}
+            while (robot.intake.downSensor.getDistance(DistanceUnit.MM) > 20) {}
 
-        telemetry.addData("Past sensor area", robot.intake.extension.getCurrentPosition() );
-        telemetry.update();
-        scheduler.run();
+            telemetry.addData("Past sensor area", robot.intake.extension.getCurrentPosition() );
+            telemetry.update();
+            scheduler.run();
 
-        scheduler.addAction(robot.transfer());
-        scheduler.addAction(new InstantAction(()-> {
-            Lift.PID_ENABLED  = true;
-            robot.intake.spin.setPower(0);
-        }));
+            scheduler.addAction(robot.transfer());
+            scheduler.addAction(new InstantAction(()-> {
+                Lift.PID_ENABLED = true;
+                robot.intake.spin.setPower(0);
+//            telemetry.addLine("returnLiftAndIntake Complete");
+          //      telemetry.update();
 
-        while (!(robot.lift.lift.getCurrentPosition() < 100) || !(robot.lift.lift.getCurrent(CurrentUnit.MILLIAMPS)> 6000)) {} // maybe set higher or lower to make it transfer faster
-        scheduler.run();
-    }
+                scheduler.addAction(new InstantAction(() -> robot.intake.lock.setPosition(GEEKED)));
+                scheduler.addAction(robot.outtakeBucket());
+                telemetry.addLine("scoreSecond Complete");
+                telemetry.update();
 
-    public void scoreSecond() {
-        scheduler.addAction(new InstantAction(()->robot.intake.lock.setPosition(GEEKED)));
-        scheduler.addAction(robot.outtakeBucket());
+                scheduler.addAction(robot.endAuto(telemetry, 30));
+                scheduler.run();
+                return;
+            }
+        }
+
+
+
+
+//    public void preload() {
+//        scheduler.addAction(robot.outtakeBucket());
+//        scheduler.addAction(robot.intake.setTargetPositionAction(600));
+//        scheduler.addAction(robot.intake.fourbarOut());
+//        scheduler.addAction(robot.drive.actionBuilder(startingPosition)
+//                .strafeToLinearHeading(new Vector2d(16.5, 22), Math.toRadians(-21))
+//                .build());
+//        scheduler.addAction(new SleepAction(1));
+//        scheduler.addAction(new InstantAction(()-> robot.outtake.grab.setPosition(Outtake.GRAB_POSITION_DOWN)));
+//        scheduler.addAction(new InstantAction(()-> {
+//            robot.intake.spin.setPower(-1);
+//            robot.intake.fourbarOut();
+//        }));
+//        scheduler.addAction(new InstantAction(()-> {
+//            Intake.PID_ENABLED = false;
+//            robot.intake.extension.setPower(0.5);
+//            robot.intake.lock.setPosition(Intake.SOMETHING_IN_BETWEEN);
+//        }));
+//        scheduler.addAction(robot.dropAndReturn());
+//        scheduler.run();
+//    }
+//
+//    public void returnLiftAndIntake() {
+//        scheduler.addAction(new InstantAction(()-> {
+//            Lift.PID_ENABLED = false;
+//            robot.lift.lift.setPower(-1);
+//            robot.intake.intakeOff();
+//            robot.intake.fourbarIn();
+//
+//            robot.intake.extension.setPower(0);
+//            Intake.PID_ENABLED = true;
+//
+//            Outtake.power = 1; // could cause issues if it isn't set to zero later
+//        }));
+////        while ((robot.intake.downSensor.getDistance(DistanceUnit.MM) < 20) || !(robot.intake.extension.getCurrentPosition()> 1000)) {}
+//        while (robot.intake.downSensor.getDistance(DistanceUnit.MM) > 20) {}
+//
+//        telemetry.addData("Past sensor area", robot.intake.extension.getCurrentPosition() );
+//        telemetry.update();
+//        scheduler.run();
+//
+//        scheduler.addAction(robot.transfer());
+//        scheduler.addAction(new InstantAction(()-> {
+//            Lift.PID_ENABLED  = true;
+//            robot.intake.spin.setPower(0);
+//        }));
+//
+//        while (!(robot.lift.lift.getCurrentPosition() < 100) || !(robot.lift.lift.getCurrent(CurrentUnit.MILLIAMPS)> 6000)) {} // maybe set higher or lower to make it transfer faster
+//        scheduler.run();
+//    }
+//
+//    public void scoreSecond() {
+//        scheduler.addAction(new InstantAction(()->robot.intake.lock.setPosition(GEEKED)));
+//        scheduler.addAction(robot.outtakeBucket());
     }
 
     public void update(){
@@ -113,3 +164,7 @@ public class auto extends LinearOpMode {
         telemetry.update();
     }
 }
+
+
+
+
