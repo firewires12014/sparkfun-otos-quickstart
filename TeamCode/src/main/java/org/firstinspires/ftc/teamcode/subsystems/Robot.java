@@ -91,7 +91,7 @@ public class Robot {
 
     public Action returnLift() {
         return new ActionUtil.RunnableAction(()-> {
-           if (lift.lift.getCurrent(CurrentUnit.MILLIAMPS) > 8000) {
+           if (lift.lift.getCurrent(CurrentUnit.MILLIAMPS) > 4000) {
                Lift.targetPosition = lift.lift.getCurrentPosition();
                lift.lift.setPower(0);
                Lift.PID_ENABLED = true;
@@ -129,12 +129,12 @@ public class Robot {
                 new InstantAction(()->{
                     //lift.manualControl(-0.7);
                     lift.PID_ENABLED = false;
-                    lift.lift.setPower(-0.8);
+                    lift.lift.setPower(-0.85);
                 }),
                 new InstantAction(()-> intake.lock.setPosition(LOCKED)),
                 new InstantAction(()->intake.spin.setPower(-0.5)),
                 new InstantAction(()-> Outtake.power = -1),
-                new SleepAction(.3),
+                new SleepAction(.5),
                 new InstantAction(()-> Outtake.power = 0),
                 intake.fourbarIn(),
                 intake.setTargetPositionAction(-50),

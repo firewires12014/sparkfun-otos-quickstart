@@ -21,25 +21,30 @@ import org.firstinspires.ftc.teamcode.util.AutoActionScheduler;
 
 @Autonomous(name="Auto", group="Into the Deep")
 public class auto extends LinearOpMode {
-    Robot robot;
-    AutoActionScheduler scheduler;
+
+
     Pose2d startingPosition = new Pose2d(0, 0, Math.toRadians(0));
+    Robot robot = new Robot(telemetry, hardwareMap);
+    AutoActionScheduler scheduler = new AutoActionScheduler(robot::update);
 
     @Override
     public void runOpMode() throws InterruptedException {
-        robot = new Robot(telemetry, hardwareMap);
-        scheduler = new AutoActionScheduler(this::update);
+        // Pose2d startingPosition = new Pose2d(0, 0, Math.toRadians(0));
+
 
         while (opModeInInit() && !isStopRequested()) {
-            robot.lift.lift.setPower(-.8);
-            robot.intake.down.setPosition(Intake.fourbarResting);
-            robot.intake.lock.setPosition(Intake.SOMETHING_IN_BETWEEN);
+            preload();
+            returnLiftAndIntake();
+            scoreSecond();
+
+            scheduler.addAction(robot.endAuto(telemetry, 30));
+
+
+            return;
         }
 
-        robot.lift.lift.setPower(0);
 
-        waitForStart();
-        while (opModeIsActive() && !isStopRequested()) {
+        public void preload () {
             scheduler.addAction(robot.outtakeBucket());
             scheduler.addAction(robot.intake.setTargetPositionAction(600));
             scheduler.addAction(robot.intake.fourbarOut());
@@ -59,9 +64,10 @@ public class auto extends LinearOpMode {
             }));
             scheduler.addAction(robot.dropAndReturn());
             scheduler.run();
-//            telemetry.addLine("Preload Complete");
-//                telemetry.update();
+        }
 
+
+        public void returnLiftAndIntake () {
             scheduler.addAction(new InstantAction(() -> {
                 Lift.PID_ENABLED = false;
                 robot.lift.lift.setPower(-1);
@@ -73,10 +79,10 @@ public class auto extends LinearOpMode {
 
                 Outtake.power = 1; // could cause issues if it isn't set to zero later
             }));
-
 //        while ((robot.intake.downSensor.getDistance(DistanceUnit.MM) < 20) || !(robot.intake.extension.getCurrentPosition()> 1000)) {}
-           // while (robot.intake.downSensor.getDistance(DistanceUnit.MM) > 20) {
-
+            while (robot.intake.downSensor.getDistance(DistanceUnit.MM) > 20) {
+            }
+        }
 
             telemetry.addData("Past sensor area", robot.intake.extension.getCurrentPosition());
             telemetry.update();
@@ -86,78 +92,18 @@ public class auto extends LinearOpMode {
             scheduler.addAction(new InstantAction(() -> {
                 Lift.PID_ENABLED = true;
                 robot.intake.spin.setPower(0);
-//            telemetry.addLine("returnLiftAndIntake Complete");
-                //      telemetry.update();
             }));
 
+            while (!(robot.lift.lift.getCurrentPosition() < 100) || !(robot.lift.lift.getCurrent(CurrentUnit.MILLIAMPS) > 6000)) {
+            } // maybe set higher or lower to make it transfer faster
+            scheduler.run();
+        }
+
+
+        public void scoreSecond () {
             scheduler.addAction(new InstantAction(() -> robot.intake.lock.setPosition(GEEKED)));
             scheduler.addAction(robot.outtakeBucket());
-            telemetry.addLine("scoreSecond Complete");
-            telemetry.update();
         }
-
-            scheduler.addAction(robot.endAuto(telemetry, 30));
-            scheduler.run();
-
-            return;
-        }
-
-
-//    public void preload() {
-//        scheduler.addAction(robot.outtakeBucket());
-//        scheduler.addAction(robot.intake.setTargetPositionAction(600));
-//        scheduler.addAction(robot.intake.fourbarOut());
-//        scheduler.addAction(robot.drive.actionBuilder(startingPosition)
-//                .strafeToLinearHeading(new Vector2d(16.5, 22), Math.toRadians(-21))
-//                .build());
-//        scheduler.addAction(new SleepAction(1));
-//        scheduler.addAction(new InstantAction(()-> robot.outtake.grab.setPosition(Outtake.GRAB_POSITION_DOWN)));
-//        scheduler.addAction(new InstantAction(()-> {
-//            robot.intake.spin.setPower(-1);
-//            robot.intake.fourbarOut();
-//        }));
-//        scheduler.addAction(new InstantAction(()-> {
-//            Intake.PID_ENABLED = false;
-//            robot.intake.extension.setPower(0.5);
-//            robot.intake.lock.setPosition(Intake.SOMETHING_IN_BETWEEN);
-//        }));
-//        scheduler.addAction(robot.dropAndReturn());
-//        scheduler.run();
-//    }
-//
-//    public void returnLiftAndIntake() {
-//        scheduler.addAction(new InstantAction(()-> {
-//            Lift.PID_ENABLED = false;
-//            robot.lift.lift.setPower(-1);
-//            robot.intake.intakeOff();
-//            robot.intake.fourbarIn();
-//
-//            robot.intake.extension.setPower(0);
-//            Intake.PID_ENABLED = true;
-//
-//            Outtake.power = 1; // could cause issues if it isn't set to zero later
-//        }));
-////        while ((robot.intake.downSensor.getDistance(DistanceUnit.MM) < 20) || !(robot.intake.extension.getCurrentPosition()> 1000)) {}
-//        while (robot.intake.downSensor.getDistance(DistanceUnit.MM) > 20) {}
-//
-//        telemetry.addData("Past sensor area", robot.intake.extension.getCurrentPosition() );
-//        telemetry.update();
-//        scheduler.run();
-//
-//        scheduler.addAction(robot.transfer());
-//        scheduler.addAction(new InstantAction(()-> {
-//            Lift.PID_ENABLED  = true;
-//            robot.intake.spin.setPower(0);
-//        }));
-//
-//        while (!(robot.lift.lift.getCurrentPosition() < 100) || !(robot.lift.lift.getCurrent(CurrentUnit.MILLIAMPS)> 6000)) {} // maybe set higher or lower to make it transfer faster
-//        scheduler.run();
-//    }
-//
-//    public void scoreSecond() {
-//        scheduler.addAction(new InstantAction(()->robot.intake.lock.setPosition(GEEKED)));
-//        scheduler.addAction(robot.outtakeBucket());
-//      }
 
         public void update () {
             robot.update();
@@ -167,6 +113,8 @@ public class auto extends LinearOpMode {
 
         }
     }
+
+
 
 
 
