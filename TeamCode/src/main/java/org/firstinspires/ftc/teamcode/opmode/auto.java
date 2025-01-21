@@ -22,17 +22,21 @@ import org.firstinspires.ftc.teamcode.util.AutoActionScheduler;
 @Autonomous(name="Auto", group="Into the Deep")
 public class auto extends LinearOpMode {
 
-
-    Pose2d startingPosition = new Pose2d(0, 0, Math.toRadians(0));
-    Robot robot = new Robot(telemetry, hardwareMap);
-    AutoActionScheduler scheduler = new AutoActionScheduler(robot::update);
-
     @Override
-    public void runOpMode() throws InterruptedException {
-        // Pose2d startingPosition = new Pose2d(0, 0, Math.toRadians(0));
 
+    public void runOpMode() throws InterruptedException {
+        Pose2d startingPosition = new Pose2d(0, 0, Math.toRadians(0));
+        Robot robot = new Robot(telemetry, hardwareMap);
+        AutoActionScheduler scheduler = new AutoActionScheduler(robot::update);
 
         while (opModeInInit() && !isStopRequested()) {
+            robot.lift.lift.setPower(-.8);
+            robot.intake.down.setPosition(Intake.fourbarResting);
+            robot.intake.lock.setPosition(Intake.SOMETHING_IN_BETWEEN);
+        }
+
+        waitForStart();
+        while (opModeIsActive() && !isStopRequested()) {
             preload();
             returnLiftAndIntake();
             scoreSecond();
@@ -82,10 +86,7 @@ public class auto extends LinearOpMode {
 //        while ((robot.intake.downSensor.getDistance(DistanceUnit.MM) < 20) || !(robot.intake.extension.getCurrentPosition()> 1000)) {}
             while (robot.intake.downSensor.getDistance(DistanceUnit.MM) > 20) {
             }
-        }
 
-            telemetry.addData("Past sensor area", robot.intake.extension.getCurrentPosition());
-            telemetry.update();
             scheduler.run();
 
             scheduler.addAction(robot.transfer());
@@ -93,6 +94,7 @@ public class auto extends LinearOpMode {
                 Lift.PID_ENABLED = true;
                 robot.intake.spin.setPower(0);
             }));
+
 
             while (!(robot.lift.lift.getCurrentPosition() < 100) || !(robot.lift.lift.getCurrent(CurrentUnit.MILLIAMPS) > 6000)) {
             } // maybe set higher or lower to make it transfer faster
@@ -113,7 +115,7 @@ public class auto extends LinearOpMode {
 
         }
     }
-
+    }
 
 
 
