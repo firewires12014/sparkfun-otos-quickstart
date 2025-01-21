@@ -134,7 +134,7 @@ public class Robot {
                 new InstantAction(()-> intake.lock.setPosition(LOCKED)),
                 new InstantAction(()->intake.spin.setPower(-0.5)),
                 new InstantAction(()-> Outtake.power = -1),
-                new SleepAction(.5),
+                new SleepAction(.3),
                 new InstantAction(()-> Outtake.power = 0),
                 intake.fourbarIn(),
                 intake.setTargetPositionAction(-50),
