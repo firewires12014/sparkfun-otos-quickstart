@@ -140,7 +140,6 @@ public class teleop extends LinearOpMode {
                 telemetry.addData("Lift PID error", robot.lift.pid.getLastError());
                 telemetry.addData("Lift new Power", robot.lift.newPower);
                 telemetry.addData("Lift current", robot.lift.lift.getCurrent(CurrentUnit.MILLIAMPS));
-                telemetry.addData("Lift2 new Power", robot.lift.newPower);
                 telemetry.addData("Lift current", robot.lift.lift2.getCurrent(CurrentUnit.MILLIAMPS));
                 telemetry.addData("Schedule State", scheduler.isBusy());
                 telemetry.update();
