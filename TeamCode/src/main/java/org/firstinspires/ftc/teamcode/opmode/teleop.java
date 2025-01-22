@@ -47,15 +47,15 @@ public class teleop extends LinearOpMode {
                 robot.intake.down.setPosition(Intake.fourbarDown);
                 robot.intake.spin.setPower(-1);
                 robot.intake.lock.setPosition(Intake.SOMETHING_IN_BETWEEN);
-            } else if ((gamepad2.right_trigger > 0.1 && robot.intake.downSensor.getDistance(DistanceUnit.MM) < Intake.submerisbleBarDistance) || r2Toggle) { // doesn't work
-                r2Toggle = true;
-                robot.intake.down.setPosition(Intake.fourbarDown);
-                robot.intake.spin.setPower(1);
-                robot.intake.lock.setPosition(Intake.GEEKED);
+//            } else if ((gamepad2.right_trigger > 0.1 && robot.intake.downSensor.getDistance(DistanceUnit.MM) < Intake.submerisbleBarDistance) || r2Toggle) { // doesn't work
+//                r2Toggle = true;
+//                robot.intake.down.setPosition(Intake.fourbarDown);
+//                robot.intake.spin.setPower(1);
+//                robot.intake.lock.setPosition(Intake.GEEKED);
             }  else if (gamepad2.left_trigger > 0.1) {
                   robot.intake.down.setPosition(Intake.fourbarDown);
                   robot.intake.spin.setPower(1);
-              } else {
+            } else {
                 r2Toggle = false;
                 if (!scheduler.isBusy()) {
                     robot.intake.spin.setPower(0);
@@ -74,6 +74,7 @@ public class teleop extends LinearOpMode {
             // Manual Control
 //            robot.hang.manualControl(-gamepad2.right_stick_y);
             robot.intake.manualControl(-gamepad2.left_stick_y);
+
             if (!scheduler.isBusy()) {
                robot.lift.manualControl(-gamepad2.right_stick_y);
             }
@@ -86,7 +87,10 @@ public class teleop extends LinearOpMode {
 //                scheduler.queueAction(robot.outtake.moveOuttakeOut());
 //            }
 
-            if (gamepad2.touchpad) robot.lift.resetEncoder();
+            if (gamepad2.touchpad) {
+                robot.lift.resetEncoder();
+                robot.intake.resetEncoder();
+            }
 
             if (gamepad2.circle) {
                 robot.outtake.flipOut();
@@ -100,7 +104,7 @@ public class teleop extends LinearOpMode {
                 scheduler.queueAction(robot.depositOuttake());
             }
             if (gamepad2.left_bumper && !scheduler.isBusy()) {
-                scheduler.queueAction(robot.dropAndReturn());
+                scheduler.queueAction(robot.dropAndReturnTeleop());
             }
 
             if (gamepad2.dpad_right) {
@@ -119,12 +123,14 @@ public class teleop extends LinearOpMode {
                 scheduler.update();
 
                 telemetry.addData("LiftPower", robot.lift.lift.getPower());
+                telemetry.addData("LiftPower", robot.lift.lift2.getPower());
                 telemetry.addData("extensionDistance", robot.intake.extension.getCurrentPosition());
                 telemetry.addData("distanceSensor", robot.intake.downSensor.getDistance(DistanceUnit.MM));
                 telemetry.addData("extensionTarget", Intake.targetPosition);
                 telemetry.addData("hangOutPosition", robot.hang.hangmotor1.getCurrentPosition());
                 telemetry.addData("hangInPosition", Hang.targetPosition);
                 telemetry.addData("liftTarget", robot.lift.lift.getCurrentPosition());
+                telemetry.addData("liftTarget", robot.lift.lift2.getCurrentPosition());
                 telemetry.addData("Intake State", robot.intake.state);
                 telemetry.addData("outtakeTargetPosition", Outtake.posCurrent);
                 telemetry.addData("outtakeSetPosition", Outtake.targetPosition);
@@ -132,8 +138,11 @@ public class teleop extends LinearOpMode {
                 telemetry.addData("Lift State", robot.lift.state);
                 telemetry.addData("Lift PID", Lift.PID_ENABLED);
                 telemetry.addData("Lift PID error", robot.lift.pid.getLastError());
-                telemetry.addData("Lift new POewr", robot.lift.newPower);
+                telemetry.addData("Lift new Power", robot.lift.newPower);
                 telemetry.addData("Lift current", robot.lift.lift.getCurrent(CurrentUnit.MILLIAMPS));
+                telemetry.addData("Lift2 new Power", robot.lift.newPower);
+                telemetry.addData("Lift current", robot.lift.lift2.getCurrent(CurrentUnit.MILLIAMPS));
+                telemetry.addData("Schedule State", scheduler.isBusy());
                 telemetry.update();
 
         }

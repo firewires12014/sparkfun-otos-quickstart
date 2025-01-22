@@ -18,6 +18,7 @@ import org.firstinspires.ftc.teamcode.util.PIDFController;
 @Config
 public class Lift {
     public DcMotorEx lift;
+    public DcMotorEx lift2;
     public DigitalChannel limitSwitch;
 
     public PIDCoefficients coef;
@@ -47,13 +48,18 @@ public class Lift {
 
     public Lift(HardwareMap hardwareMap) {
         lift = hardwareMap.get(DcMotorEx.class, "lift");
+        lift2 = hardwareMap.get(DcMotorEx.class,"lift2");
 
         lift.setDirection(DcMotorSimple.Direction.REVERSE);
+        lift2.setDirection(DcMotorSimple.Direction.REVERSE);
 
         resetEncoder();
 
         lift.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        lift2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        lift2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
 
         coef = new PIDCoefficients(0.0065, 0, 0);
         pid = new PIDFController(coef, 0, 0,0,(t, x, v)-> 0.0);
@@ -61,7 +67,9 @@ public class Lift {
 
     public void resetEncoder() {
         lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        lift2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         lift.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        lift2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
     public void update() {
@@ -71,9 +79,8 @@ public class Lift {
 
         if (PID_ENABLED) {
             newPower = this.pid.update(lift.getCurrentPosition(), lift.getVelocity());
-
             lift.setPower(newPower);
-
+            lift2.setPower(newPower);
         }
     }
 
@@ -135,6 +142,7 @@ public class Lift {
                 break;
             case USING:
                 lift.setPower(joystickInput);
+                lift2.setPower(joystickInput);
 
                 if (Math.abs(joystickInput) < joystickDeadzone) state = Lift.ManualControl.LET_GO;
                 break;

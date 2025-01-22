@@ -40,7 +40,7 @@ public class Hang {
     public static double tolerance = 75;
 
     public Hang(HardwareMap hardwareMap) {
-        hangmotor1 = hardwareMap.get(DcMotorEx.class, "hang");
+        hangmotor1 = hardwareMap.get(DcMotorEx.class, "lift2");
         ptoLeft = hardwareMap.get(Servo.class, "ptoLeft");
         ptoRight = hardwareMap.get(Servo.class, "ptoRight");
 

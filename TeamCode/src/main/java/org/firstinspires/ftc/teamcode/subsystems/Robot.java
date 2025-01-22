@@ -78,29 +78,59 @@ public class Robot {
         );
     }
 
-    public Action dropAndReturn() {
+    public Action dropAndReturnTeleop() {
         return new SequentialAction(
                 new InstantAction(outtake::drop),
                 new SleepAction(.5),
                 outtake.moveOuttakeIn(),
                 new InstantAction(outtake::flipIn),
                 new InstantAction(outtake::hold),
-                returnLift()
+                returnLiftTeleop()
         );
     }
 
-    public Action returnLift() {
+    public Action returnLiftTeleop() {
         return new ActionUtil.RunnableAction(()-> {
-           if (lift.lift.getCurrent(CurrentUnit.MILLIAMPS) > 4000) {
+           if (lift.lift.getCurrent(CurrentUnit.MILLIAMPS) > 5000) {
                Lift.targetPosition = lift.lift.getCurrentPosition();
                lift.lift.setPower(0);
+               lift.lift2.setPower(0);
                Lift.PID_ENABLED = true;
                return false;
            } else {
                Lift.PID_ENABLED = false;
                lift.lift.setPower(-1);
+               lift.lift2.setPower(-1);
                return true;
            }
+        });
+    }
+
+    public Action dropAndReturnAuto() {
+        return new SequentialAction(
+                new InstantAction(outtake::drop),
+                new SleepAction(.5),
+                outtake.moveOuttakeIn(),
+                new InstantAction(outtake::flipIn),
+                new InstantAction(outtake::hold),
+                returnLiftAuto()
+        );
+    }
+
+    public Action returnLiftAuto() {
+        return new ActionUtil.RunnableAction(()-> {
+            if (lift.lift.getCurrent(CurrentUnit.MILLIAMPS) > 4000) {
+                Lift.targetPosition = lift.lift.getCurrentPosition();
+                lift.lift.setPower(0);
+                lift.lift2.setPower(0);
+                Lift.PID_ENABLED = true;
+                return false;
+            } else {
+                Lift.PID_ENABLED = false;
+                lift.lift.setPower(-1);
+                lift.lift2.setPower(-1);
+                return true;
+            }
         });
     }
 
@@ -117,7 +147,7 @@ public class Robot {
     public Action outtakeBucket () {
         return new SequentialAction(
                 new InstantAction(()->intake.lock.setPosition(GEEKED)),
-                lift.setTargetPositionAction(3200),
+                lift.setTargetPositionAction(3400),
                 outtake.moveOuttakeOut(),
                 new InstantAction(outtake::flipOut)
         );
@@ -130,20 +160,21 @@ public class Robot {
                     //lift.manualControl(-0.7);
                     lift.PID_ENABLED = false;
                     lift.lift.setPower(-0.85);
+                    lift.lift2.setPower(-0.85);
                 }),
                 new InstantAction(()-> intake.lock.setPosition(LOCKED)),
                 new InstantAction(()->intake.spin.setPower(-0.5)),
                 new InstantAction(()-> Outtake.power = -1),
-                new SleepAction(.5),
+                new SleepAction(.25),
                 new InstantAction(()-> Outtake.power = 0),
                 intake.fourbarIn(),
                 intake.setTargetPositionAction(-50),
-                new SleepAction(1),
+                new SleepAction(.5),
                 new InstantAction(()-> Outtake.power = 1),
                 new InstantAction(intake::intakeOff),
-                new SleepAction(1),
+                new SleepAction(.5),
                 new InstantAction(()->intake.lock.setPosition(GEEKED)),
-                new SleepAction(1),
+                new SleepAction(.5),
                 new InstantAction(outtake::flipSpecimen),
                 new SleepAction(.5),
                 new InstantAction(()-> intake.fourbarOut()),
@@ -151,6 +182,7 @@ public class Robot {
             //lift.manualControl(-0.7);
             lift.PID_ENABLED = true;
             lift.lift.setPower(0);
+            lift.lift2.setPower(0);
         })
 
 

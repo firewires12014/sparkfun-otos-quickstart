@@ -40,6 +40,9 @@ public class ActionScheduler {
    public void update() {
       TelemetryPacket packet = new TelemetryPacket();
       packet.fieldOverlay().getOperations().addAll(canvas.getOperations());
+      packet.addLine("---Start Action---");
+      packet.addLine(actions.toString());
+      packet.addLine("---End Action---");
 
       if (actions.peek() != null) {
          boolean running = actions.peek().run(packet);
