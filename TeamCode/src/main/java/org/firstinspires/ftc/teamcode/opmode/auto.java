@@ -21,14 +21,19 @@
 
     @Autonomous(name="Auto", group="Into the Deep")
     public class auto extends LinearOpMode {
-        Robot robot = new Robot(telemetry, hardwareMap);
-        AutoActionScheduler scheduler = new AutoActionScheduler(robot::update);
-        Pose2d startingPosition = new Pose2d(0, 0, Math.toRadians(0));
+        Robot robot;
+        AutoActionScheduler scheduler;
+        Pose2d startingPosition;
 
         @Override
         public void runOpMode() throws InterruptedException {
+            robot = new Robot(telemetry, hardwareMap);
+            scheduler = new AutoActionScheduler(robot::update);
+            startingPosition = new Pose2d(0, 0, Math.toRadians(0));
+
             while (opModeInInit() && !isStopRequested()) {
                 robot.lift.lift.setPower(-.8);
+                robot.lift.lift2.setPower(-.8);
                 robot.intake.down.setPosition(Intake.fourbarResting);
                 robot.intake.lock.setPosition(Intake.SOMETHING_IN_BETWEEN);
             }
@@ -36,8 +41,10 @@
             waitForStart();
             while (opModeIsActive() && !isStopRequested()) {
                 preload();
-                returnLiftAndIntake();
-                scoreSecond();
+                robot.returnLiftAuto();
+//                scoreSecond();
+//                returnLiftAndIntake();
+
 
                 scheduler.addAction(robot.endAuto(telemetry, 30));
 
@@ -46,22 +53,23 @@
         }
 
         public void preload () {
-            scheduler.addAction(robot.outtakeBucket());
-            scheduler.addAction(robot.intake.setTargetPositionAction(600));
-            scheduler.addAction(robot.intake.fourbarOut());
+            scheduler.addAction(robot.outtakeBucketAuto());
+            new SleepAction(.5);
+            //scheduler.addAction(robot.intake.setTargetPositionAction(600));
+            //scheduler.addAction(robot.intake.fourbarOut());
             scheduler.addAction(robot.drive.actionBuilder(startingPosition)
-                    .strafeToLinearHeading(new Vector2d(16.5, 22), Math.toRadians(-21))
+                    .strafeToLinearHeading(new Vector2d(18, 20), Math.toRadians(-21))
                     .build());
             scheduler.addAction(new SleepAction(1));
             scheduler.addAction(new InstantAction(() -> robot.outtake.grab.setPosition(Outtake.GRAB_POSITION_DOWN)));
-            scheduler.addAction(new InstantAction(() -> {
-                robot.intake.spin.setPower(-1);
-                robot.intake.fourbarOut();
-            }));
+            //scheduler.addAction(new InstantAction(() -> {
+                //robot.intake.spin.setPower(-1);
+                //robot.intake.fourbarOut();
+           // }));
             scheduler.addAction(new InstantAction(() -> {
                 Intake.PID_ENABLED = false;
-                robot.intake.extension.setPower(0.5);
-                robot.intake.lock.setPosition(Intake.SOMETHING_IN_BETWEEN);
+                //robot.intake.extension.setPower(0.5);
+                //robot.intake.lock.setPosition(Intake.SOMETHING_IN_BETWEEN);
             }));
             scheduler.addAction(robot.dropAndReturnAuto());
             scheduler.run();
@@ -72,8 +80,8 @@
                 Lift.PID_ENABLED = false;
                 robot.lift.lift.setPower(-1);
                 robot.lift.lift2.setPower(-1);
-                robot.intake.intakeOff();
-                robot.intake.fourbarIn();
+//                robot.intake.intakeOff();
+//                robot.intake.fourbarIn();
 
                 robot.intake.extension.setPower(0);
                 Intake.PID_ENABLED = true;
@@ -91,13 +99,19 @@
                 robot.intake.spin.setPower(0);
             }));
 
-            while (!(robot.lift.lift.getCurrentPosition() < 100) || !(robot.lift.lift.getCurrent(CurrentUnit.MILLIAMPS) > 6000)) {} // maybe set higher or lower to make it transfer faster
+            while (!(robot.lift.lift.getCurrentPosition() < 100) || !(robot.lift.lift.getCurrent(CurrentUnit.MILLIAMPS) > 6000)) {
+                telemetry.addData("getCurrentPosition", robot.lift.lift.getCurrentPosition());
+                telemetry.addData("milliamps", robot.lift.lift.getCurrent(CurrentUnit.MILLIAMPS));
+                telemetry.update();
+            }
             scheduler.run();
+
         }
 
         public void scoreSecond () {
             scheduler.addAction(new InstantAction(() -> robot.intake.lock.setPosition(GEEKED)));
             scheduler.addAction(robot.outtakeBucket());
+            scheduler.run();
         }
 
         public void update () {

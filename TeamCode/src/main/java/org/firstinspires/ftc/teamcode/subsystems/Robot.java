@@ -24,27 +24,27 @@ import org.firstinspires.ftc.teamcode.util.ActionUtil;
 
 public class Robot {
     public Intake intake;
-    public Hang hang;
+//    public Hang hang;
     public Lift lift;
     public Outtake outtake;
     public MecanumDrive drive;
 
     public Robot(Telemetry telemetry, HardwareMap hardwareMap) {
         intake = new Intake(hardwareMap);
-        hang = new Hang(hardwareMap);
+//        hang = new Hang(hardwareMap);
         lift = new Lift(hardwareMap);
         outtake = new Outtake(hardwareMap);
         drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
 
         Intake.targetPosition = 0;
-        Hang.targetPosition = 0;
+//        Hang.targetPosition = 0;
         Lift.targetPosition = 0;
 
     }
 
     public void update () {
         intake.update();
-        hang.update();
+//        hang.update();
         lift.update();
         outtake.update();
         drive.updatePoseEstimate();
@@ -109,6 +109,8 @@ public class Robot {
     public Action dropAndReturnAuto() {
         return new SequentialAction(
                 new InstantAction(outtake::drop),
+                new InstantAction(outtake::drop),
+                new InstantAction(outtake::drop),
                 new SleepAction(.5),
                 outtake.moveOuttakeIn(),
                 new InstantAction(outtake::flipIn),
@@ -124,6 +126,7 @@ public class Robot {
                 lift.lift.setPower(0);
                 lift.lift2.setPower(0);
                 Lift.PID_ENABLED = true;
+                lift.resetEncoder();
                 return false;
             } else {
                 Lift.PID_ENABLED = false;
@@ -147,7 +150,17 @@ public class Robot {
     public Action outtakeBucket () {
         return new SequentialAction(
                 new InstantAction(()->intake.lock.setPosition(GEEKED)),
-                lift.setTargetPositionAction(3400),
+                lift.setTargetPositionAction(3200),
+                outtake.moveOuttakeOut(),
+                new InstantAction(outtake::flipOut)
+        );
+    }
+
+    public Action outtakeBucketAuto () {
+        return new SequentialAction(
+                new InstantAction(()->intake.lock.setPosition(GEEKED)),
+                lift.setTargetPositionAction(3200),
+                new SleepAction(.75),
                 outtake.moveOuttakeOut(),
                 new InstantAction(outtake::flipOut)
         );

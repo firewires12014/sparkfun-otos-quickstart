@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.subsystems.Hang;
+//import org.firstinspires.ftc.teamcode.subsystems.Hang;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Lift;
 import org.firstinspires.ftc.teamcode.subsystems.Outtake;
@@ -65,10 +65,10 @@ public class teleop extends LinearOpMode {
 
             // Hang
             if (gamepad2.cross) {
-                scheduler.queueAction(robot.hang.hangIn());
+//                scheduler.queueAction(robot.hang.hangIn());
             }
             if (gamepad2.triangle) {
-                scheduler.queueAction(robot.hang.hangOut());
+//                scheduler.queueAction(robot.hang.hangOut());
             }
 
             // Manual Control
@@ -127,8 +127,8 @@ public class teleop extends LinearOpMode {
                 telemetry.addData("extensionDistance", robot.intake.extension.getCurrentPosition());
                 telemetry.addData("distanceSensor", robot.intake.downSensor.getDistance(DistanceUnit.MM));
                 telemetry.addData("extensionTarget", Intake.targetPosition);
-                telemetry.addData("hangOutPosition", robot.hang.hangmotor1.getCurrentPosition());
-                telemetry.addData("hangInPosition", Hang.targetPosition);
+//                telemetry.addData("hangOutPosition", robot.hang.hangmotor1.getCurrentPosition());
+//                telemetry.addData("hangInPosition", Hang.targetPosition);
                 telemetry.addData("liftTarget", robot.lift.lift.getCurrentPosition());
                 telemetry.addData("liftTarget", robot.lift.lift2.getCurrentPosition());
                 telemetry.addData("Intake State", robot.intake.state);

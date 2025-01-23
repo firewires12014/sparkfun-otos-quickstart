@@ -129,7 +129,7 @@ public class Intake {
         return new Intake.TargetPositionAction(position, true);
     }
 
-    public Action intakeOn () {return new ActionUtil.DcMotorExPowerAction(spin,1);
+    public Action intakeOn () {return new ActionUtil.DcMotorExPowerAction(spin, 1);
     }
 
     public Action intakeOff () {
