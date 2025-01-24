@@ -133,7 +133,6 @@ public class Outtake {
             } else {
                  power = (-EXTENSION_DIRECTION); // Start Servo moving out
             }
-//            flipOuttake("down");
         });
     }
 
@@ -150,6 +149,11 @@ public class Outtake {
      */
     public void stopOuttake() {
         power = (0); // Stop Servo
+    }
+    public Action teleopStopOuttake() {
+        return new InstantAction(() -> {
+            power = 0;
+        });
     }
 
     /**

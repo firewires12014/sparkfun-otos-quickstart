@@ -121,7 +121,7 @@ public class Robot {
 
     public Action returnLiftAuto() {
         return new ActionUtil.RunnableAction(()-> {
-            if (lift.lift.getCurrent(CurrentUnit.MILLIAMPS) > 4000) {
+            if (lift.lift.getCurrent(CurrentUnit.MILLIAMPS) > 6000) {
                 Lift.targetPosition = lift.lift.getCurrentPosition();
                 lift.lift.setPower(0);
                 lift.lift2.setPower(0);
@@ -147,11 +147,28 @@ public class Robot {
         );
     }
 
+    public Action outtakeLowBucket () {
+        return new SequentialAction(
+                new InstantAction(()->intake.lock.setPosition(GEEKED)),
+                lift.setTargetPositionAction(1812),
+                outtake.moveOuttakeOut(),
+                new InstantAction(outtake::flipSpecimen)
+        );
+    }
+
+    public Action autoPark () {
+        return new SequentialAction(
+                new InstantAction(()-> Outtake.power = -1),
+                lift.setTargetPositionAction(1280));
+
+    }
+
     public Action outtakeBucket () {
         return new SequentialAction(
                 new InstantAction(()->intake.lock.setPosition(GEEKED)),
                 lift.setTargetPositionAction(3200),
-                outtake.moveOuttakeOut(),
+                new InstantAction(()-> Outtake.power = -1),
+                new SleepAction(.2),
                 new InstantAction(outtake::flipOut)
         );
     }
@@ -172,8 +189,8 @@ public class Robot {
                 new InstantAction(()->{
                     //lift.manualControl(-0.7);
                     lift.PID_ENABLED = false;
-                    lift.lift.setPower(-0.85);
-                    lift.lift2.setPower(-0.85);
+                    lift.lift.setTargetPosition(80);
+                    lift.lift2.setTargetPosition(80);
                 }),
                 new InstantAction(()-> intake.lock.setPosition(LOCKED)),
                 new InstantAction(()->intake.spin.setPower(-0.5)),
@@ -190,8 +207,10 @@ public class Robot {
                 new SleepAction(.5),
                 new InstantAction(outtake::flipSpecimen),
                 new SleepAction(.5),
+//                new InstantAction(()-> lift.lift.setTargetPosition(500)),
+//                new InstantAction(()-> lift.lift2.setTargetPosition(500)),
                 new InstantAction(()-> intake.fourbarOut()),
-        new InstantAction(()->{
+                new InstantAction(()->{
             //lift.manualControl(-0.7);
             lift.PID_ENABLED = true;
             lift.lift.setPower(0);

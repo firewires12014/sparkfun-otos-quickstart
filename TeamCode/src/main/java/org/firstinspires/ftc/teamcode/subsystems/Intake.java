@@ -33,13 +33,13 @@ public class Intake {
 
     public static double targetPosition = 0;
     public static double fourbarUp = 0.74;
-    public static double fourbarDown = 0.2;
+    public static double fourbarDown = 0.22;
     public static double fourbarResting = .6;
     public static double submerisbleBarDistance = 15;
 
     public static double GEEKED = 0.1;
     public static double LOCKED = 0.8;
-    public static double SOMETHING_IN_BETWEEN = .73;
+    public static double SOMETHING_IN_BETWEEN = .76;
 
     public static double tolerance = 75;
     public static double joystickDeadzone = 0.05;

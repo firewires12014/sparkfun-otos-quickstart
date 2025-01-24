@@ -24,12 +24,14 @@
         Robot robot;
         AutoActionScheduler scheduler;
         Pose2d startingPosition;
+        Pose2d preloadPosition;
 
         @Override
         public void runOpMode() throws InterruptedException {
             robot = new Robot(telemetry, hardwareMap);
             scheduler = new AutoActionScheduler(robot::update);
             startingPosition = new Pose2d(0, 0, Math.toRadians(0));
+            preloadPosition = new Pose2d(18, 20, Math.toRadians(-21));
 
             while (opModeInInit() && !isStopRequested()) {
                 robot.lift.lift.setPower(-.8);
@@ -42,9 +44,12 @@
             while (opModeIsActive() && !isStopRequested()) {
                 preload();
                 robot.returnLiftAuto();
-//                scoreSecond();
-//                returnLiftAndIntake();
-
+//                scheduler.addAction(robot.drive.actionBuilder(preloadPosition)
+//                        .turnTo(Math.toRadians(180))
+//                        .splineTo(new Vector2d(53.0943, -18), Math.toRadians(180))
+//                        .build());
+//                scheduler.addAction(robot.autoPark());
+                scheduler.run();
 
                 scheduler.addAction(robot.endAuto(telemetry, 30));
 

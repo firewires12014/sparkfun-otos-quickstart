@@ -87,27 +87,27 @@ public class teleop extends LinearOpMode {
 //                scheduler.queueAction(robot.outtake.moveOuttakeOut());
 //            }
 
-            if (gamepad2.touchpad) {
+            if (gamepad2.square) {
                 robot.lift.resetEncoder();
                 robot.intake.resetEncoder();
             }
 
-            if (gamepad2.circle) {
+            if (gamepad2.triangle) {
                 robot.outtake.flipOut();
             }
 
-            if (gamepad2.square) {
+            if (gamepad2.cross) {
                 robot.outtake.flipIn();
             }
 
-            if (gamepad2.dpad_left) {
+            if (gamepad2.dpad_down) {
                 scheduler.queueAction(robot.depositOuttake());
             }
             if (gamepad2.left_bumper && !scheduler.isBusy()) {
                 scheduler.queueAction(robot.dropAndReturnTeleop());
             }
 
-            if (gamepad2.dpad_right) {
+            if (gamepad2.dpad_left) {
                 scheduler.queueAction(robot.outtakeSpecimen());
             }
 
@@ -117,6 +117,10 @@ public class teleop extends LinearOpMode {
 
             if (gamepad2.right_bumper && !scheduler.isBusy()) {
                 scheduler.queueAction(robot.transfer());
+            }
+
+            if (gamepad2.dpad_right) {
+                scheduler.queueAction(robot.outtakeLowBucket());
             }
 
                 robot.update();
