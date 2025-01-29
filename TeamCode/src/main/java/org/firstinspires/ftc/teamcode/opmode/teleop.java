@@ -2,10 +2,12 @@ package org.firstinspires.ftc.teamcode.opmode;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -20,6 +22,18 @@ import org.firstinspires.ftc.teamcode.util.ActionScheduler;
 public class teleop extends LinearOpMode {
     boolean r2Toggle = false;
 
+    enum DROP {
+        IDLE,
+        DROP,
+        RETURN
+    }
+
+    DROP state = DROP.IDLE;
+
+    boolean inInspect = false;
+
+    ElapsedTime timer = new ElapsedTime();
+
     @Override
     public void runOpMode() throws InterruptedException {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
@@ -30,6 +44,7 @@ public class teleop extends LinearOpMode {
         robot.outtake.flipIn();
 
         waitForStart();
+        timer.startTime();
         while (opModeIsActive() && !isStopRequested()) {
             // Driver
             robot.drive.setDrivePowers(new PoseVelocity2d(
@@ -57,7 +72,7 @@ public class teleop extends LinearOpMode {
                   robot.intake.spin.setPower(1);
             } else {
                 r2Toggle = false;
-                if (!scheduler.isBusy()) {
+                if (!scheduler.isBusy() && !inInspect) {
                     robot.intake.spin.setPower(0);
                     robot.intake.down.setPosition(Intake.fourbarResting);
                 }
@@ -100,12 +115,42 @@ public class teleop extends LinearOpMode {
                 robot.outtake.flipIn();
             }
 
+            if (gamepad2.circle) { // just release held object
+                robot.outtake.drop();
+            }
+
             if (gamepad2.dpad_down) {
                 scheduler.queueAction(robot.depositOuttake());
             }
-            if (gamepad2.left_bumper && !scheduler.isBusy()) {
-                scheduler.queueAction(robot.dropAndReturnTeleop());
+
+//            if (gamepad2.left_bumper && !scheduler.isBusy()) {
+//                scheduler.queueAction(robot.dropAndReturnTeleop());
+//            }
+
+            // DROP FSM
+
+            switch (state) {
+                case IDLE:
+                    timer.reset();
+                    if (gamepad2.left_bumper) state = DROP.DROP;
+                    break;
+                case DROP:
+                    robot.outtake.drop();
+                    if (gamepad2.left_bumper && timer.seconds() > 0.3) {
+                        timer.reset();
+                        state = DROP.RETURN;
+                    }
+                    break;
+                case RETURN:
+                    robot.outtake.hold();
+                    if (!scheduler.isBusy()) scheduler.queueAction(robot.dropAndReturnTeleop());
+                    if (timer.seconds() > 0.5) state = DROP.IDLE;
+                    break;
             }
+
+            //
+
+
 
             if (gamepad2.dpad_left) {
                 scheduler.queueAction(robot.outtakeSpecimen());
@@ -146,7 +191,19 @@ public class teleop extends LinearOpMode {
                 telemetry.addData("Lift current", robot.lift.lift.getCurrent(CurrentUnit.MILLIAMPS));
                 telemetry.addData("Lift current", robot.lift.lift2.getCurrent(CurrentUnit.MILLIAMPS));
                 telemetry.addData("Schedule State", scheduler.isBusy());
+                telemetry.addData("DROP FSM", state);
                 telemetry.update();
+
+            if (gamepad1.touchpad) {
+                scheduler.queueAction(robot.intake.setTargetPositionAction(800));
+                scheduler.queueAction(robot.outtake.moveOuttakeOut());
+                scheduler.queueAction(new InstantAction(robot.outtake::flipOut));
+                scheduler.queueAction(new InstantAction(robot.intake::fourbarOut));
+
+                robot.intake.down.setPosition(Intake.fourbarDown);
+
+                inInspect = true;
+            }
 
         }
     }

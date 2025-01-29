@@ -40,4 +40,22 @@ public class AutoActionScheduler {
          }
       }
    }
+
+   /**
+    * Wait until one of the condition(s) are met,
+    * each separate boolean condition is treated as an OR
+    * to utilize and AND simply in one condition bind it with parenthesis
+    * @param conditions any number of condition(s) that when true proceed to the next line
+    */
+   public void await(boolean... conditions) {
+      boolean contactedCondition = false;
+
+      while (!contactedCondition) {
+         for (boolean condition : conditions) {
+            contactedCondition |= condition;
+         }
+
+         pidUpdate.run();
+      }
+   }
 }

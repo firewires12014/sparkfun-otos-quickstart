@@ -70,6 +70,8 @@ public class Lift {
         lift2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         lift.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         lift2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        targetPosition = 0;
     }
 
     public void update() {

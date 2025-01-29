@@ -3,9 +3,10 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
+import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -14,13 +15,15 @@ public class Outtake {
     public static double FLIP_POSITION_UP = 0.2;
     public static double FLIP_POSITION_DOWN = 1;
     public static double FLIP_POSITION_SPECIMEN = 0.75;
-    public static double GRAB_POSITION_UP = 0;
-    public static double GRAB_POSITION_DOWN = 1;
+    public static double FLIP_POSITION_PRIMED = 0.45;
+    public static double GRAB_POSITION_OPEN = 0;
+    public static double GRAB_POSITION_CLOSED = 1;
     public static double OUTTAKE_TARGET_POSITION_OUT = 480;
     public static double OUTTAKE_TARGET_POSITION_IN = 1;
     public static double EXTENSION_DIRECTION = 1; // Set to positive or negative depending on direction of servo
     public static double kp = 0;
     public static double targetPosition = 0;
+    public static double halfDuration = 0.2;
     public static double power = 0;
 
     public CRServo extension;
@@ -136,6 +139,14 @@ public class Outtake {
         });
     }
 
+    public Action moveOuttakeBucket() {
+        return new SequentialAction(
+                new InstantAction(()-> power = (-EXTENSION_DIRECTION)),
+                new SleepAction(halfDuration),
+                new InstantAction(()-> power = 0)
+        );
+    }
+
 //    public Action moveOuttakeOut () {
 //        return new InstantAction(()-> targetPosition = OUTTAKE_TARGET_POSITION_OUT);
 //    }
@@ -182,12 +193,16 @@ public class Outtake {
         flip.setPosition(FLIP_POSITION_SPECIMEN);
     }
 
+    public void flipPrimed () {
+        flip.setPosition(FLIP_POSITION_PRIMED);
+    }
+
     public void drop () {
-        grab.setPosition(GRAB_POSITION_DOWN);
+        grab.setPosition(GRAB_POSITION_OPEN);
     }
 
     public void hold () {
-        grab.setPosition(GRAB_POSITION_UP);
+        grab.setPosition(GRAB_POSITION_CLOSED);
     }
 
 }

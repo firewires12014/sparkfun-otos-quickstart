@@ -14,6 +14,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.util.ActionUtil;
 import org.firstinspires.ftc.teamcode.util.PIDCoefficients;
 import org.firstinspires.ftc.teamcode.util.PIDFController;
@@ -33,13 +34,15 @@ public class Intake {
 
     public static double targetPosition = 0;
     public static double fourbarUp = 0.74;
-    public static double fourbarDown = 0.22;
+    public static double fourbarDown = 0.2;
     public static double fourbarResting = .6;
     public static double submerisbleBarDistance = 15;
 
+    public static double INTAKE_CURRENT_LIMIT = 9999;
+
     public static double GEEKED = 0.1;
-    public static double LOCKED = 0.8;
-    public static double SOMETHING_IN_BETWEEN = .76;
+    public static double LOCKED = 0.85; // 80
+    public static double SOMETHING_IN_BETWEEN = .74; //78
 
     public static double tolerance = 75;
     public static double joystickDeadzone = 0.05;
@@ -129,7 +132,7 @@ public class Intake {
         return new Intake.TargetPositionAction(position, true);
     }
 
-    public Action intakeOn () {return new ActionUtil.DcMotorExPowerAction(spin, 1);
+    public Action intakeOn () {return new ActionUtil.DcMotorExPowerAction(spin, -1);
     }
 
     public Action intakeOff () {
@@ -140,8 +143,24 @@ public class Intake {
         return new ActionUtil.ServoPositionAction(down, fourbarDown);
     }
 
+    public Action fourbarRest () {
+        return new ActionUtil.ServoPositionAction(down, fourbarResting);
+    }
+
     public Action fourbarIn () {
         return new ActionUtil.ServoPositionAction(down, fourbarUp);
+    }
+
+    public void locked() {
+        lock.setPosition(LOCKED);
+    }
+
+    public void geeked() {
+        lock.setPosition(GEEKED);
+    }
+
+    public void somethingInBetween() {
+        lock.setPosition(SOMETHING_IN_BETWEEN);
     }
 
     public void manualControl(double joystickInput) {
@@ -166,6 +185,28 @@ public class Intake {
                 state = ManualControl.IDLE;
                 break;
         }
+    }
+
+    public Action autoExtend(double speed, double position) {
+        return new ActionUtil.RunnableAction(()-> {
+            update();
+
+            PID_ENABLED = false;
+            if (!(downSensor.getDistance(DistanceUnit.MM) < 20) || !(extension.getCurrentPosition() > position)) {
+                spin.setPower(-1);
+                extension.setPower(speed);
+
+                return true;
+            } else {
+                //spin.setPower(0);
+                //intakeOff(); // wait to shut off intake for a bit longer
+                extension.setPower(0);
+                targetPosition = extension.getCurrentPosition();
+                PID_ENABLED = true;
+
+                return false;
+            }
+        });
     }
 
 
