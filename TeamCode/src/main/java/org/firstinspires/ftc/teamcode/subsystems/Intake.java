@@ -5,49 +5,45 @@ import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
-import com.acmerobotics.roadrunner.InstantAction;
+import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.util.ActionUtil;
 import org.firstinspires.ftc.teamcode.util.PIDCoefficients;
 import org.firstinspires.ftc.teamcode.util.PIDFController;
 
 @Config
-
 public class Intake {
-    public DcMotorEx extension;
-    public DcMotorEx spin;
-    public Servo down;
-    public Servo lock;
-    public RevColorSensorV3 downSensor;
-    DistanceSensor forward;
 
-    PIDCoefficients coef;
-    PIDFController pid;
+    public static double SAMPLE_DISTANCE = 25;
+
+    public static String selected_color = "R";
+
+    public static double FULL_EXTENSION = 0;
+    public static double IN = 0;
+
+    public static double PIVOT_INTAKE = 0.54;
+    public static double PIVOT_IN = 0.35;
+    public static double PIVOT_AUTO_EJECT = 0.5;
+
+    public static double INTAKE_SPEED = 1;
+    public static double INTAKE_EJECT = 0.3;
+    private static double INTAKE_REVERSE = -0.5;
 
     public static double targetPosition = 0;
-    public static double fourbarUp = 0.74;
-    public static double fourbarDown = 0.2;
-    public static double fourbarResting = .6;
-    public static double submerisbleBarDistance = 15;
-
-    public static double INTAKE_CURRENT_LIMIT = 9999;
-
-    public static double GEEKED = 0.1;
-    public static double LOCKED = 0.85; // 80
-    public static double SOMETHING_IN_BETWEEN = .74; //78
-
-    public static double tolerance = 75;
-    public static double joystickDeadzone = 0.05;
-
     public static boolean PID_ENABLED = true;
+    public static double joystickDeadzone = 0.05;
+    public static double tolerance = 75;
+
+    private PIDCoefficients coef;
+    private PIDFController pid;
+
+    private double newPower = 0.0;
 
     public enum ManualControl {
         IDLE,
@@ -55,45 +51,101 @@ public class Intake {
         USING,
         LET_GO
     }
+
     public Intake.ManualControl state = Intake.ManualControl.IDLE;
 
-    public Intake(HardwareMap hardwareMap) {
-        extension = hardwareMap.get(DcMotorEx.class, "intakeExtension");
-        spin = hardwareMap.get(DcMotorEx.class, "intakeSpin");
-        down = hardwareMap.get(Servo.class, "intakeDown");
-        lock = hardwareMap.get(Servo.class, "intakeLock");
-        downSensor = hardwareMap.get(RevColorSensorV3.class, "intakeDownSensor");
-        forward = hardwareMap.get(DistanceSensor.class, "intakeForward");
+    public DcMotorEx spin;
+    private DcMotorEx extension;
+    public Servo pivot;
+    public Rev2mDistanceSensor subSensor;
+    public RevColorSensorV3 sampleSensor;
 
+    public Intake(HardwareMap hardwareMap) {
+        spin = hardwareMap.get(DcMotorEx.class, "spin");
+        spin.setDirection(DcMotorSimple.Direction.REVERSE);
+        spin.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        extension = hardwareMap.get(DcMotorEx.class, "extension");
+        //extension.setDirection(DcMotorSimple.Direction.REVERSE);
         resetEncoder();
 
-        extension.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        extension.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        pivot = hardwareMap.get(Servo.class, "intakePivot");
 
-        coef = new PIDCoefficients(0.005, 0, 0);
+        subSensor = hardwareMap.get(Rev2mDistanceSensor.class, "subDistance");
+
+        sampleSensor = hardwareMap.get(RevColorSensorV3.class, "sampleColor");
+
+        coef = new PIDCoefficients(0.004, 0, 0);
         pid = new PIDFController(coef, 0, 0,0,(t, x, v)-> 0.0);
+    }
+
+    public void setColorRed() {
+        selected_color = "R";
+    }
+
+    public void setColorBlue() {
+        selected_color = "B";
+    }
+
+    public boolean isRightColor() {
+        if (currentColor().equalsIgnoreCase("Y")) return true;
+        else if (currentColor().equalsIgnoreCase("R") || currentColor().equalsIgnoreCase("B")) {
+            return selected_color.equalsIgnoreCase(currentColor());
+        } else return false;
+    }
+
+    public String currentColor() {
+        int red = sampleSensor.red();
+        int blue = sampleSensor.blue();
+        int green = sampleSensor.green();
+
+        if (red > blue && red > green) {
+            return "R";
+        } else if (blue > red && blue > green) {
+            return "B";
+        } else if (red > blue && green > blue) {
+            return "Y";
+        } else return "?";
+    }
+
+    public boolean hasSample() {
+        return sampleSensor.getDistance(DistanceUnit.MM) < SAMPLE_DISTANCE;
+    }
+    public void startIntake(){
+        spin.setPower(1);
+    }
+    public void stopIntake() {
+        spin.setPower(0);
+    }
+
+    public void intakeDown() {
+        pivot.setPosition(PIVOT_INTAKE);
+    }
+
+    public void intakeEject() {
+        pivot.setPosition(PIVOT_AUTO_EJECT);
+    }
+
+    public void intakeIn() {
+        pivot.setPosition(PIVOT_IN);
+    }
+
+    public void update() {
+        pid.setTargetPosition(targetPosition);
+
+        //setPIDCoef(new PIDCoefficients(kP, kI, kD));
+
+        if (PID_ENABLED) {
+            newPower = this.pid.update(extension.getCurrentPosition(), extension.getVelocity());
+            extension.setPower(newPower);
+        }
     }
 
     public void resetEncoder() {
         extension.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         extension.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-    }
 
-    public void update () {
-        pid.setTargetPosition(targetPosition);
-
-        if (PID_ENABLED) {
-            double newPower = this.pid.update(extension.getCurrentPosition(), extension.getVelocity());
-            extension.setPower(newPower);
-        }
-    }
-
-    public void setPIDCoef(PIDCoefficients newPID) {
-        this.coef.kP = newPID.kP;
-        this.coef.kI = newPID.kI;
-        this.coef.kD = newPID.kD;
-
-        pid = new PIDFController(coef, 0, 0, 0, (t, x, v) -> 0.0);
+        targetPosition = 0;
     }
 
     public boolean isMotorBusy() {
@@ -104,110 +156,59 @@ public class Intake {
         int position;
         boolean blocking;
 
-        public TargetPositionAction(int position, boolean blocking){
+        public TargetPositionAction(int position, boolean blocking) {
             this.position = position;
             this.blocking = blocking;
         }
 
         @Override
         public boolean run(@NonNull TelemetryPacket telemetryPacket) {
-            if (targetPosition != position){
+            if (targetPosition != position) {
                 targetPosition = position;
-                if(blocking){
+                if (blocking) {
                     return true;
                 }
             }
-            if (blocking){
+            if (blocking) {
                 return isMotorBusy();
             }
             return false;
         }
     }
 
-    public Action setTargetPositionAction(int position){
+    public Action setTargetPositionAction(int position) {
         return new Intake.TargetPositionAction(position, false);
     }
 
-    public Action setTargetPositionActionBlocking(int position){
+    public Action setTargetPositionActionBlocking(int position) {
         return new Intake.TargetPositionAction(position, true);
-    }
-
-    public Action intakeOn () {return new ActionUtil.DcMotorExPowerAction(spin, -1);
-    }
-
-    public Action intakeOff () {
-        return new ActionUtil.DcMotorExPowerAction(spin, 0);
-    }
-
-    public Action fourbarOut () {
-        return new ActionUtil.ServoPositionAction(down, fourbarDown);
-    }
-
-    public Action fourbarRest () {
-        return new ActionUtil.ServoPositionAction(down, fourbarResting);
-    }
-
-    public Action fourbarIn () {
-        return new ActionUtil.ServoPositionAction(down, fourbarUp);
-    }
-
-    public void locked() {
-        lock.setPosition(LOCKED);
-    }
-
-    public void geeked() {
-        lock.setPosition(GEEKED);
-    }
-
-    public void somethingInBetween() {
-        lock.setPosition(SOMETHING_IN_BETWEEN);
     }
 
     public void manualControl(double joystickInput) {
         switch (state) {
             case IDLE:
-                if (Math.abs(joystickInput) > joystickDeadzone) state = ManualControl.ACTIVATED;
+                if (Math.abs(joystickInput) > joystickDeadzone)
+                    state = Intake.ManualControl.ACTIVATED;
 
                 break;
             case ACTIVATED:
                 PID_ENABLED = false;
 
-                state = ManualControl.USING;
+                state = Intake.ManualControl.USING;
                 break;
             case USING:
                 extension.setPower(joystickInput);
 
-                if (Math.abs(joystickInput) < joystickDeadzone) state = ManualControl.LET_GO;
+                if (Math.abs(joystickInput) < joystickDeadzone) state = Intake.ManualControl.LET_GO;
                 break;
             case LET_GO:
                 targetPosition = extension.getCurrentPosition();
                 PID_ENABLED = true;
-                state = ManualControl.IDLE;
+                state = Intake.ManualControl.IDLE;
                 break;
         }
     }
 
-    public Action autoExtend(double speed, double position) {
-        return new ActionUtil.RunnableAction(()-> {
-            update();
-
-            PID_ENABLED = false;
-            if (!(downSensor.getDistance(DistanceUnit.MM) < 20) || !(extension.getCurrentPosition() > position)) {
-                spin.setPower(-1);
-                extension.setPower(speed);
-
-                return true;
-            } else {
-                //spin.setPower(0);
-                //intakeOff(); // wait to shut off intake for a bit longer
-                extension.setPower(0);
-                targetPosition = extension.getCurrentPosition();
-                PID_ENABLED = true;
-
-                return false;
-            }
-        });
-    }
 
 
 }

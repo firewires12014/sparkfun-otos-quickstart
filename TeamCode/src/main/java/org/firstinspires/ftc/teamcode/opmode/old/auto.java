@@ -1,6 +1,6 @@
-    package org.firstinspires.ftc.teamcode.opmode;
+    package org.firstinspires.ftc.teamcode.opmode.old;
 
-    import static org.firstinspires.ftc.teamcode.subsystems.Intake.GEEKED;
+    import static org.firstinspires.ftc.teamcode.subsystems.old.Intake.GEEKED;
 
     import com.acmerobotics.dashboard.FtcDashboard;
     import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -10,18 +10,19 @@
     import com.acmerobotics.roadrunner.SleepAction;
     import com.acmerobotics.roadrunner.Vector2d;
     import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+    import com.qualcomm.robotcore.eventloop.opmode.Disabled;
     import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
     import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
     import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-    import org.firstinspires.ftc.teamcode.subsystems.Intake;
-    import org.firstinspires.ftc.teamcode.subsystems.Lift;
-    import org.firstinspires.ftc.teamcode.subsystems.Outtake;
-    import org.firstinspires.ftc.teamcode.subsystems.Robot;
+    import org.firstinspires.ftc.teamcode.subsystems.old.Intake;
+    import org.firstinspires.ftc.teamcode.subsystems.old.Lift;
+    import org.firstinspires.ftc.teamcode.subsystems.old.Outtake;
+    import org.firstinspires.ftc.teamcode.subsystems.old.Robot;
     import org.firstinspires.ftc.teamcode.util.AutoActionScheduler;
 
     @Autonomous(name="Auto", group="Into the Deep")
-
+    @Disabled
     public class auto extends LinearOpMode {
         Robot robot;
         AutoActionScheduler scheduler;

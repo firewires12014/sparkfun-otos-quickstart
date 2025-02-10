@@ -5,7 +5,6 @@ import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
-import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -13,6 +12,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.subsystems.old.Intake;
 import org.firstinspires.ftc.teamcode.util.ActionUtil;
 import org.firstinspires.ftc.teamcode.util.PIDCoefficients;
 import org.firstinspires.ftc.teamcode.util.PIDFController;
@@ -20,8 +20,8 @@ import org.firstinspires.ftc.teamcode.util.PIDFController;
 @Config
 public class Hang {
     public DcMotorEx hangmotor1;
-    public Servo ptoLeft;
-    public Servo ptoRight;
+//    public Servo ptoLeft;
+//    public Servo ptoRight;
 
     PIDCoefficients coef;
     PIDFController pid;
@@ -41,8 +41,8 @@ public class Hang {
 
     public Hang(HardwareMap hardwareMap) {
         hangmotor1 = hardwareMap.get(DcMotorEx.class, "lift2");
-        ptoLeft = hardwareMap.get(Servo.class, "ptoLeft");
-        ptoRight = hardwareMap.get(Servo.class, "ptoRight");
+//        ptoLeft = hardwareMap.get(Servo.class, "ptoLeft");
+//        ptoRight = hardwareMap.get(Servo.class, "ptoRight");
 
         hangmotor1.setDirection(DcMotorSimple.Direction.REVERSE);
         hangmotor1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -107,11 +107,11 @@ public class Hang {
         }
     }
 
-    public Action setTargetPositionAction(int position){
+    public Action setTargetPositionAction(int position) {
         return new Hang.TargetPositionAction(position, false);
     }
 
-    public Action setTargetPositionActionBlocking(int position){
+    public Action setTargetPositionActionBlocking(int position) {
         return new Hang.TargetPositionAction(position, true);
     }
 
@@ -140,23 +140,23 @@ public class Hang {
     }
 
 
-    public Action engagePto() {
-        return new ParallelAction(
-                new ActionUtil.ServoPositionAction(ptoLeft, ptoLeftActive),
-                new ActionUtil.ServoPositionAction(ptoRight, ptoRightActive));
-    }
+//    public Action engagePto() {
+//        return new ParallelAction(
+//                new ActionUtil.ServoPositionAction(ptoLeft, ptoLeftActive),
+//                new ActionUtil.ServoPositionAction(ptoRight, ptoRightActive));
+//    }
     public Action hangOut () {
         return setTargetPositionActionBlocking(hangOutPosition);
     }
 
     public Action hangIn() {
         return setTargetPositionActionBlocking(hangInPosition);
-    }
+        }}
 
-    public Action disengagePto () {
-        return new ParallelAction(
-                new ActionUtil.ServoPositionAction(ptoLeft, ptoLeftInactive),
-                new ActionUtil.ServoPositionAction(ptoRight, ptoRightInactive));
-    }
-}
+//    public Action disengagePto () {
+//        return new ParallelAction(
+//                new ActionUtil.ServoPositionAction(ptoLeft, ptoLeftInactive),
+//                new ActionUtil.ServoPositionAction(ptoRight, ptoRightInactive));
+//    }
+//}
 
