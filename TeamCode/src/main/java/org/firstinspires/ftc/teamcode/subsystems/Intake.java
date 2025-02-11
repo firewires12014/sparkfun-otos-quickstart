@@ -57,6 +57,8 @@ public class Intake {
     public DcMotorEx spin;
     private DcMotorEx extension;
     public Servo pivot;
+    public Servo leftLight;
+    public Servo rightLight;
     public Rev2mDistanceSensor subSensor;
     public RevColorSensorV3 sampleSensor;
 
@@ -70,6 +72,8 @@ public class Intake {
         resetEncoder();
 
         pivot = hardwareMap.get(Servo.class, "intakePivot");
+        leftLight = hardwareMap.get(Servo.class, "leftLight");
+        rightLight = hardwareMap.get(Servo.class, "rightLight");
 
         subSensor = hardwareMap.get(Rev2mDistanceSensor.class, "subDistance");
 
@@ -100,12 +104,23 @@ public class Intake {
         int green = sampleSensor.green();
 
         if (red > blue && red > green) {
+            leftLight.setPosition(0.279);
+            rightLight.setPosition(0.279);
             return "R";
         } else if (blue > red && blue > green) {
+            leftLight.setPosition(0.611);
+            rightLight.setPosition(0.611);
             return "B";
         } else if (red > blue && green > blue) {
+            leftLight.setPosition(0.388);
+            rightLight.setPosition(0.388);
             return "Y";
-        } else return "?";
+        } else {
+            // Return Orange if not sure
+            leftLight.setPosition(0.333);
+            rightLight.setPosition(0.333);
+            return "?";
+        }
     }
 
     public boolean hasSample() {
