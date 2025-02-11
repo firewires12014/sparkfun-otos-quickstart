@@ -141,7 +141,7 @@ public class Intake {
         pivot.setPosition(PIVOT_AUTO_EJECT);
     }
 
-    public void intakeIn() {
+    public void intakeUp() {
         pivot.setPosition(PIVOT_IN);
     }
 

@@ -48,7 +48,7 @@ public class Arm {
     }
 
     public void setPivot(double positions) {
-        String[] parts = String.format("%05.2f", positions).split("\\.");;
+        String[] parts = String.format("%05.2f", positions).split("\\.");
 
         double left = Integer.parseInt(parts[0]) / 100.0;
         double right = Integer.parseInt(parts[1]) / 100.0;
@@ -57,13 +57,13 @@ public class Arm {
         rightPivot.setPosition(right);
     }
 
-    public void intakePosition() {
+    public void intakePrimePosition() {
         setPivot(PIVOT_INTAKE);
         wrist.setPosition(WRIST_MIDDLE);
         wristPosition = WRIST_MIDDLE;
     }
 
-    public void actualIntakePosition() {
+    public void grabPosition() {
         setPivot(PIVOT_INTAKE);
         wrist.setPosition(WRIST_MIDDLE);
         wristPosition = WRIST_MIDDLE;
@@ -73,7 +73,7 @@ public class Arm {
         grabber.setPosition(CLOSED);
     }
 
-    public void prime() {
+    public void clawPrime() {
         grabber.setPosition(MIDDLE);
     }
 

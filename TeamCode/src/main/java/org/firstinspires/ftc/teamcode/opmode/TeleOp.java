@@ -30,6 +30,8 @@ public class TeleOp extends LinearOpMode {
 
             //Drive
 
+            gamepad1.setLedColor(255, 255, 0, -1);
+
             robot.drive.setDrivePowers(new PoseVelocity2d(
                     new Vector2d(
                             -gamepad1.left_stick_y,
@@ -59,17 +61,21 @@ public class TeleOp extends LinearOpMode {
             }
             telemetry.addData("Selected Color", Intake.selected_color);
 
-            if (gamepad2.right_trigger > 0.1) {
+            if ((gamepad2.right_trigger > 0.1) && !scheduler.isBusy()) {
                 robot.intake.spin.setPower(1);
                 intake.intakeDown();
-            } else if (gamepad2.left_trigger > 0.1 && !scheduler.isBusy()) {
+            } else if ((gamepad2.left_trigger > 0.1) && !scheduler.isBusy()) {
                 scheduler.queueAction(robot.eject());
             } else {
-                robot.intake.spin.setPower(0);
+                //add some scheduler nonsense i think i got no clue why eject keeps running
+                //HOW THE HELL DO I MAKE R2TOGGLE WORK
+                if (!(gamepad2.right_trigger > 0.1) && !(gamepad2.left_trigger > 0.1) && (!scheduler.isBusy())) {
+                    robot.intake.spin.setPower(0);
+                    robot.intake.intakeUp();
             }
 
             if (robot.intake.hasSample() && !robot.intake.isRightColor() && !scheduler.isBusy()) {
-               // scheduler.queueAction(robot.eject());
+                scheduler.queueAction(robot.eject());
             }
 
             if (robot.intake.hasSample() && robot.intake.isRightColor() && !scheduler.isBusy()) {
@@ -78,12 +84,24 @@ public class TeleOp extends LinearOpMode {
 
             if ((gamepad2.left_bumper) && !scheduler.isBusy()) {
                 //at some point FSM that moves the arm out the first press and grabs & primes drop the second press
-                robot.arm.specIntake();
+                robot.specIntake();
             }
 
-            if (gamepad2.cross) {
-                //close claw
-                robot.arm.grab();
+            //will this thing do the thing
+            boolean isClawClosed = false;
+
+            if ((gamepad2.cross) && !scheduler.isBusy()) {
+                if (isClawClosed) {
+                    robot.arm.drop(); // Open claw
+                } else {
+                    robot.arm.grab(); // Close claw
+                }
+
+                //do that timer shit nonsense later
+
+                isClawClosed = !isClawClosed; //chat gpt said to add this idk what it does
+            }
+
             }
 
             //Outtake
@@ -116,13 +134,14 @@ public class TeleOp extends LinearOpMode {
                 if (arm.wristPosition == arm.WRIST_BUCKET_PRIME) {
                     scheduler.queueAction(robot.sampleDropAndReturn());
                 } else {
-                    scheduler.queueAction(robot.dropAndReturn());
+                    scheduler.queueAction(robot.specDropAndReturn());
                 }
             }
                 if (gamepad2.triangle) {
                 robot.lift.resetEncoder();
                 robot.intake.resetEncoder();
             }
+
             //Hang
 
             if ((gamepad2.square) && !scheduler.isBusy()) {

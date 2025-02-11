@@ -50,49 +50,55 @@ public class Robot {
 
     public Action transfer() {
         return new SequentialAction(
-                new InstantAction(arm::prime),
-                new InstantAction(arm::intakePosition),
+                new InstantAction(arm::clawPrime),
+                new InstantAction(arm::intakePrimePosition),
                 new InstantAction(intake::stopIntake),
-                new InstantAction(intake::intakeIn),
+                new InstantAction(intake::intakeUp),
                 intake.setTargetPositionActionBlocking(0),
-                lift.setTargetPositionAction(0),
-                new SleepAction(.5),
-                new InstantAction(arm::actualIntakePosition),
+                lift.setTargetPositionActionBlocking(0),
+                new SleepAction(5),
+                new InstantAction(arm::grabPosition),
                 new InstantAction(arm::grab)
         );
     }
-
 //lowkey I dont know if these voids are supposed to be an action or not
 
     public void specIntake() {
         arm.specIntake();
         Lift.targetPosition = Lift.SPECIMEN_PICKUP;
+        //i might need a wait here the claw might hit the string
+        arm.drop();
     }
 
     public void outtakeObservation() {
+        arm.grab();
         arm.observationDrop();
     }
 
     public void outtakeSpec() {
+        arm.grab();
         Lift.targetPosition = Lift.SPECIMEN;
         arm.specDrop();
     }
 
     public void outtakeLowBucket() {
+        arm.grab();
         Lift.targetPosition = Lift.LOW_BUCKET;
         arm.bucketPrime();
     }
 
     public void outtakeBucket() {
+        arm.grab();
         Lift.targetPosition = Lift.HIGH_BUCKET;
         arm.bucketPrime();
     }
 
-    public Action dropAndReturn() {
+    public Action specDropAndReturn() {
         return new SequentialAction(
                 new InstantAction(arm::drop),
-                new SleepAction(.0),
-                new InstantAction(arm::intakePosition),
+                new SleepAction(4),
+                new InstantAction(arm::grab),
+                new InstantAction(arm::intakePrimePosition),
                 lift.setTargetPositionAction(0) //do i use blocking idk what that is
                //finish
         );
@@ -102,9 +108,10 @@ public class Robot {
         return new SequentialAction(
                 new InstantAction(arm::bucketDrop),
                 new InstantAction(arm::drop),
-                new SleepAction(.0),
-                new InstantAction(arm::intakePosition),
-                lift.setTargetPositionAction(0) //do i use blocking idk what that is
+                new SleepAction(4),
+                new InstantAction(arm::grab),
+                new InstantAction(arm::intakePrimePosition),
+                lift.setTargetPositionActionBlocking(0) //do i use blocking idk what that is
                 //finish
         );
     }
