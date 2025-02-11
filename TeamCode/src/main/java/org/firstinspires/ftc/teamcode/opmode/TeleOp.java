@@ -17,6 +17,9 @@ public class TeleOp extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         ActionScheduler scheduler = new ActionScheduler();
         Robot robot = new Robot(hardwareMap);
+        Arm arm = new Arm(hardwareMap);
+        Intake intake = new Intake(hardwareMap);
+
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
         robot.intake.setColorRed();
@@ -57,17 +60,16 @@ public class TeleOp extends LinearOpMode {
             telemetry.addData("Selected Color", Intake.selected_color);
 
             if (gamepad2.right_trigger > 0.1) {
-                robot.intake.spin.setPower(-1);
+                robot.intake.spin.setPower(1);
+                intake.intakeDown();
             } else if (gamepad2.left_trigger > 0.1 && !scheduler.isBusy()) {
                 scheduler.queueAction(robot.eject());
             } else {
-                if (!scheduler.isBusy()) {
-                    robot.intake.spin.setPower(0);
-                }
+                robot.intake.spin.setPower(0);
             }
 
             if (robot.intake.hasSample() && !robot.intake.isRightColor() && !scheduler.isBusy()) {
-                scheduler.queueAction(robot.eject());
+               // scheduler.queueAction(robot.eject());
             }
 
             if (robot.intake.hasSample() && robot.intake.isRightColor() && !scheduler.isBusy()) {
@@ -79,7 +81,7 @@ public class TeleOp extends LinearOpMode {
                 robot.arm.specIntake();
             }
 
-            if (gamepad2.triangle) {
+            if (gamepad2.cross) {
                 //close claw
                 robot.arm.grab();
             }
@@ -111,9 +113,13 @@ public class TeleOp extends LinearOpMode {
 
             if ((gamepad2.right_bumper) && !scheduler.isBusy()) {
                 //drop & return
-                scheduler.queueAction(robot.dropAndReturn());
+                if (arm.wristPosition == arm.WRIST_BUCKET_PRIME) {
+                    scheduler.queueAction(robot.sampleDropAndReturn());
+                } else {
+                    scheduler.queueAction(robot.dropAndReturn());
+                }
             }
-            if (gamepad2.square) {
+                if (gamepad2.triangle) {
                 robot.lift.resetEncoder();
                 robot.intake.resetEncoder();
             }

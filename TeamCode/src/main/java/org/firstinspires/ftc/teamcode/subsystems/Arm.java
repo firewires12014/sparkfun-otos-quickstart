@@ -18,17 +18,17 @@ public class Arm {
 
     public static double WRIST_MIDDLE = 0.5;
     public static double WRIST_INTAKE = 0.38;
-    public static double WRIST_SPECIMAN_GRAB = 0.25;
-    public static double WRIST_SPEICMAN_DROP = 0.25;
+    public static double WRIST_SPECIMEN_GRAB = 0.25;
+    public static double WRIST_SPECIMEN_DROP = 0.25;
     public static double WRIST_BUCKET_PRIME = 0.5;
     public static double WRIST_BUCKET_DROP = 0.7;
 
     // FORMAT: Anything prior to the decimal is the left servo and right is right servo position.
     // Example 01.99 would be left: 0.01, and right = 0.99, NOTE: only two decimal places are work
     public static double PIVOT_INTAKE = 01.99;
-    public static double PIVOT_SPECIMAN_HORIZONTAL = 93.07;
-    public static double PIVOT_SPECIMAN_PICKUP = 30.70;
-    public static double PIVOT_SPECIMAN_PICKUP_AUTO = 27.83;
+    public static double PIVOT_SPECIMEN_HORIZONTAL = 93.07;
+    public static double PIVOT_SPECIMEN_PICKUP = 30.70;
+    public static double PIVOT_SPECIMEN_PICKUP_AUTO = 27.83;
     public static double PIVOT_BUCKET = 55.45;
     public static double PIVOT_OBSERVATION = 20.80;
 
@@ -37,6 +37,7 @@ public class Arm {
     public Servo wrist;
     public Servo grabber;
     public RevColorSensorV3 bucketSensor;
+    public double wristPosition;
 
     public Arm(HardwareMap hardwareMap) {
         leftPivot = hardwareMap.get(Servo.class, "leftpivot");
@@ -59,10 +60,15 @@ public class Arm {
     public void intakePosition() {
         setPivot(PIVOT_INTAKE);
         wrist.setPosition(WRIST_INTAKE);
+        wristPosition = WRIST_INTAKE;
     }
 
     public void grab() {
         grabber.setPosition(CLOSED);
+    }
+
+    public void prime() {
+        grabber.setPosition(MIDDLE);
     }
 
     public void drop() {
@@ -70,8 +76,9 @@ public class Arm {
     }
 
     public void specIntake() {
-        setPivot(PIVOT_SPECIMAN_PICKUP);
-        wrist.setPosition(WRIST_SPECIMAN_GRAB);
+        setPivot(PIVOT_SPECIMEN_PICKUP);
+        wrist.setPosition(WRIST_SPECIMEN_GRAB);
+        wristPosition = WRIST_SPECIMEN_GRAB;
     }
 
     public boolean isBucket() {
@@ -79,8 +86,9 @@ public class Arm {
     }
 
     public void specDrop() {
-        setPivot(PIVOT_SPECIMAN_HORIZONTAL);
-        wrist.setPosition(WRIST_SPEICMAN_DROP);
+        setPivot(PIVOT_SPECIMEN_HORIZONTAL);
+        wrist.setPosition(WRIST_SPECIMEN_DROP);
+        wristPosition = WRIST_SPECIMEN_DROP;
     }
 
     public void bucketPrime() {
@@ -95,6 +103,6 @@ public class Arm {
 
     public void observationDrop() {
         setPivot(PIVOT_OBSERVATION);
-        wrist.setPosition(WRIST_SPEICMAN_DROP); //might be wrong wrist position
+        wrist.setPosition(WRIST_SPECIMEN_DROP); //might be wrong wrist position
     }
 }

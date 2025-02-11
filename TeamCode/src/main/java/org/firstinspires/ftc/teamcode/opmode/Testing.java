@@ -43,9 +43,9 @@ public class Testing extends LinearOpMode {
             robot.intake.manualControl(-gamepad2.left_stick_y);
             robot.lift.manualControl(-gamepad2.right_stick_y);
 
-            if (gamepad2.square) robot.arm.setPivot(Arm.PIVOT_SPECIMAN_PICKUP);
+            if (gamepad2.square) robot.arm.setPivot(Arm.PIVOT_SPECIMEN_PICKUP);
 
-            if (gamepad2.circle) robot.arm.setPivot(Arm.PIVOT_SPECIMAN_HORIZONTAL);
+            if (gamepad2.circle) robot.arm.setPivot(Arm.PIVOT_SPECIMEN_HORIZONTAL);
 
             robot.intake.spin.setPower(gamepad2.right_trigger - gamepad2.left_trigger);
 

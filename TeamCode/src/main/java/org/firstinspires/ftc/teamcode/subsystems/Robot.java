@@ -27,7 +27,7 @@ public class Robot {
     }
 
     public void update() {
-        hang.update();
+//        hang.update();
         intake.update();
         lift.update();
         drive.updatePoseEstimate();
@@ -50,9 +50,10 @@ public class Robot {
 
     public Action transfer() {
         return new SequentialAction(
+                new InstantAction(arm::prime),
+                new InstantAction(arm::intakePosition),
                 new InstantAction(intake::stopIntake),
                 new InstantAction(intake::intakeIn),
-                new InstantAction(arm::intakePosition),
                 intake.setTargetPositionActionBlocking(0),
                 new InstantAction(arm::grab)
         );
@@ -62,7 +63,7 @@ public class Robot {
 
     public void specIntake() {
         arm.specIntake();
-        Lift.targetPosition = Lift.SPECIMAN_PICKUP;
+        Lift.targetPosition = Lift.SPECIMEN_PICKUP;
     }
 
     public void outtakeObservation() {
@@ -70,7 +71,7 @@ public class Robot {
     }
 
     public void outtakeSpec() {
-        Lift.targetPosition = Lift.SPECIMAN;
+        Lift.targetPosition = Lift.SPECIMEN;
         arm.specDrop();
     }
 
@@ -91,6 +92,17 @@ public class Robot {
                 new InstantAction(arm::intakePosition),
                 lift.setTargetPositionAction(0) //do i use blocking idk what that is
                //finish
+        );
+    }
+
+    public Action sampleDropAndReturn() {
+        return new SequentialAction(
+                new InstantAction(arm::bucketDrop),
+                new InstantAction(arm::drop),
+                new SleepAction(.0),
+                new InstantAction(arm::intakePosition),
+                lift.setTargetPositionAction(0) //do i use blocking idk what that is
+                //finish
         );
     }
 }
