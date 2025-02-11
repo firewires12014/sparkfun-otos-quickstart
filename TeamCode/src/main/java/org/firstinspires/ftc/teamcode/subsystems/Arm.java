@@ -59,8 +59,14 @@ public class Arm {
 
     public void intakePosition() {
         setPivot(PIVOT_INTAKE);
-        wrist.setPosition(WRIST_INTAKE);
-        wristPosition = WRIST_INTAKE;
+        wrist.setPosition(WRIST_MIDDLE);
+        wristPosition = WRIST_MIDDLE;
+    }
+
+    public void actualIntakePosition() {
+        setPivot(PIVOT_INTAKE);
+        wrist.setPosition(WRIST_MIDDLE);
+        wristPosition = WRIST_MIDDLE;
     }
 
     public void grab() {

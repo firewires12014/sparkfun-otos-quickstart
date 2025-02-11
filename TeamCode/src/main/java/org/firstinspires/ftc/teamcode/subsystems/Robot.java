@@ -55,6 +55,7 @@ public class Robot {
                 new InstantAction(intake::stopIntake),
                 new InstantAction(intake::intakeIn),
                 intake.setTargetPositionActionBlocking(0),
+                new InstantAction(arm::actualIntakePosition),
                 new InstantAction(arm::grab)
         );
     }
