@@ -16,7 +16,7 @@ public class Arm {
     public static double MIDDLE = 0.45;
     public static double CLOSED = 0.25;
 
-    public static double WRIST_MIDDLE = 0.5;
+    public static double WRIST_MIDDLE = 0.9;
     public static double WRIST_INTAKE = 0.38;
     public static double WRIST_SPECIMEN_GRAB = 0.25;
     public static double WRIST_SPECIMEN_DROP = 0.25;
@@ -65,8 +65,8 @@ public class Arm {
 
     public void grabPosition() {
         setPivot(PIVOT_INTAKE);
-        wrist.setPosition(WRIST_MIDDLE);
-        wristPosition = WRIST_MIDDLE;
+        wrist.setPosition(WRIST_INTAKE);
+        wristPosition = WRIST_INTAKE;
     }
 
     public void grab() {

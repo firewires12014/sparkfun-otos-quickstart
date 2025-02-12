@@ -28,7 +28,7 @@ public class Intake {
     public static double IN = 0;
 
     public static double PIVOT_INTAKE = 0.54;
-    public static double PIVOT_IN = 0.35;
+    public static double PIVOT_IN = 0.4;
     public static double PIVOT_AUTO_EJECT = 0.5;
 
     public static double INTAKE_SPEED = 1;

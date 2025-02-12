@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import static java.lang.Thread.sleep;
+
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.Pose2d;
@@ -53,10 +55,15 @@ public class Robot {
                 new InstantAction(arm::clawPrime),
                 new InstantAction(arm::intakePrimePosition),
                 new InstantAction(intake::stopIntake),
+                new SleepAction(1),
+                //why wont ts (time shit) work
                 new InstantAction(intake::intakeUp),
-                intake.setTargetPositionActionBlocking(0),
-                lift.setTargetPositionActionBlocking(0),
-                new SleepAction(5),
+//                intake.setTargetPositionActionBlocking(0),
+                intake.setTargetPositionAction(0),
+//                lift.setTargetPositionActionBlocking(0),
+                //block tuah
+                lift.setTargetPositionAction(0),
+                new SleepAction(1),
                 new InstantAction(arm::grabPosition),
                 new InstantAction(arm::grab)
         );
@@ -64,6 +71,7 @@ public class Robot {
 //lowkey I dont know if these voids are supposed to be an action or not
 
     public void specIntake() {
+        arm.grab();
         arm.specIntake();
         Lift.targetPosition = Lift.SPECIMEN_PICKUP;
         //i might need a wait here the claw might hit the string
@@ -93,26 +101,18 @@ public class Robot {
         arm.bucketPrime();
     }
 
-    public Action specDropAndReturn() {
+    public Action specDrop() {
         return new SequentialAction(
-                new InstantAction(arm::drop),
-                new SleepAction(4),
-                new InstantAction(arm::grab),
-                new InstantAction(arm::intakePrimePosition),
-                lift.setTargetPositionAction(0) //do i use blocking idk what that is
+                new InstantAction(arm::drop)
+                //do i use blocking idk what that is
                //finish
         );
     }
 
-    public Action sampleDropAndReturn() {
+    public Action sampleDrop() {
         return new SequentialAction(
                 new InstantAction(arm::bucketDrop),
-                new InstantAction(arm::drop),
-                new SleepAction(4),
-                new InstantAction(arm::grab),
-                new InstantAction(arm::intakePrimePosition),
-                lift.setTargetPositionActionBlocking(0) //do i use blocking idk what that is
-                //finish
+                new InstantAction(arm::drop)
         );
     }
 }

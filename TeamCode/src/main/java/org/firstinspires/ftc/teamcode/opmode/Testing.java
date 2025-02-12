@@ -38,7 +38,7 @@ public class Testing extends LinearOpMode {
 //            robot.arm.rightPivot.setPosition(rightArm);
 //            robot.arm.grabber.setPosition(grabber);
 //            robot.arm.wrist.setPosition(wrist);
-//            robot.intake.pivot.setPosition(inakePivot);
+//            robot.intake.pivot.setPosition(intakePivot);
 
             robot.intake.manualControl(-gamepad2.left_stick_y);
             robot.lift.manualControl(-gamepad2.right_stick_y);
