@@ -40,6 +40,7 @@ public class Robot {
             intake.intakeEject();
             intake.spin.setPower(Intake.INTAKE_EJECT);
 
+
             if (intake.isRightColor()) {
                 intake.intakeDown();
                 intake.spin.setPower(Intake.INTAKE_SPEED);

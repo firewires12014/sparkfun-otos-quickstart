@@ -37,7 +37,7 @@ public class Arm {
     public Servo wrist;
     public Servo grabber;
     public RevColorSensorV3 bucketSensor;
-    public double wristPosition;
+    public double wristPosition = 0;
 
     public Arm(HardwareMap hardwareMap) {
         leftPivot = hardwareMap.get(Servo.class, "leftpivot");

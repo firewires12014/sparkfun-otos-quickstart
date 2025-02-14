@@ -15,6 +15,13 @@ import org.firstinspires.ftc.teamcode.util.ActionScheduler;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends LinearOpMode {
+    public static double WRIST_MIDDLE = 0.9;
+    public static double WRIST_INTAKE = 0.38;
+    public static double WRIST_SPECIMEN_GRAB = 0.25;
+    public static double WRIST_SPECIMEN_DROP = 0.25;
+    public static double WRIST_BUCKET_PRIME = 0.5;
+    public static double WRIST_BUCKET_DROP = 0.7;
+
     enum CLAW {
         IDLE,
         DROP,
@@ -26,6 +33,7 @@ public class TeleOp extends LinearOpMode {
     enum SPECPIVOT {
         IDLE,
         SPEC,
+        CLAW,
         INTAKE
     }
     SPECPIVOT specState = SPECPIVOT.IDLE;
@@ -153,13 +161,13 @@ public class TeleOp extends LinearOpMode {
 
             //Hang
 
-            if ((gamepad2.square) && !scheduler.isBusy()) {
-                scheduler.queueAction(robot.hang.hangIn());
-            }
+//            if ((gamepad2.square) && !scheduler.isBusy()) {
+//                scheduler.queueAction(robot.hang.hangIn());
+//            }
 
-            if ((gamepad2.circle) && !scheduler.isBusy()) {
-                scheduler.queueAction(robot.hang.hangOut());
-            }
+//            if ((gamepad2.circle) && !scheduler.isBusy()) {
+//                scheduler.queueAction(robot.hang.hangOut());
+//            }
 
             switch (specState) {
                 case IDLE:
@@ -167,16 +175,27 @@ public class TeleOp extends LinearOpMode {
                     if (gamepad2.left_bumper) specState = SPECPIVOT.SPEC;
                     break;
                 case SPEC:
-                    arm.grab();
                     if (specTimer.seconds() > 0.3) {
+                        specTimer.reset();
+                        if (arm.wristPosition == WRIST_INTAKE || arm.wristPosition == 0) {
+                            arm.grab();
+                            specState = SPECPIVOT.INTAKE;
+                        } else {
+                            specState = SPECPIVOT.CLAW;
+                        }
+                    }
+                    break;
+                case CLAW:
+                    arm.drop();
+                    if (specTimer.seconds() > 1) {
                         specTimer.reset();
                         specState = SPECPIVOT.INTAKE;
                     }
                     break;
                 case INTAKE:
-                    arm.specIntake();
+                    arm.specIntake();   // arm position for wall grab
                     Lift.targetPosition = Lift.SPECIMEN_PICKUP;
-                    arm.drop();
+                    arm.drop(); // open claw
                     if (specTimer.seconds() > 0.5) specState = SPECPIVOT.IDLE;
                     break;
             }
