@@ -169,37 +169,23 @@ public class TeleOp extends LinearOpMode {
 //                scheduler.queueAction(robot.hang.hangOut());
 //            }
 
-            switch (specState) {
-                case IDLE:
-                    specTimer.reset();
-                    if (gamepad2.left_bumper) specState = SPECPIVOT.SPEC;
-                    break;
-                case SPEC:
-                    if (specTimer.seconds() > 0.3) {
-                        specTimer.reset();
-                        if (arm.wristPosition == WRIST_INTAKE || arm.wristPosition == 0) {
-                            arm.grab();
-                            specState = SPECPIVOT.INTAKE;
-                        } else {
-                            specState = SPECPIVOT.CLAW;
-                        }
-                    }
-                    break;
-                case CLAW:
-                    arm.drop();
-                    if (specTimer.seconds() > 1) {
-                        specTimer.reset();
-                        specState = SPECPIVOT.INTAKE;
-                    }
-                    break;
-                case INTAKE:
-                    arm.specIntake();   // arm position for wall grab
-                    Lift.targetPosition = Lift.SPECIMEN_PICKUP;
-                    arm.drop(); // open claw
-                    if (specTimer.seconds() > 0.5) specState = SPECPIVOT.IDLE;
-                    break;
-            }
+            telemetry.addData("Arm Position", arm.wrist.getPosition());
+            telemetry.update();
 
+            if (gamepad2.left_bumper) {
+                if (arm.wristPosition == WRIST_INTAKE ||
+                    arm.wristPosition == WRIST_MIDDLE
+                ) {
+                    telemetry.addLine("Running Spec Grab");
+                    scheduler.queueAction(robot.specGrab());
+                    state = CLAW.GRAB;
+                } else {
+                    telemetry.addLine("Running Spec Score");
+                    scheduler.queueAction(robot.specScore());
+                    state = CLAW.DROP;
+                }
+                telemetry.update();
+            }
 
             switch (pivotState) {
                 case IDLE:

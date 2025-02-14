@@ -116,4 +116,26 @@ public class Robot {
                 new InstantAction(arm::drop)
         );
     }
+
+    public Action specGrab() {
+        return new SequentialAction(
+                new InstantAction(arm::grab),
+                new SleepAction(.5),
+                new InstantAction(()-> {
+                    Lift.targetPosition = Lift.SPECIMEN_PICKUP;
+                    arm.specIntake();
+             }
+        ));
+    }
+    public Action specScore() {
+        return new SequentialAction(
+                new InstantAction(arm::drop),
+                new SleepAction(.5),
+                new InstantAction(()-> {
+                    Lift.targetPosition = Lift.SPECIMEN_PICKUP;
+                    arm.specIntake();
+                }
+                ));
+    }
+
 }
