@@ -39,6 +39,10 @@ public class Arm {
     public RevColorSensorV3 bucketSensor;
     public double wristPosition = 0;
 
+    /**
+     * Constructor for the Arm class
+     * @param hardwareMap
+     */
     public Arm(HardwareMap hardwareMap) {
         leftPivot = hardwareMap.get(Servo.class, "leftpivot");
         rightPivot = hardwareMap.get(Servo.class, "rightpivot");
@@ -47,6 +51,12 @@ public class Arm {
         bucketSensor = hardwareMap.get(RevColorSensorV3.class, "bucketColor");
     }
 
+    /**
+     * Set the position of the pivot
+     *      FORMAT: Anything prior to the decimal is the left servo and right is right servo position.
+     *      Example 01.99 would be left: 0.01, and right = 0.99, NOTE: only two decimal places are work
+     * @param positions
+     */
     public void setPivot(double positions) {
         String[] parts = String.format("%05.2f", positions).split("\\.");
 
@@ -57,56 +67,90 @@ public class Arm {
         rightPivot.setPosition(right);
     }
 
+    /**
+     * Set the position of the pivot to the intake prime position
+     */
     public void intakePrimePosition() {
         setPivot(PIVOT_INTAKE);
         wrist.setPosition(WRIST_MIDDLE);
         wristPosition = WRIST_MIDDLE;
     }
 
+    /**
+     * Set the position of the pivot to the grab position
+     */
     public void grabPosition() {
         setPivot(PIVOT_INTAKE);
         wrist.setPosition(WRIST_INTAKE);
         wristPosition = WRIST_INTAKE;
     }
 
+    /**
+     * Close the grabber/claw
+     */
     public void grab() {
         grabber.setPosition(CLOSED);
     }
 
+    /**
+     * Open the grabber/claw to the middle position
+     */
     public void clawPrime() {
         grabber.setPosition(MIDDLE);
     }
 
+    /**
+     * Open the grabber/claw to the open position
+     */
     public void drop() {
         grabber.setPosition(OPEN);
     }
 
+    /**
+     * Set the position of the pivot to the specimen pickup position
+     */
     public void specIntake() {
         setPivot(PIVOT_SPECIMEN_PICKUP);
         wrist.setPosition(WRIST_SPECIMEN_GRAB);
         wristPosition = WRIST_SPECIMEN_GRAB;
     }
 
+    /**
+     * Check the distance of the bucket sensor to the bucket
+     * @return
+     */
     public boolean isBucket() {
         return bucketSensor.getDistance(DistanceUnit.MM) < BUCKET_TOLERANCE;
     }
 
+    /**
+     * Set the position of the pivot to the specimen drop position
+     */
     public void specDrop() {
         setPivot(PIVOT_SPECIMEN_HORIZONTAL);
         wrist.setPosition(WRIST_SPECIMEN_DROP);
         wristPosition = WRIST_SPECIMEN_DROP;
     }
 
+    /**
+     * Set the position of the pivot to the bucket prime position
+     */
     public void bucketPrime() {
         setPivot(PIVOT_BUCKET);
         wrist.setPosition(WRIST_BUCKET_PRIME);
     }
 
+    /**
+     * Set the position of the pivot to the bucket drop position
+     */
     public void bucketDrop() {
         setPivot(PIVOT_BUCKET);
         wrist.setPosition(WRIST_BUCKET_DROP);
     }
 
+    /**
+     * Set the position of the pivot to the observation drop position
+     */
     public void observationDrop() {
         setPivot(PIVOT_OBSERVATION);
         wrist.setPosition(WRIST_SPECIMEN_DROP); //might be wrong wrist position

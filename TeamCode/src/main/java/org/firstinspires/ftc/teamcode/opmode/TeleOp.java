@@ -15,19 +15,12 @@ import org.firstinspires.ftc.teamcode.util.ActionScheduler;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends LinearOpMode {
-    public static double WRIST_MIDDLE = 0.9;
-    public static double WRIST_INTAKE = 0.38;
-    public static double WRIST_SPECIMEN_GRAB = 0.25;
-    public static double WRIST_SPECIMEN_DROP = 0.25;
-    public static double WRIST_BUCKET_PRIME = 0.5;
-    public static double WRIST_BUCKET_DROP = 0.7;
 
     enum CLAW {
         IDLE,
         DROP,
         GRAB
     }
-
     CLAW clawState = CLAW.IDLE;
     ElapsedTime clawTimer = new ElapsedTime();
 
@@ -36,7 +29,6 @@ public class TeleOp extends LinearOpMode {
         SPEC,
         INTAKE
     }
-
     PIVOT pivotState = PIVOT.IDLE;
     ElapsedTime pivotTimer = new ElapsedTime();
 
@@ -170,11 +162,11 @@ public class TeleOp extends LinearOpMode {
 
             // Toggle The arm between specimen score and specimen intake
             if (gamepad2.left_bumper) {
-                if (arm.wristPosition == WRIST_INTAKE ||
-                        arm.wristPosition == WRIST_MIDDLE
+                if (arm.wristPosition == arm.WRIST_INTAKE ||
+                        arm.wristPosition == arm.WRIST_MIDDLE
                 ) {
                     telemetry.addLine("Running Spec Grab");
-                    scheduler.queueAction(robot.specGrab());
+                    scheduler.queueAction(robot.specIntake());
                     clawState = CLAW.GRAB;
                 } else {
                     telemetry.addLine("Running Spec Score");

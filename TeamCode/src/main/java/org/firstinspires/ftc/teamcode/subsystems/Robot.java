@@ -20,6 +20,10 @@ public class Robot {
     public Lift lift;
     public MecanumDrive drive;
 
+    /**
+     * Constructor for the Robot class
+     * @param hardwareMap
+     */
     public Robot(HardwareMap hardwareMap) {
         arm = new Arm(hardwareMap);
         //hang = new Hang(hardwareMap);
@@ -28,6 +32,10 @@ public class Robot {
         drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
     }
 
+    /**
+     * Update the robot
+     * This runs on every loop of the OpMode
+     */
     public void update() {
 //        hang.update();
         intake.update();
@@ -35,11 +43,14 @@ public class Robot {
         drive.updatePoseEstimate();
     }
 
+    /**
+     * Eject the wrong color
+     * @return
+     */
     public Action eject() {
-        return new ActionUtil.RunnableAction(()-> {
+        return new ActionUtil.RunnableAction(() -> {
             intake.intakeEject();
             intake.spin.setPower(Intake.INTAKE_EJECT);
-
 
             if (intake.isRightColor()) {
                 intake.intakeDown();
@@ -48,68 +59,76 @@ public class Robot {
             }
 
             return true;
-    });
+        });
     }
 
+    /**
+     * Transfer from the intake into the claw
+     * @return
+     */
     public Action transfer() {
         return new SequentialAction(
                 new InstantAction(arm::clawPrime),
                 new InstantAction(arm::intakePrimePosition),
                 new InstantAction(intake::stopIntake),
                 new SleepAction(1),
-                //why wont ts (time shit) work
                 new InstantAction(intake::intakeUp),
-//                intake.setTargetPositionActionBlocking(0),
                 intake.setTargetPositionAction(0),
-//                lift.setTargetPositionActionBlocking(0),
-                //block tuah
                 lift.setTargetPositionAction(0),
                 new SleepAction(1),
                 new InstantAction(arm::grabPosition),
                 new InstantAction(arm::grab)
         );
     }
-//lowkey I dont know if these voids are supposed to be an action or not
 
-    public void specIntake() {
-        arm.grab();
-        arm.specIntake();
-        Lift.targetPosition = Lift.SPECIMEN_PICKUP;
-        //i might need a wait here the claw might hit the string
-        arm.drop();
-    }
-
+    /**
+     * Outtake the observation
+     */
     public void outtakeObservation() {
         arm.grab();
         arm.observationDrop();
     }
 
+    /**
+     * Outtake the specimen
+     */
     public void outtakeSpec() {
         arm.grab();
         Lift.targetPosition = Lift.SPECIMEN;
         arm.specDrop();
     }
 
+    /**
+     * Outtake the low bucket
+     */
     public void outtakeLowBucket() {
         arm.grab();
         Lift.targetPosition = Lift.LOW_BUCKET;
         arm.bucketPrime();
     }
 
+    /**
+     * Outtake the high bucket
+     */
     public void outtakeBucket() {
         arm.grab();
         Lift.targetPosition = Lift.HIGH_BUCKET;
         arm.bucketPrime();
     }
 
+    /**
+     * Drop the specimen
+     */
     public Action specDrop() {
         return new SequentialAction(
                 new InstantAction(arm::drop)
-                //do i use blocking idk what that is
-               //finish
         );
     }
 
+    /**
+     * Drop the sample into the bucket
+     * @return
+     */
     public Action sampleDrop() {
         return new SequentialAction(
                 new InstantAction(arm::bucketDrop),
@@ -117,25 +136,34 @@ public class Robot {
         );
     }
 
-    public Action specGrab() {
+    /**
+     * Intake the specimen from the wall and move to scoring position
+     * @return
+     */
+    public Action specIntake() {
         return new SequentialAction(
                 new InstantAction(arm::grab),
                 new SleepAction(.5),
-                new InstantAction(()-> {
+                new InstantAction(() -> {
                     Lift.targetPosition = Lift.SPECIMEN_PICKUP;
                     arm.specIntake();
-             }
-        ));
+                })
+        );
     }
+
+    /**
+     * Score the specimen and reset to intake position
+     * @return
+     */
     public Action specScore() {
         return new SequentialAction(
                 new InstantAction(arm::drop),
                 new SleepAction(.5),
-                new InstantAction(()-> {
+                new InstantAction(() -> {
                     Lift.targetPosition = Lift.SPECIMEN_PICKUP;
                     arm.specIntake();
-                }
-                ));
+                })
+        );
     }
 
 }
