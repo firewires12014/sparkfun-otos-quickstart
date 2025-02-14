@@ -62,6 +62,10 @@ public class Intake {
     public Rev2mDistanceSensor subSensor;
     public RevColorSensorV3 sampleSensor;
 
+    /**
+     * Constructor for the Intake class
+     * @param hardwareMap
+     */
     public Intake(HardwareMap hardwareMap) {
         spin = hardwareMap.get(DcMotorEx.class, "spin");
         spin.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -80,17 +84,27 @@ public class Intake {
         sampleSensor = hardwareMap.get(RevColorSensorV3.class, "sampleColor");
 
         coef = new PIDCoefficients(0.004, 0, 0);
-        pid = new PIDFController(coef, 0, 0,0,(t, x, v)-> 0.0);
+        pid = new PIDFController(coef, 0, 0, 0, (t, x, v) -> 0.0);
     }
 
+    /**
+     * Set the color of the leds to red
+     */
     public void setColorRed() {
         selected_color = "R";
     }
 
+    /**
+     * Set the color of the leds to blue
+     */
     public void setColorBlue() {
         selected_color = "B";
     }
 
+    /**
+     * Check to see if the current color is the right color
+     * @return
+     */
     public boolean isRightColor() {
         if (currentColor().equalsIgnoreCase("Y")) return true;
         else if (currentColor().equalsIgnoreCase("R") || currentColor().equalsIgnoreCase("B")) {
@@ -98,6 +112,10 @@ public class Intake {
         } else return false;
     }
 
+    /**
+     * Get the current color of the sensor
+     * @return
+     */
     public String currentColor() {
         int red = sampleSensor.red();
         int blue = sampleSensor.blue();
@@ -123,28 +141,59 @@ public class Intake {
         }
     }
 
+    /**
+     * Check if the sample is in the intake
+     * @return
+     */
     public boolean hasSample() {
         return sampleSensor.getDistance(DistanceUnit.MM) < SAMPLE_DISTANCE;
     }
-    public void startIntake(){
+
+    /**
+     * Start the intake
+     */
+    public void startIntake() {
         spin.setPower(1);
     }
+
+    /**
+     * Stop the intake
+     */
     public void stopIntake() {
         spin.setPower(0);
     }
 
+    /**
+     * Reverse the intake
+     */
+    public void reverseIntake() {
+        spin.setPower(INTAKE_REVERSE);
+    }
+
+    /**
+     * Put the intake down
+     */
     public void intakeDown() {
         pivot.setPosition(PIVOT_INTAKE);
     }
 
+    /**
+     * Eject the intake
+     */
     public void intakeEject() {
         pivot.setPosition(PIVOT_AUTO_EJECT);
     }
 
+    /**
+     * Put the intake up
+     */
     public void intakeUp() {
         pivot.setPosition(PIVOT_IN);
     }
 
+    /**
+     * Update the intake target position
+     */
     public void update() {
         pid.setTargetPosition(targetPosition);
 
@@ -156,6 +205,9 @@ public class Intake {
         }
     }
 
+    /**
+     * Reset the encoders
+     */
     public void resetEncoder() {
         extension.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         extension.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -163,10 +215,17 @@ public class Intake {
         targetPosition = 0;
     }
 
+    /**
+     * Check to see if the motors are busy
+     * @return
+     */
     public boolean isMotorBusy() {
         return Math.abs(pid.getLastError()) > tolerance;
     }
 
+    /**
+     * Action to set the target position
+     */
     private class TargetPositionAction implements Action {
         int position;
         boolean blocking;
@@ -191,14 +250,28 @@ public class Intake {
         }
     }
 
+    /**
+     * Set the target position of the intake
+     * @param position
+     * @return
+     */
     public Action setTargetPositionAction(int position) {
         return new Intake.TargetPositionAction(position, false);
     }
 
+    /**
+     * Set the target position of the intake using blocking
+     * @param position
+     * @return
+     */
     public Action setTargetPositionActionBlocking(int position) {
         return new Intake.TargetPositionAction(position, true);
     }
 
+    /**
+     * Use manual control over the intake using a FSM
+     * @param joystickInput
+     */
     public void manualControl(double joystickInput) {
         switch (state) {
             case IDLE:
@@ -223,7 +296,6 @@ public class Intake {
                 break;
         }
     }
-
 
 
 }

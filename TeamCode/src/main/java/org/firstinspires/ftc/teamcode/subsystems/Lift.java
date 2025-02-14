@@ -48,6 +48,10 @@ public class Lift {
 
     public DcMotorEx lift;
 
+    /**
+     * Constructor for the Lift class
+     * @param hardwareMap
+     */
     public Lift(HardwareMap hardwareMap) {
         lift = hardwareMap.get(DcMotorEx.class, "lift");
         lift.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -57,6 +61,9 @@ public class Lift {
         pid = new PIDFController(coef, 0, 0,0,(t, x, v)-> 0.0);
     }
 
+    /**
+     * Update the lift
+     */
     public void update() {
         pid.setTargetPosition(targetPosition);
 
@@ -68,6 +75,9 @@ public class Lift {
         }
     }
 
+    /**
+     * Reset the encoder
+     */
     public void resetEncoder() {
         lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         lift.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -75,10 +85,17 @@ public class Lift {
         targetPosition = 0;
     }
 
+    /**
+     * Check if the motor is busy
+     * @return
+     */
     public boolean isMotorBusy() {
         return Math.abs(pid.getLastError()) > tolerance;
     }
 
+    /**
+     * Action to set the target position
+     */
     private class TargetPositionAction implements Action {
         int position;
         boolean blocking;
@@ -103,14 +120,28 @@ public class Lift {
         }
     }
 
+    /**
+     * Set the target position action
+     * @param position
+     * @return
+     */
     public Action setTargetPositionAction(int position) {
         return new TargetPositionAction(position, false);
     }
 
+    /**
+     * Set the target position action using blocking
+     * @param position
+     * @return
+     */
     public Action setTargetPositionActionBlocking(int position) {
         return new TargetPositionAction(position, true);
     }
 
+    /**
+     * Set the power of the lift using manual control
+     * @param joystickInput
+     */
     public void manualControl(double joystickInput) {
         switch (state) {
             case IDLE:
