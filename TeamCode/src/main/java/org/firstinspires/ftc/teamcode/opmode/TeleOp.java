@@ -175,7 +175,7 @@ public class TeleOp extends LinearOpMode {
                 ) {
                     arm.grab();
                     clawState = CLAW.GRAB;
-                    Actions.runBlocking(
+                    scheduler.queueAction(
                             new SequentialAction(
                                     lift.setTargetPositionActionBlocking((int) Lift.ARM_FLIP_BACK),
                                     new SleepAction(.5),
@@ -188,12 +188,6 @@ public class TeleOp extends LinearOpMode {
                                     lift.setTargetPositionActionBlocking((int) Lift.SPECIMEN_PICKUP)
                             )
                     );
-//                    scheduler.queueAction(
-//                            new InstantAction(() -> {
-//                                Lift.targetPosition =  Lift.SPECIMEN_PICKUP;
-//                            })
-//                    );
-
                 } else {
                     scheduler.queueAction(robot.specScore());
                     clawState = CLAW.DROP;
