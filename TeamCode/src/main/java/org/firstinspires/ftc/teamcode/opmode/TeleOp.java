@@ -44,6 +44,7 @@ public class TeleOp extends LinearOpMode {
         Robot robot = new Robot(hardwareMap);
         Arm arm = new Arm(hardwareMap);
         Intake intake = new Intake(hardwareMap);
+        Lift lift = new Lift(hardwareMap);
         boolean isClawClosed = false;
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
@@ -174,32 +175,25 @@ public class TeleOp extends LinearOpMode {
                 ) {
                     arm.grab();
                     clawState = CLAW.GRAB;
-//                    scheduler.queueAction(
-                    scheduler.queueAction(
-                            new InstantAction(() -> {
-                                Lift.targetPosition =  Lift.ARM_FLIP_BACK;
-                            })
-                    );
-                    scheduler.update();
                     Actions.runBlocking(
                             new SequentialAction(
+                                    lift.setTargetPositionActionBlocking((int) Lift.ARM_FLIP_BACK),
                                     new SleepAction(.5),
                                     new InstantAction(arm::specIntake),
                                     new SleepAction(.5),
                                     new InstantAction(() -> {
                                         arm.drop();
                                         clawState = CLAW.DROP;
-                                    })
+                                    }),
+                                    lift.setTargetPositionActionBlocking((int) Lift.SPECIMEN_PICKUP)
                             )
                     );
-                    scheduler.queueAction(
-                            new InstantAction(() -> {
-                                Lift.targetPosition =  Lift.SPECIMEN_PICKUP;
-                            })
-                    );
+//                    scheduler.queueAction(
+//                            new InstantAction(() -> {
+//                                Lift.targetPosition =  Lift.SPECIMEN_PICKUP;
+//                            })
+//                    );
 
-                    //                    );
-                    scheduler.update();
                 } else {
                     scheduler.queueAction(robot.specScore());
                     clawState = CLAW.DROP;
