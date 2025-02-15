@@ -1,9 +1,14 @@
 package org.firstinspires.ftc.teamcode.opmode;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
+import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Vector2d;
+import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -14,6 +19,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Robot;
 import org.firstinspires.ftc.teamcode.util.ActionScheduler;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
+@Config
 public class TeleOp extends LinearOpMode {
 
     enum CLAW {
@@ -163,17 +169,41 @@ public class TeleOp extends LinearOpMode {
             // Toggle The arm between specimen score and specimen intake
             if (gamepad2.left_bumper) {
                 if (arm.wristPosition == arm.WRIST_INTAKE ||
-                        arm.wristPosition == arm.WRIST_MIDDLE
+                        arm.wristPosition == arm.WRIST_MIDDLE ||
+                        arm.wristPosition == arm.WRIST_SPECIMEN_GRAB
                 ) {
-                    telemetry.addLine("Running Spec Grab");
-                    scheduler.queueAction(robot.specIntake());
+                    arm.grab();
                     clawState = CLAW.GRAB;
+//                    scheduler.queueAction(
+                    scheduler.queueAction(
+                            new InstantAction(() -> {
+                                Lift.targetPosition =  Lift.ARM_FLIP_BACK;
+                            })
+                    );
+                    scheduler.update();
+                    Actions.runBlocking(
+                            new SequentialAction(
+                                    new SleepAction(.5),
+                                    new InstantAction(arm::specIntake),
+                                    new SleepAction(.5),
+                                    new InstantAction(() -> {
+                                        arm.drop();
+                                        clawState = CLAW.DROP;
+                                    })
+                            )
+                    );
+                    scheduler.queueAction(
+                            new InstantAction(() -> {
+                                Lift.targetPosition =  Lift.SPECIMEN_PICKUP;
+                            })
+                    );
+
+                    //                    );
+                    scheduler.update();
                 } else {
-                    telemetry.addLine("Running Spec Score");
                     scheduler.queueAction(robot.specScore());
                     clawState = CLAW.DROP;
                 }
-                telemetry.update();
             }
 
             // Toggle the arm between bucket score and bucket intake

@@ -37,7 +37,7 @@ public class Arm {
     public Servo wrist;
     public Servo grabber;
     public RevColorSensorV3 bucketSensor;
-    public double wristPosition = 0;
+    public static double wristPosition = 0;
 
     /**
      * Constructor for the Arm class
@@ -138,6 +138,7 @@ public class Arm {
     public void bucketPrime() {
         setPivot(PIVOT_BUCKET);
         wrist.setPosition(WRIST_BUCKET_PRIME);
+        wristPosition = WRIST_BUCKET_DROP;
     }
 
     /**
@@ -146,6 +147,7 @@ public class Arm {
     public void bucketDrop() {
         setPivot(PIVOT_BUCKET);
         wrist.setPosition(WRIST_BUCKET_DROP);
+        wristPosition = WRIST_BUCKET_DROP;
     }
 
     /**
@@ -154,5 +156,6 @@ public class Arm {
     public void observationDrop() {
         setPivot(PIVOT_OBSERVATION);
         wrist.setPosition(WRIST_SPECIMEN_DROP); //might be wrong wrist position
+        wristPosition = WRIST_SPECIMEN_DROP;
     }
 }

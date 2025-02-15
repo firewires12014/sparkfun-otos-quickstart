@@ -10,6 +10,7 @@ import com.acmerobotics.roadrunner.SleepAction;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
+import org.firstinspires.ftc.teamcode.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.util.ActionUtil;
 
 public class Robot {
@@ -142,11 +143,16 @@ public class Robot {
      */
     public Action specIntake() {
         return new SequentialAction(
-                new InstantAction(arm::grab),
-                new SleepAction(.5),
+                new InstantAction(() -> {
+                    arm.grab();
+                    Lift.targetPosition = Lift.ARM_FLIP_BACK;
+                }),
+                new SleepAction(5),
+                new InstantAction(arm::specIntake),
+                new SleepAction(5),
                 new InstantAction(() -> {
                     Lift.targetPosition = Lift.SPECIMEN_PICKUP;
-                    arm.specIntake();
+                    arm.drop();
                 })
         );
     }
