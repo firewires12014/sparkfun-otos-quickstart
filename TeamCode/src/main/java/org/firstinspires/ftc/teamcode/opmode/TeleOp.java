@@ -22,6 +22,13 @@ import org.firstinspires.ftc.teamcode.util.ActionScheduler;
 @Config
 public class TeleOp extends LinearOpMode {
 
+    enum TRANSFER {
+        IDLE,
+        LIFTINTAKE
+    }
+    TRANSFER transferState = TRANSFER.IDLE;
+    ElapsedTime transferTimer = new ElapsedTime();
+
     enum CLAW {
         IDLE,
         DROP,
@@ -37,6 +44,16 @@ public class TeleOp extends LinearOpMode {
     }
     PIVOT pivotState = PIVOT.IDLE;
     ElapsedTime pivotTimer = new ElapsedTime();
+
+    enum SPECGRAB {
+        IDLE,
+        SPECFRONT,
+        SPECBACK,
+        SPECWAIT,
+        SPECLIFT
+    }
+    SPECGRAB specGrabState = SPECGRAB.IDLE;
+    ElapsedTime specGrabTimer = new ElapsedTime();
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -113,7 +130,7 @@ public class TeleOp extends LinearOpMode {
                     intake.intakeDown();
                 } else if ((gamepad2.left_trigger > 0.1)) {
                     // Eject the Specimen
-                    scheduler.queueAction(robot.eject());
+                    intake.spin.setPower(Intake.INTAKE_EJECT);
                 } else {
                     // Intake Up and Stop Spin
                     robot.intake.spin.setPower(0);
@@ -154,10 +171,6 @@ public class TeleOp extends LinearOpMode {
                 scheduler.queueAction(robot.eject());
             }
 
-            if (robot.intake.hasSample() && robot.intake.isRightColor()) {
-                scheduler.queueAction(robot.transfer());
-            }
-
 //            Hang Section
 //            if ((gamepad2.square) && !scheduler.isBusy()) {
 //                scheduler.queueAction(robot.hang.hangIn());
@@ -168,30 +181,69 @@ public class TeleOp extends LinearOpMode {
 //            }
 
             // Toggle The arm between specimen score and specimen intake
-            if (gamepad2.left_bumper) {
-                if (arm.wristPosition == arm.WRIST_INTAKE ||
-                        arm.wristPosition == arm.WRIST_MIDDLE ||
-                        arm.wristPosition == arm.WRIST_SPECIMEN_GRAB
-                ) {
+
+            switch (transferState) {
+                case IDLE:
+                    telemetry.addLine("Inside Transfer");
+                    telemetry.addData("Sample", robot.intake.hasSample());
+                    telemetry.addData("Sample COlor", robot.intake.isRightColor());
+                    telemetry.update();
+                    if (robot.intake.hasSample() && robot.intake.isRightColor()) {
+                        transferState = TRANSFER.LIFTINTAKE;
+                    }
+                    break;
+                case LIFTINTAKE:
+                    if (!robot.intake.hasSample() || !robot.intake.isRightColor()) {
+                        transferState = TRANSFER.IDLE;
+                    }
+                    intake.pivot.setPosition(intake.PIVOT_IN);
+                    Intake.targetPosition = 0;
+                    break;
+            }
+
+            switch (specGrabState) {
+                case IDLE:
+                    specGrabTimer.reset();
+                    if (gamepad2.left_bumper) {
+                        if (arm.wristPosition == arm.WRIST_INTAKE ||
+                                arm.wristPosition == arm.WRIST_MIDDLE ||
+                                arm.wristPosition == arm.WRIST_SPECIMEN_GRAB
+                        ) {
+                            specGrabState = SPECGRAB.SPECLIFT;
+                        }
+                    }
+                    break;
+                case SPECLIFT:
                     arm.grab();
                     clawState = CLAW.GRAB;
+                    Lift.targetPosition = Lift.ARM_FLIP_BACK;
+                    if (specGrabTimer.seconds() > 0.5) {
+                        specGrabTimer.reset();
+                        specGrabState = SPECGRAB.SPECFRONT;
+                    }
+                    break;
+                case SPECFRONT:
                     scheduler.queueAction(
                             new SequentialAction(
-                                    lift.setTargetPositionActionBlocking((int) Lift.ARM_FLIP_BACK),
-                                    new SleepAction(.5),
+//                                    new SleepAction(1),
                                     new InstantAction(arm::specIntake),
-                                    new SleepAction(.5),
+//                                    new SleepAction(.5),
                                     new InstantAction(() -> {
                                         arm.drop();
-                                        clawState = CLAW.DROP;
-                                    }),
-                                    lift.setTargetPositionActionBlocking((int) Lift.SPECIMEN_PICKUP)
+                                    })
                             )
                     );
-                } else {
-                    scheduler.queueAction(robot.specScore());
-                    clawState = CLAW.DROP;
-                }
+                    specGrabTimer.reset();
+                    specGrabState = SPECGRAB.SPECBACK;
+                    break;
+                case SPECBACK:
+                    if (specGrabTimer.seconds() > .5) {
+                        specGrabTimer.reset();
+                        Lift.targetPosition = Lift.SPECIMEN_PICKUP;
+                        clawState = CLAW.DROP;
+                        specGrabState = SPECGRAB.IDLE;
+                    }
+                    break;
             }
 
             // Toggle the arm between bucket score and bucket intake
@@ -201,12 +253,13 @@ public class TeleOp extends LinearOpMode {
                     if (gamepad2.right_bumper) pivotState = PIVOT.SPEC;
                     break;
                 case SPEC:
+                    Lift.targetPosition = Lift.ARM_FLIP_BACK;
                     if (arm.wristPosition == arm.WRIST_BUCKET_PRIME) {
                         scheduler.queueAction(robot.sampleDrop());
                     } else {
                         scheduler.queueAction(robot.specDrop());
                         arm.grab();
-                        if (pivotTimer.seconds() > 0.3) {
+                        if (pivotTimer.seconds() > 0.5) {
                             pivotTimer.reset();
                             pivotState = PIVOT.INTAKE;
                         }

@@ -55,7 +55,7 @@ public class Intake {
     public Intake.ManualControl state = Intake.ManualControl.IDLE;
 
     public DcMotorEx spin;
-    private DcMotorEx extension;
+    public DcMotorEx extension;
     public Servo pivot;
     public Servo leftLight;
     public Servo rightLight;
@@ -135,8 +135,8 @@ public class Intake {
             return "Y";
         } else {
             // Return Orange if not sure
-            leftLight.setPosition(0.333);
-            rightLight.setPosition(0.333);
+            leftLight.setPosition(0);
+            rightLight.setPosition(0);
             return "?";
         }
     }
