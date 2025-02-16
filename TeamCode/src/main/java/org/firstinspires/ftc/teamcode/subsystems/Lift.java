@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.InstantAction;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -120,6 +121,20 @@ public class Lift {
             return false;
         }
     }
+
+    /**
+     * Set the target position
+     * @param position
+     * @return
+     */
+    public Action setTargetPosition(double position) {
+        return new InstantAction(() -> {
+            targetPosition = position;
+        });
+    }
+
+
+
 
     /**
      * Set the target position action

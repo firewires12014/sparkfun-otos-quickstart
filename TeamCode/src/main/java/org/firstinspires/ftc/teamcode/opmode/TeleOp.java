@@ -24,6 +24,7 @@ public class TeleOp extends LinearOpMode {
 
     enum TRANSFER {
         IDLE,
+        STEPONE,
         LIFTINTAKE
     }
     TRANSFER transferState = TRANSFER.IDLE;
@@ -83,6 +84,10 @@ public class TeleOp extends LinearOpMode {
 
         waitForStart();
         while (opModeIsActive() && !isStopRequested()) {
+            telemetry.addData("Extension pid:", intake.PID_ENABLED);
+            telemetry.addData("Lift pid:", lift.PID_ENABLED);
+            telemetry.update();
+
             // Choose color
             if (gamepad2.touchpad) {
                 if (Intake.selected_color.equalsIgnoreCase("R")) {
@@ -125,7 +130,7 @@ public class TeleOp extends LinearOpMode {
 
                 // Intake Control
                 // Intake Down and Spin
-                if ((gamepad2.right_trigger > 0.1)) {
+                if ((gamepad2.right_trigger > 0.1 && transferState == TRANSFER.IDLE)) {
                     robot.intake.spin.setPower(1);
                     intake.intakeDown();
                 } else if ((gamepad2.left_trigger > 0.1)) {
@@ -167,9 +172,6 @@ public class TeleOp extends LinearOpMode {
             /**
              * Automated Section
              */
-            if (robot.intake.hasSample() && !robot.intake.isRightColor()) {
-                scheduler.queueAction(robot.eject());
-            }
 
 //            Hang Section
 //            if ((gamepad2.square) && !scheduler.isBusy()) {
@@ -180,24 +182,36 @@ public class TeleOp extends LinearOpMode {
 //                scheduler.queueAction(robot.hang.hangOut());
 //            }
 
+            if (robot.intake.hasSample() && robot.intake.isRightColor()) {
+                scheduler.queueAction(robot.transfer());
+            }
+
             // Toggle The arm between specimen score and specimen intake
 
             switch (transferState) {
                 case IDLE:
-                    telemetry.addLine("Inside Transfer");
-                    telemetry.addData("Sample", robot.intake.hasSample());
-                    telemetry.addData("Sample COlor", robot.intake.isRightColor());
-                    telemetry.update();
-                    if (robot.intake.hasSample() && robot.intake.isRightColor()) {
-                        transferState = TRANSFER.LIFTINTAKE;
-                    }
+                    break;
+                case STEPONE:
+//                    transferTimer.reset();
+//                    intake.currentColor();
+//                    if (robot.intake.hasSample() && robot.intake.isRightColor()) {
+//                        robot.intake.stopIntake();
+//                        transferState = TRANSFER.LIFTINTAKE;
+//                    } else {
+//                        if (robot.intake.hasSample() && !robot.intake.isRightColor()) {
+//                            intake.spin.setPower(Intake.INTAKE_EJECT);
+//                            intake.intakeEject();
+//                        }
+//                    }
                     break;
                 case LIFTINTAKE:
                     if (!robot.intake.hasSample() || !robot.intake.isRightColor()) {
-                        transferState = TRANSFER.IDLE;
+//                        transferState = TRANSFER.IDLE;
                     }
-                    intake.pivot.setPosition(intake.PIVOT_IN);
-                    Intake.targetPosition = 0;
+//                    if (transferTimer.seconds() > .5) {
+                        intake.pivot.setPosition(intake.PIVOT_IN);
+                        Intake.targetPosition = 0;
+//                    }
                     break;
             }
 

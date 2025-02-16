@@ -1,10 +1,13 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import android.sax.StartElementListener;
+
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.InstantAction;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -37,7 +40,7 @@ public class Intake {
 
     public static double targetPosition = 0;
     public static boolean PID_ENABLED = true;
-    public static double joystickDeadzone = 0.05;
+    public static double joystickDeadzone = 0.0;
     public static double tolerance = 75;
 
     private PIDCoefficients coef;
@@ -68,7 +71,7 @@ public class Intake {
      */
     public Intake(HardwareMap hardwareMap) {
         spin = hardwareMap.get(DcMotorEx.class, "spin");
-        spin.setDirection(DcMotorSimple.Direction.REVERSE);
+//        spin.setDirection(DcMotorSimple.Direction.REVERSE);
         spin.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         extension = hardwareMap.get(DcMotorEx.class, "extension");
@@ -248,6 +251,17 @@ public class Intake {
             }
             return false;
         }
+    }
+
+    /**
+     * Set the target position
+     * @param position
+     * @return
+     */
+    public Action setTargetPosition(double position) {
+        return new InstantAction(() -> {
+            targetPosition = position;
+        });
     }
 
     /**
