@@ -23,12 +23,6 @@ import org.firstinspires.ftc.teamcode.util.ActionUtil;
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 @Config
 public class TeleOp extends LinearOpMode {
-    enum CLAW {
-        IDLE,
-        DROP,
-        GRAB
-    }
-    CLAW clawState = CLAW.IDLE;
     ElapsedTime clawTimer = new ElapsedTime();
 
     enum SPECGRAB {
@@ -199,7 +193,6 @@ public class TeleOp extends LinearOpMode {
                     break;
                 case SPECLIFT:
                     arm.grab();
-                    clawState = CLAW.GRAB;
                     Lift.targetPosition = Lift.ARM_FLIP_BACK;
                     if (specGrabTimer.seconds() > 0.5) {
                         specGrabTimer.reset();
@@ -222,7 +215,6 @@ public class TeleOp extends LinearOpMode {
                     if (specGrabTimer.seconds() > .5) {
                         specGrabTimer.reset();
                         Lift.targetPosition = Lift.SPECIMEN_PICKUP;
-                        clawState = CLAW.DROP;
                         specGrabState = SPECGRAB.IDLE;
                     }
                     break;
@@ -240,25 +232,6 @@ public class TeleOp extends LinearOpMode {
                 robot.arm.grab();
                 clawTimer.reset();
             }
-
-//            // Toggle the claw between open and closed
-//            switch (clawState) {
-//                case IDLE:
-//                    clawTimer.reset();
-//                    if (gamepad2.cross) clawState = CLAW.GRAB;
-//                    break;
-//                case GRAB:
-//                    robot.arm.grab();
-//                    if (gamepad2.cross && clawTimer.seconds() > 0.3) {
-//                        clawTimer.reset();
-//                        clawState = CLAW.DROP;
-//                    }
-//                    break;
-//                case DROP:
-//                    robot.arm.drop();
-//                    if (clawTimer.seconds() > 0.5) clawState = CLAW.IDLE;
-//                    break;
-//            }
 
             telemetry.update();
             scheduler.update();
