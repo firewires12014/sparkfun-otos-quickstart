@@ -40,7 +40,7 @@ public class Intake {
 
     public static double targetPosition = 0;
     public static boolean PID_ENABLED = true;
-    public static double joystickDeadzone = 0.0;
+    public static double joystickDeadzone = 0.05;
     public static double tolerance = 75;
 
     private PIDCoefficients coef;

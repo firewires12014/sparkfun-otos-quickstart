@@ -4,6 +4,7 @@ import static java.lang.Thread.sleep;
 
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
+import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
@@ -51,15 +52,8 @@ public class Robot {
     public Action eject() {
         return new ActionUtil.RunnableAction(() -> {
             intake.intakeEject();
-            intake.spin.setPower(Intake.INTAKE_EJECT);
-
-            if (intake.isRightColor()) {
-                intake.intakeDown();
-                intake.spin.setPower(Intake.INTAKE_SPEED);
-                return false;
-            }
-
-            return true;
+            intake.spin.setPower(Intake.INTAKE_SPEED);
+            return false;
         });
     }
 
@@ -72,13 +66,28 @@ public class Robot {
                 new InstantAction(arm::clawPrime),
                 new InstantAction(arm::intakePrimePosition),
                 new InstantAction(intake::stopIntake),
-                new SleepAction(1),
-                new InstantAction(intake::intakeUp),
-                intake.setTargetPositionAction(0),
-                lift.setTargetPositionAction(0),
-                new SleepAction(1),
+                new SleepAction(.2),
+                new ParallelAction( new InstantAction(intake::intakeUp),
+                        intake.setTargetPositionActionBlocking(0),
+                        lift.setTargetPositionActionBlocking(0)
+                ),
+//                new SleepAction(.5),
                 new InstantAction(arm::grabPosition),
-                new InstantAction(arm::grab)
+                new SleepAction(.3),
+                new InstantAction(arm::grab),
+                new SleepAction(.3),
+                new InstantAction(this::outtakeLowBucket),
+                new SleepAction(.3),
+                new InstantAction (intake :: currentColor)
+        );
+    }
+
+    public Action returnIntake() {
+        return new SequentialAction(
+                new InstantAction(arm :: intakePrimePosition),
+                new InstantAction(arm :: grab),
+                new SleepAction(.5),
+                lift.setTargetPositionAction(0)
         );
     }
 

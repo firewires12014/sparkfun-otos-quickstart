@@ -1,7 +1,9 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -20,12 +22,12 @@ public class Arm {
     public static double WRIST_INTAKE = 0.38;
     public static double WRIST_SPECIMEN_GRAB = 0.25;
     public static double WRIST_SPECIMEN_DROP = 0.25;
-    public static double WRIST_BUCKET_PRIME = 0.5;
+    public static double WRIST_BUCKET_PRIME = 0.45;
     public static double WRIST_BUCKET_DROP = 0.7;
 
     // FORMAT: Anything prior to the decimal is the left servo and right is right servo position.
     // Example 01.99 would be left: 0.01, and right = 0.99, NOTE: only two decimal places are work
-    public static double PIVOT_INTAKE = 01.99;
+    public static double PIVOT_INTAKE = 03.97;
     public static double PIVOT_SPECIMEN_HORIZONTAL = 93.07;
     public static double PIVOT_SPECIMEN_PICKUP = 30.70;
     public static double PIVOT_SPECIMEN_PICKUP_AUTO = 27.83;
@@ -37,7 +39,9 @@ public class Arm {
     public Servo wrist;
     public Servo grabber;
     public RevColorSensorV3 bucketSensor;
+    public Rev2mDistanceSensor armSensor;
     public static double wristPosition = 0;
+
 
     /**
      * Constructor for the Arm class
@@ -49,6 +53,7 @@ public class Arm {
         wrist = hardwareMap.get(Servo.class, "wrist");
         grabber = hardwareMap.get(Servo.class, "grab");
         bucketSensor = hardwareMap.get(RevColorSensorV3.class, "bucketColor");
+        armSensor = hardwareMap.get(Rev2mDistanceSensor.class, "armSensor");
     }
 
     /**

@@ -12,24 +12,17 @@ import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.subsystems.Arm;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Lift;
 import org.firstinspires.ftc.teamcode.subsystems.Robot;
 import org.firstinspires.ftc.teamcode.util.ActionScheduler;
+import org.firstinspires.ftc.teamcode.util.ActionUtil;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 @Config
 public class TeleOp extends LinearOpMode {
-
-    enum TRANSFER {
-        IDLE,
-        STEPONE,
-        LIFTINTAKE
-    }
-    TRANSFER transferState = TRANSFER.IDLE;
-    ElapsedTime transferTimer = new ElapsedTime();
-
     enum CLAW {
         IDLE,
         DROP,
@@ -37,14 +30,6 @@ public class TeleOp extends LinearOpMode {
     }
     CLAW clawState = CLAW.IDLE;
     ElapsedTime clawTimer = new ElapsedTime();
-
-    enum PIVOT {
-        IDLE,
-        SPEC,
-        INTAKE
-    }
-    PIVOT pivotState = PIVOT.IDLE;
-    ElapsedTime pivotTimer = new ElapsedTime();
 
     enum SPECGRAB {
         IDLE,
@@ -55,6 +40,7 @@ public class TeleOp extends LinearOpMode {
     }
     SPECGRAB specGrabState = SPECGRAB.IDLE;
     ElapsedTime specGrabTimer = new ElapsedTime();
+    boolean hasWrongColor = false;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -84,8 +70,7 @@ public class TeleOp extends LinearOpMode {
 
         waitForStart();
         while (opModeIsActive() && !isStopRequested()) {
-            telemetry.addData("Extension pid:", intake.PID_ENABLED);
-            telemetry.addData("Lift pid:", lift.PID_ENABLED);
+            telemetry.addData("armDistance:", arm.armSensor.getDistance(DistanceUnit.MM));
             telemetry.update();
 
             // Choose color
@@ -130,7 +115,7 @@ public class TeleOp extends LinearOpMode {
 
                 // Intake Control
                 // Intake Down and Spin
-                if ((gamepad2.right_trigger > 0.1 && transferState == TRANSFER.IDLE)) {
+                if ((gamepad2.right_trigger > 0.1) && !hasWrongColor) {
                     robot.intake.spin.setPower(1);
                     intake.intakeDown();
                 } else if ((gamepad2.left_trigger > 0.1)) {
@@ -182,39 +167,24 @@ public class TeleOp extends LinearOpMode {
 //                scheduler.queueAction(robot.hang.hangOut());
 //            }
 
-            if (robot.intake.hasSample() && robot.intake.isRightColor()) {
+            if (robot.intake.hasSample() && robot.intake.isRightColor() && !scheduler.isBusy()) {
                 scheduler.queueAction(robot.transfer());
+            } else if (robot.intake.hasSample() && !robot.intake.isRightColor() && !scheduler.isBusy()) {
+//                scheduler.queueAction(robot.eject());
+                // TODO Move back into robot? Gamepad is not accessible as it is right now
+                scheduler.queueAction(
+                    new ActionUtil.RunnableAction(() -> {
+                        intake.intakeEject();
+                        intake.spin.setPower(Intake.INTAKE_EJECT);
+                        if (gamepad2.right_trigger < .1) {
+                            return true;
+                        }
+                        return false;
+                    })
+                );
             }
 
             // Toggle The arm between specimen score and specimen intake
-
-            switch (transferState) {
-                case IDLE:
-                    break;
-                case STEPONE:
-//                    transferTimer.reset();
-//                    intake.currentColor();
-//                    if (robot.intake.hasSample() && robot.intake.isRightColor()) {
-//                        robot.intake.stopIntake();
-//                        transferState = TRANSFER.LIFTINTAKE;
-//                    } else {
-//                        if (robot.intake.hasSample() && !robot.intake.isRightColor()) {
-//                            intake.spin.setPower(Intake.INTAKE_EJECT);
-//                            intake.intakeEject();
-//                        }
-//                    }
-                    break;
-                case LIFTINTAKE:
-                    if (!robot.intake.hasSample() || !robot.intake.isRightColor()) {
-//                        transferState = TRANSFER.IDLE;
-                    }
-//                    if (transferTimer.seconds() > .5) {
-                        intake.pivot.setPosition(intake.PIVOT_IN);
-                        Intake.targetPosition = 0;
-//                    }
-                    break;
-            }
-
             switch (specGrabState) {
                 case IDLE:
                     specGrabTimer.reset();
@@ -239,9 +209,7 @@ public class TeleOp extends LinearOpMode {
                 case SPECFRONT:
                     scheduler.queueAction(
                             new SequentialAction(
-//                                    new SleepAction(1),
                                     new InstantAction(arm::specIntake),
-//                                    new SleepAction(.5),
                                     new InstantAction(() -> {
                                         arm.drop();
                                     })
@@ -260,55 +228,46 @@ public class TeleOp extends LinearOpMode {
                     break;
             }
 
-            // Toggle the arm between bucket score and bucket intake
-            switch (pivotState) {
-                case IDLE:
-                    pivotTimer.reset();
-                    if (gamepad2.right_bumper) pivotState = PIVOT.SPEC;
-                    break;
-                case SPEC:
-                    Lift.targetPosition = Lift.ARM_FLIP_BACK;
-                    if (arm.wristPosition == arm.WRIST_BUCKET_PRIME) {
-                        scheduler.queueAction(robot.sampleDrop());
-                    } else {
-                        scheduler.queueAction(robot.specDrop());
-                        arm.grab();
-                        if (pivotTimer.seconds() > 0.5) {
-                            pivotTimer.reset();
-                            pivotState = PIVOT.INTAKE;
-                        }
-                    }
-                    break;
-                case INTAKE:
-                    arm.intakePrimePosition();
-                    Lift.targetPosition = Lift.SPECIMEN_PICKUP;
-                    arm.clawPrime();
-                    if (pivotTimer.seconds() > 0.5) pivotState = PIVOT.IDLE;
-                    break;
+            if (gamepad2.right_bumper) {
+                scheduler.queueAction(robot.returnIntake());
             }
 
-            // Toggle the claw between open and closed
-            switch (clawState) {
-                case IDLE:
-                    clawTimer.reset();
-                    if (gamepad2.cross) clawState = CLAW.GRAB;
-                    break;
-                case GRAB:
-                    robot.arm.grab();
-                    if (gamepad2.cross && clawTimer.seconds() > 0.3) {
-                        clawTimer.reset();
-                        clawState = CLAW.DROP;
-                    }
-                    break;
-                case DROP:
-                    robot.arm.drop();
-                    if (clawTimer.seconds() > 0.5) clawState = CLAW.IDLE;
-                    break;
+            if (gamepad2.cross && compareDouble(Arm.CLOSED, robot.arm.grabber.getPosition()) && clawTimer.seconds() > .5) {
+                robot.arm.drop();
+                clawTimer.reset();
             }
+            else if (gamepad2.cross && compareDouble(Arm.OPEN, robot.arm.grabber.getPosition()) && clawTimer.seconds() > .5){
+                robot.arm.grab();
+                clawTimer.reset();
+            }
+
+//            // Toggle the claw between open and closed
+//            switch (clawState) {
+//                case IDLE:
+//                    clawTimer.reset();
+//                    if (gamepad2.cross) clawState = CLAW.GRAB;
+//                    break;
+//                case GRAB:
+//                    robot.arm.grab();
+//                    if (gamepad2.cross && clawTimer.seconds() > 0.3) {
+//                        clawTimer.reset();
+//                        clawState = CLAW.DROP;
+//                    }
+//                    break;
+//                case DROP:
+//                    robot.arm.drop();
+//                    if (clawTimer.seconds() > 0.5) clawState = CLAW.IDLE;
+//                    break;
+//            }
 
             telemetry.update();
             scheduler.update();
             robot.update();
         }
+    }
+
+    public boolean compareDouble(double a, double b) {
+        return Math.abs(a-b) < 0.0001;
+
     }
 }
