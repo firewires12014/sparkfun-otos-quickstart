@@ -103,10 +103,10 @@ public class TeleOp extends LinearOpMode {
             /**
              * Manual Control Section
              */
-            if (!scheduler.isBusy()) {
-                robot.intake.manualControl(-gamepad2.left_stick_y);
-                robot.lift.manualControl(-gamepad2.right_stick_y);
+            robot.intake.manualControl(-gamepad2.left_stick_y);
+            robot.lift.manualControl(-gamepad2.right_stick_y);
 
+            if (!scheduler.isBusy()) {
                 // Intake Control
                 // Intake Down and Spin
                 if ((gamepad2.right_trigger > 0.1) && !hasWrongColor) {
