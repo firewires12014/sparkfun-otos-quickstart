@@ -23,9 +23,9 @@ public class Lift {
     public static double SPECIMEN_PICKUP = 0;
     public static double ARM_FLIP_BACK = 100;
     public static double AUTO_SPECIMEN_PICKUP = 82;
-    public static double SPECIMEN = 474;
-    public static double LOW_BUCKET = 171;
-    public static double HIGH_BUCKET = 725;
+    public static double SPECIMEN = 1300;
+    public static double LOW_BUCKET = 500;
+    public static double HIGH_BUCKET = 1900;
     public static double OBSERVATION_ZONE = 0;
     public static double ZERO = 0;
 
@@ -36,6 +36,10 @@ public class Lift {
 
     private PIDCoefficients coef;
     private PIDFController pid;
+
+    public static double kP = 0.0065;
+    public static double kI = 0;
+    public static double kD = 0;
 
     private double newPower = 0.0;
 
@@ -59,7 +63,7 @@ public class Lift {
         lift.setDirection(DcMotorSimple.Direction.REVERSE);
         resetEncoder();
 
-        coef = new PIDCoefficients(0.02, 0, 0);
+        coef = new PIDCoefficients(kP, kI, kD);
         pid = new PIDFController(coef, 0, 0,0,(t, x, v)-> 0.0);
     }
 

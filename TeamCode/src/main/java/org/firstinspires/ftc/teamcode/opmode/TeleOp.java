@@ -12,6 +12,7 @@ import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.subsystems.Arm;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
@@ -65,7 +66,10 @@ public class TeleOp extends LinearOpMode {
         waitForStart();
         while (opModeIsActive() && !isStopRequested()) {
             telemetry.addData("armDistance:", arm.armSensor.getDistance(DistanceUnit.MM));
+            telemetry.addData("Current Draw:", lift.lift.getCurrent(CurrentUnit.AMPS));
             telemetry.update();
+
+            intake.currentColor();
 
             // Choose color
             if (gamepad2.touchpad) {
@@ -161,21 +165,24 @@ public class TeleOp extends LinearOpMode {
 //                scheduler.queueAction(robot.hang.hangOut());
 //            }
 
-            if (robot.intake.hasSample() && robot.intake.isRightColor() && !scheduler.isBusy()) {
-                scheduler.queueAction(robot.transfer());
-            } else if (robot.intake.hasSample() && !robot.intake.isRightColor() && !scheduler.isBusy()) {
-//                scheduler.queueAction(robot.eject());
-                // TODO Move back into robot? Gamepad is not accessible as it is right now
-                scheduler.queueAction(
-                    new ActionUtil.RunnableAction(() -> {
-                        intake.intakeEject();
-                        intake.spin.setPower(Intake.INTAKE_EJECT);
-                        if (gamepad2.right_trigger < .1) {
-                            return true;
-                        }
-                        return false;
-                    })
-                );
+            if (gamepad1.right_trigger < 0.1 && gamepad1.left_trigger < 0.1) {
+                if (robot.intake.hasSample() && robot.intake.isRightColor() && !scheduler.isBusy()) {
+                    scheduler.queueAction(robot.transfer());
+                } else if (robot.intake.hasSample() &&
+                    !robot.intake.isRightColor() &&
+                    !scheduler.isBusy()) {
+                    // TODO Move back into robot? Gamepad is not accessible as it is right now
+                    scheduler.queueAction(
+                            new ActionUtil.RunnableAction(() -> {
+                                intake.intakeEject();
+                                intake.spin.setPower(Intake.INTAKE_EJECT);
+                                if (gamepad2.right_trigger < .1) {
+                                    return true;
+                                }
+                                return false;
+                            })
+                    );
+                }
             }
 
             // Toggle The arm between specimen score and specimen intake
@@ -225,12 +232,20 @@ public class TeleOp extends LinearOpMode {
             }
 
             if (gamepad2.cross && compareDouble(Arm.CLOSED, robot.arm.grabber.getPosition()) && clawTimer.seconds() > .5) {
+                telemetry.addLine("Opening Claw");
+                telemetry.update();
                 robot.arm.drop();
                 clawTimer.reset();
             }
             else if (gamepad2.cross && compareDouble(Arm.OPEN, robot.arm.grabber.getPosition()) && clawTimer.seconds() > .5){
+                telemetry.addLine("Closing Claw");
+                telemetry.update();
                 robot.arm.grab();
                 clawTimer.reset();
+            } else if (gamepad2.cross) {
+                telemetry.addLine("Cross pressed");
+                telemetry.addData("Grabber Position", robot.arm.grabber.getPosition());
+                telemetry.update();
             }
 
             telemetry.update();

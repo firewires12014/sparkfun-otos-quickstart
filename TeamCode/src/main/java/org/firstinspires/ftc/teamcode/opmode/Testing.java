@@ -8,6 +8,7 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.subsystems.Arm;
 import org.firstinspires.ftc.teamcode.subsystems.Lift;
@@ -40,22 +41,26 @@ public class Testing extends LinearOpMode {
 //            robot.arm.wrist.setPosition(wrist);
 //            robot.intake.pivot.setPosition(intakePivot);
 
-            robot.intake.manualControl(-gamepad2.left_stick_y);
-            robot.lift.manualControl(-gamepad2.right_stick_y);
+//            robot.intake.manualControl(-gamepad2.left_stick_y);
+//            robot.lift.manualControl(-gamepad2.right_stick_y);
+            robot.lift.lift.setPower(-gamepad2.right_stick_y);
+            telemetry.addData("Current Draw:", robot.lift.lift.getCurrent(CurrentUnit.AMPS));
+            telemetry.update();
 
-            if (gamepad2.square) robot.arm.setPivot(Arm.PIVOT_SPECIMEN_PICKUP);
-
-            if (gamepad2.circle) robot.arm.setPivot(Arm.PIVOT_SPECIMEN_HORIZONTAL);
-
-            robot.intake.spin.setPower(gamepad2.right_trigger - gamepad2.left_trigger);
-
-            robot.drive.setDrivePowers(new PoseVelocity2d(
-                    new Vector2d(
-                            -gamepad1.left_stick_y,
-                            -gamepad1.left_stick_x
-                    ),
-                    -gamepad1.right_stick_x
-            ));
+//
+//            if (gamepad2.square) robot.arm.setPivot(Arm.PIVOT_SPECIMEN_PICKUP);
+//
+//            if (gamepad2.circle) robot.arm.setPivot(Arm.PIVOT_SPECIMEN_HORIZONTAL);
+//
+//            robot.intake.spin.setPower(gamepad2.right_trigger - gamepad2.left_trigger);
+//
+//            robot.drive.setDrivePowers(new PoseVelocity2d(
+//                    new Vector2d(
+//                            -gamepad1.left_stick_y,
+//                            -gamepad1.left_stick_x
+//                    ),
+//                    -gamepad1.right_stick_x
+//            ));
 
             telemetry.addData("lift position", robot.lift.lift.getCurrentPosition());
             telemetry.addData("Lift target", Lift.targetPosition);
@@ -67,7 +72,7 @@ public class Testing extends LinearOpMode {
             telemetry.addData("sample RGB", robot.intake.currentColor());
             telemetry.addData("isWrongColor", robot.intake.isRightColor());
             telemetry.addData("hasSample", robot.intake.hasSample());
-            robot.update();
+//            robot.update();
             telemetry.update();
         }
     }
