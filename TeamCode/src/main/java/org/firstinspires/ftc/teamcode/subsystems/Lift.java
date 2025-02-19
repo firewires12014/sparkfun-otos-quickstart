@@ -25,7 +25,7 @@ public class Lift {
     public static double AUTO_SPECIMEN_PICKUP = 82;
     public static double SPECIMEN = 1300;
     public static double LOW_BUCKET = 500;
-    public static double HIGH_BUCKET = 1900;
+    public static double HIGH_BUCKET = 2000;
     public static double OBSERVATION_ZONE = 0;
     public static double ZERO = 0;
 

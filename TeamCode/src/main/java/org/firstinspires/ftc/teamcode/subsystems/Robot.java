@@ -66,7 +66,7 @@ public class Robot {
                 new InstantAction(arm::clawPrime),
                 new InstantAction(arm::intakePrimePosition),
                 new InstantAction(intake::stopIntake),
-                new SleepAction(.2),
+                new SleepAction(.41234),
                 new ParallelAction( new InstantAction(intake::intakeUp),
                         intake.setTargetPositionActionBlocking(0),
                         lift.setTargetPositionActionBlocking(0)
@@ -121,6 +121,7 @@ public class Robot {
      * Outtake the high bucket
      */
     public void outtakeBucket() {
+        arm.wristPosition = arm.WRIST_BUCKET_PRIME;
         arm.grab();
         Lift.targetPosition = Lift.HIGH_BUCKET;
         arm.bucketPrime();

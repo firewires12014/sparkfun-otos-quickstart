@@ -118,7 +118,7 @@ public class TeleOp extends LinearOpMode {
                     intake.intakeDown();
                 } else if ((gamepad2.left_trigger > 0.1)) {
                     // Eject the Specimen
-                    intake.spin.setPower(Intake.INTAKE_EJECT);
+                    robot.intake.spin.setPower(-1);
                 } else {
                     // Intake Up and Stop Spin
                     robot.intake.spin.setPower(0);
@@ -237,11 +237,20 @@ public class TeleOp extends LinearOpMode {
                 robot.arm.drop();
                 clawTimer.reset();
             }
+
+            //this shit might not work
+            else if (gamepad2.cross && arm.wristPosition == arm.WRIST_BUCKET_PRIME) {
+                arm.setPivot(arm.PIVOT_BUCKET);
+                arm.wrist.setPosition(arm.WRIST_BUCKET_DROP);
+                arm.wristPosition = arm.WRIST_BUCKET_DROP;
+            }
+
             else if (gamepad2.cross && compareDouble(Arm.OPEN, robot.arm.grabber.getPosition()) && clawTimer.seconds() > .5){
                 telemetry.addLine("Closing Claw");
                 telemetry.update();
                 robot.arm.grab();
                 clawTimer.reset();
+
             } else if (gamepad2.cross) {
                 telemetry.addLine("Cross pressed");
                 telemetry.addData("Grabber Position", robot.arm.grabber.getPosition());

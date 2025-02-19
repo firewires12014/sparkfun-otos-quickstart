@@ -14,9 +14,9 @@ public class Arm {
 
     public static double BUCKET_TOLERANCE = 5; // in mm
 
-    public static double OPEN = 0.75;
-    public static double MIDDLE = 0.45;
-    public static double CLOSED = 0.25;
+    public static double OPEN = 0.80;
+    public static double MIDDLE = 0.73;
+    public static double CLOSED = .65;
 
     public static double WRIST_MIDDLE = 0.9;
     public static double WRIST_INTAKE = 0.38;
