@@ -33,6 +33,7 @@ public class TeleOp extends LinearOpMode {
         SPECWAIT,
         SPECLIFT
     }
+
     SPECGRAB specGrabState = SPECGRAB.IDLE;
     ElapsedTime specGrabTimer = new ElapsedTime();
     boolean hasWrongColor = false;
@@ -169,8 +170,8 @@ public class TeleOp extends LinearOpMode {
                 if (robot.intake.hasSample() && robot.intake.isRightColor() && !scheduler.isBusy()) {
                     scheduler.queueAction(robot.transfer());
                 } else if (robot.intake.hasSample() &&
-                    !robot.intake.isRightColor() &&
-                    !scheduler.isBusy()) {
+                        !robot.intake.isRightColor() &&
+                        !scheduler.isBusy()) {
                     // TODO Move back into robot? Gamepad is not accessible as it is right now
                     scheduler.queueAction(
                             new ActionUtil.RunnableAction(() -> {
@@ -231,30 +232,22 @@ public class TeleOp extends LinearOpMode {
                 scheduler.queueAction(robot.returnIntake());
             }
 
-            if (gamepad2.cross && compareDouble(Arm.CLOSED, robot.arm.grabber.getPosition()) && clawTimer.seconds() > .5) {
-                telemetry.addLine("Opening Claw");
-                telemetry.update();
-                robot.arm.drop();
+            // Handle the grabber
+            // If cross pressed and the grabber is closed, open it
+            if (gamepad2.cross && clawTimer.seconds() > .5) {
+                if (compareDouble(Arm.CLOSED, robot.arm.grabber.getPosition())) {
+                    robot.arm.drop();
+                    // If cross pressed and the grabber is open, close it
+                } else if (compareDouble(Arm.OPEN, robot.arm.grabber.getPosition())) {
+                    // If the wrist is in the bucket prime position, move it to the bucket drop position
+                    if (arm.wristPosition == arm.WRIST_BUCKET_PRIME) {
+                        arm.setPivot(arm.PIVOT_BUCKET);
+                        arm.wrist.setPosition(arm.WRIST_BUCKET_DROP);
+                        arm.wristPosition = arm.WRIST_BUCKET_DROP;
+                    }
+                    robot.arm.grab();
+                }
                 clawTimer.reset();
-            }
-
-            //this shit might not work
-            else if (gamepad2.cross && arm.wristPosition == arm.WRIST_BUCKET_PRIME) {
-                arm.setPivot(arm.PIVOT_BUCKET);
-                arm.wrist.setPosition(arm.WRIST_BUCKET_DROP);
-                arm.wristPosition = arm.WRIST_BUCKET_DROP;
-            }
-
-            else if (gamepad2.cross && compareDouble(Arm.OPEN, robot.arm.grabber.getPosition()) && clawTimer.seconds() > .5){
-                telemetry.addLine("Closing Claw");
-                telemetry.update();
-                robot.arm.grab();
-                clawTimer.reset();
-
-            } else if (gamepad2.cross) {
-                telemetry.addLine("Cross pressed");
-                telemetry.addData("Grabber Position", robot.arm.grabber.getPosition());
-                telemetry.update();
             }
 
             telemetry.update();
@@ -264,7 +257,7 @@ public class TeleOp extends LinearOpMode {
     }
 
     public boolean compareDouble(double a, double b) {
-        return Math.abs(a-b) < 0.0001;
+        return Math.abs(a - b) < 0.0001;
 
     }
 }
