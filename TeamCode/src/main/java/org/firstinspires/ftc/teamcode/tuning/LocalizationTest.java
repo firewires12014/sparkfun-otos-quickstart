@@ -13,6 +13,7 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.SparkFunOTOSDrive;
 import org.firstinspires.ftc.teamcode.TankDrive;
 
+@disabled
 public class LocalizationTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {

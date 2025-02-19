@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@disabled
 public final class TuningOpModes {
     public static final Class<?> DRIVE_CLASS = MecanumDrive.class;
 

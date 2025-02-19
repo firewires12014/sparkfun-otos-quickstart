@@ -16,6 +16,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Robot;
 
 @Config
 @TeleOp
+@TeleOp(name="Testing OpMode", group="Into the Deep")
 public class Testing extends LinearOpMode {
     Robot robot;
 

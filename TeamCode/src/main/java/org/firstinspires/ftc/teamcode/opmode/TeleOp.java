@@ -23,6 +23,7 @@ import org.firstinspires.ftc.teamcode.util.ActionUtil;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 @Config
+@TeleOp(name="Teleop", group="Into the Deep")
 public class TeleOp extends LinearOpMode {
     ElapsedTime clawTimer = new ElapsedTime();
 
