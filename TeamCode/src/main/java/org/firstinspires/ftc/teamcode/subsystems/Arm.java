@@ -23,7 +23,7 @@ public class Arm {
     public static double WRIST_SPECIMEN_GRAB = 0.25;
     public static double WRIST_SPECIMEN_DROP = 0.25;
     public static double WRIST_BUCKET_PRIME = 0.45;
-    public static double WRIST_BUCKET_DROP = 0.7;
+    public static double WRIST_BUCKET_DROP = 0.73;
 
     // FORMAT: Anything prior to the decimal is the left servo and right is right servo position.
     // Example 01.99 would be left: 0.01, and right = 0.99, NOTE: only two decimal places are work
@@ -136,6 +136,8 @@ public class Arm {
         wrist.setPosition(WRIST_SPECIMEN_DROP);
         wristPosition = WRIST_SPECIMEN_DROP;
     }
+
+
 
     /**
      * Set the position of the pivot to the bucket prime position

@@ -23,7 +23,6 @@ import org.firstinspires.ftc.teamcode.util.ActionUtil;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 @Config
-@TeleOp(name="Teleop", group="Into the Deep")
 public class TeleOp extends LinearOpMode {
     ElapsedTime clawTimer = new ElapsedTime();
 
@@ -42,7 +41,7 @@ public class TeleOp extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         ActionScheduler scheduler = new ActionScheduler();
-        Robot robot = new Robot(hardwareMap);
+        Robot robot = new Robot(telemetry, hardwareMap);
         Arm arm = new Arm(hardwareMap);
         Intake intake = new Intake(hardwareMap);
         Lift lift = new Lift(hardwareMap);
@@ -237,15 +236,15 @@ public class TeleOp extends LinearOpMode {
             // If cross pressed and the grabber is closed, open it
             if (gamepad2.cross && clawTimer.seconds() > .5) {
                 if (compareDouble(Arm.CLOSED, robot.arm.grabber.getPosition())) {
-                    robot.arm.drop();
-                    // If cross pressed and the grabber is open, close it
-                } else if (compareDouble(Arm.OPEN, robot.arm.grabber.getPosition())) {
                     // If the wrist is in the bucket prime position, move it to the bucket drop position
-                    if (arm.wristPosition == arm.WRIST_BUCKET_PRIME) {
+                    if (Lift.targetPosition > 1600) {
                         arm.setPivot(arm.PIVOT_BUCKET);
                         arm.wrist.setPosition(arm.WRIST_BUCKET_DROP);
                         arm.wristPosition = arm.WRIST_BUCKET_DROP;
                     }
+                    robot.arm.drop();
+                    // If cross pressed and the grabber is open, close it
+                } else if (compareDouble(Arm.OPEN, robot.arm.grabber.getPosition())) {
                     robot.arm.grab();
                 }
                 clawTimer.reset();

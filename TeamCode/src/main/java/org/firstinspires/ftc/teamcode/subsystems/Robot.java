@@ -10,6 +10,7 @@ import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.util.ActionUtil;
@@ -26,7 +27,7 @@ public class Robot {
      * Constructor for the Robot class
      * @param hardwareMap
      */
-    public Robot(HardwareMap hardwareMap) {
+    public Robot(Telemetry telemetry, HardwareMap hardwareMap) {
         arm = new Arm(hardwareMap);
         //hang = new Hang(hardwareMap);
         intake = new Intake(hardwareMap);
@@ -108,6 +109,10 @@ public class Robot {
         arm.specDrop();
     }
 
+    public void outtakeSpecArm() {
+        Lift.targetPosition = Lift.SPECIMEN;
+    }
+
     /**
      * Outtake the low bucket
      */
@@ -132,7 +137,11 @@ public class Robot {
      */
     public Action specDrop() {
         return new SequentialAction(
-                new InstantAction(arm::drop)
+                new InstantAction(() -> {
+                    Lift.targetPosition = Lift.ZERO;
+                    arm.drop();
+                })
+
         );
     }
 
