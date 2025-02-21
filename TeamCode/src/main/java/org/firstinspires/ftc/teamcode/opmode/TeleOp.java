@@ -68,6 +68,7 @@ public class TeleOp extends LinearOpMode {
         while (opModeIsActive() && !isStopRequested()) {
             telemetry.addData("armDistance:", arm.armSensor.getDistance(DistanceUnit.MM));
             telemetry.addData("Current Draw:", lift.lift.getCurrent(CurrentUnit.AMPS));
+            telemetry.addData("Hang Encoder", robot.hang.hang.getCurrentPosition());
             telemetry.update();
 
             intake.currentColor();
@@ -117,8 +118,10 @@ public class TeleOp extends LinearOpMode {
                 if ((gamepad2.right_trigger > 0.1) && !hasWrongColor) {
                     robot.intake.spin.setPower(1);
                     intake.intakeDown();
-                } else if ((gamepad2.left_trigger > 0.1)) {
+                } else if ((gamepad2.left_trigger > 0.1 && gamepad2.left_trigger < 0.7)) {
                     // Eject the Specimen
+                    robot.intake.spin.setPower(intake.INTAKE_EJECT);
+                } else if (gamepad2.left_trigger > 0.71) {
                     robot.intake.spin.setPower(-1);
                 } else {
                     // Intake Up and Stop Spin
@@ -157,17 +160,20 @@ public class TeleOp extends LinearOpMode {
              * Automated Section
              */
 
-//            Hang Section
-//            if ((gamepad2.square) && !scheduler.isBusy()) {
-//                scheduler.queueAction(robot.hang.hangIn());
-//            }
+            //Hang Section
+            if ((gamepad2.square) && !scheduler.isBusy()) {
+                scheduler.queueAction(robot.hang.hangIn());
+            }
 
-//            if ((gamepad2.circle) && !scheduler.isBusy()) {
-//                scheduler.queueAction(robot.hang.hangOut());
-//            }
+            if ((gamepad2.circle) && !scheduler.isBusy()) {
+                scheduler.queueAction(robot.hang.hangOut());
+            }
 
             if (gamepad1.right_trigger < 0.1 && gamepad1.left_trigger < 0.1) {
-                if (robot.intake.hasSample() && robot.intake.isRightColor() && !scheduler.isBusy()) {
+                if (robot.intake.hasSample() &&
+                        robot.intake.isRightColor() &&
+                        gamepad2.left_trigger < 0.1 &&
+                        !scheduler.isBusy()) {
                     scheduler.queueAction(robot.transfer());
                 } else if (robot.intake.hasSample() &&
                         !robot.intake.isRightColor() &&

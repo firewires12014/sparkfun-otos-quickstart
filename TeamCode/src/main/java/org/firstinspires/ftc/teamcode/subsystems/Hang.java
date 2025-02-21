@@ -5,21 +5,18 @@ import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
-import com.acmerobotics.roadrunner.ParallelAction;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.subsystems.old.Intake;
-import org.firstinspires.ftc.teamcode.util.ActionUtil;
 import org.firstinspires.ftc.teamcode.util.PIDCoefficients;
 import org.firstinspires.ftc.teamcode.util.PIDFController;
 
 @Config
 public class Hang {
-    public DcMotorEx hangmotor1;
+    public DcMotorEx hang;
 
     PIDCoefficients coef;
     PIDFController pid;
@@ -38,10 +35,10 @@ public class Hang {
      * @param hardwareMap
      */
     public Hang(HardwareMap hardwareMap) {
-        hangmotor1 = hardwareMap.get(DcMotorEx.class, "lift2");
-        hangmotor1.setDirection(DcMotorSimple.Direction.REVERSE);
-        hangmotor1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        hangmotor1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        hang = hardwareMap.get(DcMotorEx.class, "hang");
+        hang.setDirection(DcMotorSimple.Direction.REVERSE);
+        hang.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        hang.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         resetEncoder();
 
@@ -54,8 +51,8 @@ public class Hang {
      * Reset the encoder
      */
     public void resetEncoder() {
-        hangmotor1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        hangmotor1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        hang.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        hang.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
     /**
@@ -70,8 +67,8 @@ public class Hang {
         pid.setTargetPosition(targetPosition);
 
         if (PID_ENABLED) {
-            double newPower = this.pid.update(hangmotor1.getCurrentPosition(), hangmotor1.getVelocity());
-            hangmotor1.setPower(newPower);
+            double newPower = this.pid.update(hang.getCurrentPosition(), hang.getVelocity());
+            hang.setPower(newPower);
         }
     }
 
@@ -162,12 +159,12 @@ public class Hang {
                 state = Intake.ManualControl.USING;
                 break;
             case USING:
-                hangmotor1.setPower(joystickInput);
+                hang.setPower(joystickInput);
 
                 if (Math.abs(joystickInput) < joystickDeadzone) state = Intake.ManualControl.LET_GO;
                 break;
             case LET_GO:
-                targetPosition = hangmotor1.getCurrentPosition();
+                targetPosition = hang.getCurrentPosition();
                 PID_ENABLED = true;
                 state = Intake.ManualControl.IDLE;
                 break;

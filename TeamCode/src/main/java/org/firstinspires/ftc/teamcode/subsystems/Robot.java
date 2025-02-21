@@ -29,7 +29,7 @@ public class Robot {
      */
     public Robot(Telemetry telemetry, HardwareMap hardwareMap) {
         arm = new Arm(hardwareMap);
-        //hang = new Hang(hardwareMap);
+        hang = new Hang(hardwareMap);
         intake = new Intake(hardwareMap);
         lift = new Lift(hardwareMap);
         drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
@@ -40,7 +40,7 @@ public class Robot {
      * This runs on every loop of the OpMode
      */
     public void update() {
-//        hang.update();
+        hang.update();
         intake.update();
         lift.update();
         drive.updatePoseEstimate();
@@ -76,8 +76,10 @@ public class Robot {
                 new InstantAction(arm::grabPosition),
                 new SleepAction(.3),
                 new InstantAction(arm::grab),
+                new InstantAction(intake::reverseIntake),
                 new SleepAction(.3),
-                new InstantAction(this::outtakeLowBucket),
+                new InstantAction(intake::stopIntake),
+                new InstantAction(this::outtakeBucket),
                 new SleepAction(.3),
                 new InstantAction (intake :: currentColor)
         );

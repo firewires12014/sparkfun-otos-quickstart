@@ -28,10 +28,10 @@ public class TestPath {
                 .setTangent(Math.toRadians(80))
                 .splineToConstantHeading(new Vector2d(28, -35), Math.toRadians(0))
                 .setTangent(Math.toRadians(0))
-                .splineToConstantHeading(new Vector2d(56, -47), Math.toRadians(90))
+                .splineToConstantHeading(new Vector2d(56, -47), Math.toRadians(-90))
                 .build());
 
-        meepMeep.setBackground(MeepMeep.Background.FIELD_INTO_THE_DEEP_JUICE_DARK)
+        meepMeep.setBackground(MeepMeep.Background.GRID_GREEN)
                 .setDarkMode(true)
                 .setBackgroundAlpha(0.95f)
                 .addEntity(myBot)

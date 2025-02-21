@@ -36,7 +36,7 @@ public class Intake {
 
     public static double INTAKE_SPEED = 1;
     public static double INTAKE_EJECT = 0.3;
-    private static double INTAKE_REVERSE = -0.5;
+    private static double INTAKE_REVERSE = -.75;
 
     public static double targetPosition = 0;
     public static boolean PID_ENABLED = true;
