@@ -65,11 +65,11 @@ public class TeleOp extends LinearOpMode {
         }
 
         waitForStart();
+        double lastLoopTime = System.nanoTime() / 1e9;
         while (opModeIsActive() && !isStopRequested()) {
             telemetry.addData("armDistance:", arm.armSensor.getDistance(DistanceUnit.MM));
             telemetry.addData("Current Draw:", lift.lift.getCurrent(CurrentUnit.AMPS));
             telemetry.addData("Hang Encoder", robot.hang.hang.getCurrentPosition());
-            telemetry.update();
 
             intake.currentColor();
 
@@ -256,9 +256,14 @@ public class TeleOp extends LinearOpMode {
                 clawTimer.reset();
             }
 
-            telemetry.update();
             scheduler.update();
             robot.update();
+            double loopTimeMs = (System.nanoTime() / 1e9 - lastLoopTime);
+            lastLoopTime = (System.nanoTime() / 1e9 - lastLoopTime);
+
+            telemetry.addData("loop time (ms)", loopTimeMs);
+            telemetry.addData("loop time (hz)", 1000/loopTimeMs);
+            telemetry.update();
         }
     }
 

@@ -20,10 +20,11 @@ import org.firstinspires.ftc.teamcode.util.PIDFController;
 @Config
 public class Lift {
 
-    public static double SPECIMEN_PICKUP = 0;
+    public static double SPECIMEN_PICKUP = 40;
     public static double ARM_FLIP_BACK = 100;
     public static double AUTO_SPECIMEN_PICKUP = 82;
     public static double SPECIMEN = 1300;
+    public static double SPECIMEN_AUTO = 1700;
     public static double LOW_BUCKET = 500;
     public static double HIGH_BUCKET = 1960;
     public static double OBSERVATION_ZONE = 0;

@@ -27,6 +27,14 @@ public class Robot {
      * Constructor for the Robot class
      * @param hardwareMap
      */
+    public Robot(Telemetry telemetry, HardwareMap hardwareMap, Pose2d pose) {
+        arm = new Arm(hardwareMap);
+        hang = new Hang(hardwareMap);
+        intake = new Intake(hardwareMap);
+        lift = new Lift(hardwareMap);
+        drive = new MecanumDrive(hardwareMap, pose);
+    }
+
     public Robot(Telemetry telemetry, HardwareMap hardwareMap) {
         arm = new Arm(hardwareMap);
         hang = new Hang(hardwareMap);
@@ -35,12 +43,13 @@ public class Robot {
         drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
     }
 
+
     /**
      * Update the robot
      * This runs on every loop of the OpMode
      */
     public void update() {
-        hang.update();
+       // hang.update();
         intake.update();
         lift.update();
         drive.updatePoseEstimate();
@@ -140,7 +149,7 @@ public class Robot {
     public Action specDrop() {
         return new SequentialAction(
                 new InstantAction(() -> {
-                    Lift.targetPosition = Lift.ZERO;
+                    Lift.targetPosition = Lift.SPECIMEN_PICKUP;
                     arm.drop();
                 })
 
@@ -190,6 +199,14 @@ public class Robot {
                     Lift.targetPosition = Lift.SPECIMEN_PICKUP;
                     arm.specIntake();
                 })
+        );
+    }
+
+    public Action specScoreAuto() {
+        return new SequentialAction(
+                new InstantAction(()-> Lift.targetPosition = Lift.SPECIMEN_AUTO),
+                new SleepAction(.5),
+                new InstantAction(arm::drop)
         );
     }
 
