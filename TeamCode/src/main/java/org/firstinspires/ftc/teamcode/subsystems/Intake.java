@@ -8,6 +8,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
+import com.acmerobotics.roadrunner.SequentialAction;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -16,12 +17,18 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.util.ActionUtil;
 import org.firstinspires.ftc.teamcode.util.PIDCoefficients;
 import org.firstinspires.ftc.teamcode.util.PIDFController;
 
 @Config
 public class Intake {
+
+    public static double BLUE = 0.611;
+    public static double RED = 0.279;
+    public static double YELLOW = 0.345;
 
     public static double SAMPLE_DISTANCE = 25;
 
@@ -30,13 +37,20 @@ public class Intake {
     public static double FULL_EXTENSION = 0;
     public static double IN = 0;
 
+    public static double MILLIAMP_SPIKE = 8000;
+
     public static double PIVOT_INTAKE = 0.54;
     public static double PIVOT_IN = 0.4;
     public static double PIVOT_AUTO_EJECT = 0.5;
 
     public static double INTAKE_SPEED = 1;
     public static double INTAKE_EJECT = 0.3;
-    private static double INTAKE_REVERSE = -.75;
+    public static double INTAKE_REVERSE = -0.75;
+
+    public static double FLICKER_IN = 0.0;
+    public static double FLICKER_OUT = 0.4;
+    public static double FLICKER_MIDDLE = 0.2;
+
 
     public static double targetPosition = 0;
     public static boolean PID_ENABLED = true;
@@ -55,6 +69,9 @@ public class Intake {
         LET_GO
     }
 
+    public static double kP = 0.004;
+    public static double kD = 0.000085;
+
     public Intake.ManualControl state = Intake.ManualControl.IDLE;
 
     public DcMotorEx spin;
@@ -64,6 +81,7 @@ public class Intake {
     public Servo rightLight;
     public Rev2mDistanceSensor subSensor;
     public RevColorSensorV3 sampleSensor;
+    public Servo flicker;
 
     /**
      * Constructor for the Intake class
@@ -83,11 +101,37 @@ public class Intake {
         rightLight = hardwareMap.get(Servo.class, "rightLight");
 
         subSensor = hardwareMap.get(Rev2mDistanceSensor.class, "subDistance");
+        flicker = hardwareMap.get(Servo.class, "flicker");
 
         sampleSensor = hardwareMap.get(RevColorSensorV3.class, "sampleColor");
 
-        coef = new PIDCoefficients(0.004, 0, 0);
+        coef = new PIDCoefficients(kP, 0, kD);
         pid = new PIDFController(coef, 0, 0, 0, (t, x, v) -> 0.0);
+    }
+
+    public void updatePID() {
+        coef = new PIDCoefficients(kP, 0, kD);
+        pid = new PIDFController(coef, 0, 0,0,(t, x, v)-> 0.0);
+    }
+
+    public void updatePID(double kP, double kI, double kD) {
+        coef = new PIDCoefficients(kP, kI, kD);
+        pid = new PIDFController(coef, 0, 0,0,(t, x, v)-> 0.0);
+    }
+
+    public Action returnIntake() {
+        return new SequentialAction(
+                new InstantAction(()->{
+                    PID_ENABLED = false;
+                    extension.setPower(-1);
+                }),
+                new ActionUtil.RunnableAction(()-> extension.getCurrent(CurrentUnit.MILLIAMPS) < MILLIAMP_SPIKE || extension.getCurrentPosition() > 10),
+                new InstantAction(()->{ // do this portion later in transfer
+//                    targetPosition = extension.getCurrentPosition();
+//                    extension.setPower(0);
+//                    PID_ENABLED = true;
+                })
+        );
     }
 
     /**
@@ -102,6 +146,11 @@ public class Intake {
      */
     public void setColorBlue() {
         selected_color = "B";
+    }
+
+    public void clearLED() {
+        leftLight.setPosition(0);
+        rightLight.setPosition(0);
     }
 
     /**
@@ -125,16 +174,16 @@ public class Intake {
         int green = sampleSensor.green();
 
         if (red > blue && red > green) {
-            leftLight.setPosition(0.279);
-            rightLight.setPosition(0.279);
+            leftLight.setPosition(RED);
+            rightLight.setPosition(RED);
             return "R";
         } else if (blue > red && blue > green) {
-            leftLight.setPosition(0.611);
-            rightLight.setPosition(0.611);
+            leftLight.setPosition(BLUE);
+            rightLight.setPosition(BLUE);
             return "B";
         } else if (red > blue && green > blue) {
-            leftLight.setPosition(0.388);
-            rightLight.setPosition(0.388);
+            leftLight.setPosition(YELLOW);
+            rightLight.setPosition(YELLOW);
             return "Y";
         } else {
             // Return Orange if not sure
@@ -176,6 +225,19 @@ public class Intake {
     /**
      * Put the intake down
      */
+
+    public void flickerIn() {
+        flicker.setPosition(FLICKER_IN);
+    }
+
+    public void flickerOut(){
+        flicker.setPosition(FLICKER_OUT);
+    }
+
+    public void flickerMiddle(){
+        flicker.setPosition(FLICKER_MIDDLE);
+    }
+
     public void intakeDown() {
         pivot.setPosition(PIVOT_INTAKE);
     }

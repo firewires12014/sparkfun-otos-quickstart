@@ -37,6 +37,10 @@ public class ActionScheduler {
       parallelActions.clear();
    }
 
+   public void clearActions() {
+      actions.clear();
+   }
+
    public void update() {
       TelemetryPacket packet = new TelemetryPacket();
       packet.fieldOverlay().getOperations().addAll(canvas.getOperations());

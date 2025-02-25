@@ -9,6 +9,7 @@ import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
+import com.acmerobotics.roadrunner.ftc.RawEncoder;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -21,10 +22,14 @@ import org.firstinspires.ftc.teamcode.subsystems.Robot;
 import org.firstinspires.ftc.teamcode.util.ActionScheduler;
 import org.firstinspires.ftc.teamcode.util.ActionUtil;
 
+import java.util.TreeMap;
+
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 @Config
 public class TeleOp extends LinearOpMode {
     ElapsedTime clawTimer = new ElapsedTime();
+    ElapsedTime flickerTimer = new ElapsedTime();
+    ElapsedTime hangTimer = new ElapsedTime();
 
     enum SPECGRAB {
         IDLE,
@@ -38,13 +43,12 @@ public class TeleOp extends LinearOpMode {
     ElapsedTime specGrabTimer = new ElapsedTime();
     boolean hasWrongColor = false;
 
+    public static double bucketDistance = 220;
+
     @Override
     public void runOpMode() throws InterruptedException {
         ActionScheduler scheduler = new ActionScheduler();
         Robot robot = new Robot(telemetry, hardwareMap);
-        Arm arm = new Arm(hardwareMap);
-        Intake intake = new Intake(hardwareMap);
-        Lift lift = new Lift(hardwareMap);
         boolean isClawClosed = false;
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
@@ -58,20 +62,47 @@ public class TeleOp extends LinearOpMode {
          */
         while (opModeInInit()) {
             // turn off leds
-            robot.intake.leftLight.setPosition(0);
-            robot.intake.rightLight.setPosition(0);
+            if (gamepad2.touchpad) {
+                if (Intake.selected_color.equalsIgnoreCase("R")) {
+                    robot.intake.setColorBlue();
+                    gamepad2.setLedColor(0, 0, 255, -1);
+                    robot.intake.leftLight.setPosition(Intake.BLUE);
+                    robot.intake.rightLight.setPosition(Intake.BLUE);
+                } else {
+                    robot.intake.setColorRed();
+                    gamepad2.setLedColor(255, 0, 0, -1);
+                    robot.intake.leftLight.setPosition(Intake.RED);
+                    robot.intake.rightLight.setPosition(Intake.RED);
+                }
+            }
+
+            if (gamepad1.touchpad) {
+                if (Intake.selected_color.equalsIgnoreCase("R")) {
+                    Robot.isSample = true;
+                    gamepad1.setLedColor(255, 255, 0, -1);
+                } else {
+                    Robot.isSample = false;
+                    gamepad1.setLedColor(0, 0, 255, -1);
+                }
+            }
+            telemetry.addData("Selected Color", Intake.selected_color);
             telemetry.addData("Status", "Initializing");
             telemetry.update();
         }
 
+        robot.intake.leftLight.setPosition(0);
+        robot.intake.rightLight.setPosition(0);
+
         waitForStart();
         double lastLoopTime = System.nanoTime() / 1e9;
         while (opModeIsActive() && !isStopRequested()) {
-            telemetry.addData("armDistance:", arm.armSensor.getDistance(DistanceUnit.MM));
-            telemetry.addData("Current Draw:", lift.lift.getCurrent(CurrentUnit.AMPS));
+            //robot.clearCache();
+
+            //telemetry.addData("armDistance:", robot.arm.armSensor.getDistance(DistanceUnit.MM));
+            telemetry.addData("Current Draw:", robot.lift.lift.getCurrent(CurrentUnit.AMPS));
             telemetry.addData("Hang Encoder", robot.hang.hang.getCurrentPosition());
 
-            intake.currentColor();
+            //intake.currentColor();
 
             // Choose color
             if (gamepad2.touchpad) {
@@ -112,22 +143,23 @@ public class TeleOp extends LinearOpMode {
             robot.intake.manualControl(-gamepad2.left_stick_y);
             robot.lift.manualControl(-gamepad2.right_stick_y);
 
+            if ((gamepad2.right_trigger > 0.1) && (!hasWrongColor)) {
+                robot.intake.spin.setPower(1);
+
+               if (gamepad2.right_trigger > 0.61) {
+                   robot.intake.intakeDown();
+               }
+            } else if (gamepad2.left_trigger > 0.1) {
+                robot.intake.spin.setPower(-1);
+            } else {
+                // Intake Up and Stop Spin
+                robot.intake.spin.setPower(0);
+                robot.intake.intakeUp();
+            }
+
             if (!scheduler.isBusy()) {
                 // Intake Control
-                // Intake Down and Spin
-                if ((gamepad2.right_trigger > 0.1) && !hasWrongColor) {
-                    robot.intake.spin.setPower(1);
-                    intake.intakeDown();
-                } else if ((gamepad2.left_trigger > 0.1 && gamepad2.left_trigger < 0.7)) {
-                    // Eject the Specimen
-                    robot.intake.spin.setPower(intake.INTAKE_EJECT);
-                } else if (gamepad2.left_trigger > 0.71) {
-                    robot.intake.spin.setPower(-1);
-                } else {
-                    // Intake Up and Stop Spin
-                    robot.intake.spin.setPower(0);
-                    robot.intake.intakeUp();
-                }
+                    // Intake Down and Spi
 
                 // Specimen Outtake
                 if ((gamepad2.dpad_down)) {
@@ -154,60 +186,56 @@ public class TeleOp extends LinearOpMode {
                     robot.lift.resetEncoder();
                     robot.intake.resetEncoder();
                 }
+
             }
 
             /**
              * Automated Section
              */
 
-            //Hang Section
-            if ((gamepad2.square) && !scheduler.isBusy()) {
-                scheduler.queueAction(robot.hang.hangIn());
-            }
+//            }
 
-            if ((gamepad2.circle) && !scheduler.isBusy()) {
-                scheduler.queueAction(robot.hang.hangOut());
+            if (gamepad2.square && !scheduler.isBusy() && robot.arm.getBucketDistance() < bucketDistance) {
+                robot.arm.wrist.setPosition(robot.arm.WRIST_BUCKET_DROP);
+                robot.arm.wristPosition = robot.arm.WRIST_BUCKET_DROP;
+                robot.arm.drop();
+                robot.intake.clearLED();
             }
 
             if (gamepad1.right_trigger < 0.1 && gamepad1.left_trigger < 0.1) {
                 if (robot.intake.hasSample() &&
+                 //if(
                         robot.intake.isRightColor() &&
                         gamepad2.left_trigger < 0.1 &&
                         !scheduler.isBusy()) {
-                    scheduler.queueAction(robot.transfer());
+                     //scheduler.queueAction(robot.transfer());
                 } else if (robot.intake.hasSample() &&
+                 //} else if (
                         !robot.intake.isRightColor() &&
                         !scheduler.isBusy()) {
                     // TODO Move back into robot? Gamepad is not accessible as it is right now
-                    scheduler.queueAction(
-                            new ActionUtil.RunnableAction(() -> {
-                                intake.intakeEject();
-                                intake.spin.setPower(Intake.INTAKE_EJECT);
-                                if (gamepad2.right_trigger < .1) {
-                                    return true;
-                                }
-                                return false;
-                            })
-                    );
+                    scheduler.queueAction(robot.eject());
                 }
             }
+
+            robot.transferFSM();
 
             // Toggle The arm between specimen score and specimen intake
             switch (specGrabState) {
                 case IDLE:
                     specGrabTimer.reset();
                     if (gamepad2.left_bumper) {
-                        if (arm.wristPosition == arm.WRIST_INTAKE ||
-                                arm.wristPosition == arm.WRIST_MIDDLE ||
-                                arm.wristPosition == arm.WRIST_SPECIMEN_GRAB
+                        if (robot.arm.wristPosition == robot.arm.WRIST_INTAKE ||
+                                robot.arm.wristPosition == robot.arm.WRIST_MIDDLE ||
+                                robot.arm.wristPosition == robot.arm.WRIST_SPECIMEN_GRAB
                         ) {
                             specGrabState = SPECGRAB.SPECLIFT;
                         }
                     }
                     break;
                 case SPECLIFT:
-                    arm.grab();
-                    Lift.targetPosition = Lift.ARM_FLIP_BACK;
+                    robot.arm.grab();
+                    Lift.targetPosition = Lift.SPECIMEN_PICKUP;
                     if (specGrabTimer.seconds() > 0.5) {
                         specGrabTimer.reset();
                         specGrabState = SPECGRAB.SPECFRONT;
@@ -216,9 +244,9 @@ public class TeleOp extends LinearOpMode {
                 case SPECFRONT:
                     scheduler.queueAction(
                             new SequentialAction(
-                                    new InstantAction(arm::specIntake),
+                                    new InstantAction(robot.arm::specIntake),
                                     new InstantAction(() -> {
-                                        arm.drop();
+                                         robot.arm.drop();
                                     })
                             )
                     );
@@ -243,12 +271,13 @@ public class TeleOp extends LinearOpMode {
             if (gamepad2.cross && clawTimer.seconds() > .5) {
                 if (compareDouble(Arm.CLOSED, robot.arm.grabber.getPosition())) {
                     // If the wrist is in the bucket prime position, move it to the bucket drop position
-                    if (Lift.targetPosition > 1600) {
-                        arm.setPivot(arm.PIVOT_BUCKET);
-                        arm.wrist.setPosition(arm.WRIST_BUCKET_DROP);
-                        arm.wristPosition = arm.WRIST_BUCKET_DROP;
+                    if (Lift.targetPosition > 1600 || 400 < Lift.targetPosition && Lift.targetPosition < 1000) {
+                        robot.arm.setPivot(robot.arm.PIVOT_BUCKET);
+                        robot.arm.wrist.setPosition(robot.arm.WRIST_BUCKET_DROP);
+                        robot.arm.wristPosition = robot.arm.WRIST_BUCKET_DROP;
                     }
                     robot.arm.drop();
+                    robot.intake.clearLED();
                     // If cross pressed and the grabber is open, close it
                 } else if (compareDouble(Arm.OPEN, robot.arm.grabber.getPosition())) {
                     robot.arm.grab();
@@ -256,11 +285,44 @@ public class TeleOp extends LinearOpMode {
                 clawTimer.reset();
             }
 
+            if (gamepad1.right_bumper && hangTimer.seconds() > .5) {
+                if (compareDouble(robot.intake.FLICKER_IN, robot.intake.flicker.getPosition())) {
+                    robot.intake.flickerOut();
+                } else if (compareDouble(robot.intake.FLICKER_OUT, robot.intake.flicker.getPosition())) {
+                    robot.intake.flickerIn();
+                }
+                flickerTimer.reset();
+            }
+
+            if (gamepad2.right_stick_button) {
+                scheduler.clearActions();
+                robot.TRANSFER_STATE = Robot.tranfserState.IDLE;
+            }
+
+            if (gamepad2.circle && (flickerTimer.seconds() > .5)) {
+                if (robot.hang.hang.getCurrentPosition() > 1500) scheduler.queueAction(robot.hang.hangIn());
+                else scheduler.queueAction(robot.hang.hangOut());
+
+                flickerTimer.reset();
+            }
+
+            if (gamepad2.right_stick_button) {
+                scheduler.clearActions();
+                robot.TRANSFER_STATE = Robot.tranfserState.IDLE;
+            }
+
             scheduler.update();
             robot.update();
+
             double loopTimeMs = (System.nanoTime() / 1e9 - lastLoopTime);
             lastLoopTime = (System.nanoTime() / 1e9 - lastLoopTime);
 
+            //telemetry.addData("Has Sample", robot.intake.hasSample());
+            telemetry.addData("intake current", robot.intake.extension.getCurrent(CurrentUnit.MILLIAMPS));
+            //telemetry.addData("Bucket D", robot.arm.getBucketDistance());
+            telemetry.addData("Extension", robot.intake.extension.getCurrentPosition());
+            telemetry.addData("Lift pos", robot.lift.lift.getCurrentPosition());
+            telemetry.addData("Is Scheduler Busy", scheduler.isBusy());
             telemetry.addData("loop time (ms)", loopTimeMs);
             telemetry.addData("loop time (hz)", 1000/loopTimeMs);
             telemetry.update();

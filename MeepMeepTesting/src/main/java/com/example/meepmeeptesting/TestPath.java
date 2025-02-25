@@ -19,17 +19,26 @@ public class TestPath {
         RoadRunnerBotEntity myBot = new DefaultBotBuilder(meepMeep)
                 // Set bot constraints: maxVel, maxAccel, maxAngVel, maxAngAccel, track width
                 .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
+                .setStartPose(new Pose2d(7.1, -64, Math.toRadians(90))
+
+                )
                 .build();
 
-        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(offsetX, offsetY, offsetHeading))
-                .strafeToLinearHeading(new Vector2d(35, 2.5), Math.toRadians(0),
-                        new TranslationalVelConstraint(70.0))
-                .setReversed(true)
-                .setTangent(Math.toRadians(80))
-                .splineToConstantHeading(new Vector2d(28, -35), Math.toRadians(0))
-                .setTangent(Math.toRadians(0))
-                .splineToConstantHeading(new Vector2d(56, -47), Math.toRadians(-90))
-                .build());
+        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(39, -64, Math.toRadians(-90)))
+               // robot.drive.actionBuilder(robot.drive.pose)
+                        .setReversed(true)
+                        .setTangent(90)
+                        .splineToConstantHeading(new Vector2d(-9, -37), Math.toRadians(90))
+                        .build());
+
+//                .splineToConstantHeading(new Vector2d(54.1, -46), Math.toRadians(0))
+//                .setTangent(0)
+//                .splineToConstantHeading(new Vector2d(67.1, -6), Math.toRadians(-90))
+//                .splineToConstantHeading(new Vector2d(67.1, -46), Math.toRadians(0))
+//                .setTangent(0)
+//                .splineToConstantHeading(new Vector2d(76.1, -6), Math.toRadians(-90))
+//                .splineToConstantHeading(new Vector2d(75.1, -56), Math.toRadians(-90))
+               // .build());
 
         meepMeep.setBackground(MeepMeep.Background.FIELD_INTO_THE_DEEP_JUICE_DARK)
                 .setDarkMode(true)

@@ -17,7 +17,6 @@ import org.firstinspires.ftc.teamcode.util.ActionUtil;
 import org.firstinspires.ftc.teamcode.util.PIDCoefficients;
 import org.firstinspires.ftc.teamcode.util.PIDFController;
 
-@Config
 
 public class Intake {
     public DcMotorEx extension;

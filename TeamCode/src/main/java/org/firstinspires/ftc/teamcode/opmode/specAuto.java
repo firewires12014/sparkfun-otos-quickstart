@@ -11,7 +11,9 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.subsystems.Arm;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Lift;
 import org.firstinspires.ftc.teamcode.subsystems.Robot;
 import org.firstinspires.ftc.teamcode.util.AutoActionScheduler;
@@ -31,32 +33,23 @@ public class specAuto extends LinearOpMode {
         robot.arm.grab();
         robot.outtakeSpec();
         robot.lift.setTargetPosition(400);
+        robot.intake.intakeUp();
 
         waitForStart();
         while (opModeIsActive() && !isStopRequested()) {
-            scheduler.addAction(
+            scheduler.addAction(new ParallelAction(
             //first spec score position
                     robot.drive.actionBuilder(startingPosition)
-                            .strafeToLinearHeading(new Vector2d(35, 10), Math.toRadians(0),
+                            .strafeToLinearHeading(new Vector2d(-2.9, -29), Math.toRadians(90),
                                     new TranslationalVelConstraint(70.0),
                                     new ProfileAccelConstraint(-120, 100))
-                            .build());
-            //raise lift to specimen position
-            robot.lift.setTargetPositionAction(1700);
+                            .build(),
+                    robot.lift.setTargetPositionAction(1150)));
             scheduler.run();
 
-            sleep(500);
+            robot.setPose(new Pose2d(-2.9, -29, Math.toRadians(90)));
 
-            //raise lift a little more to cl
-            // ip specimen
-            scheduler.addAction(
-            robot.lift.setTargetPositionAction(1900));
-
-            scheduler.run();
-            sleep(500);
-            //drop specimen
             robot.arm.drop();
-            sleep(200);
 
             scheduler.addAction(new ParallelAction(
                     //move arm/wrist to position to pick up specimen from wall
@@ -64,70 +57,122 @@ public class specAuto extends LinearOpMode {
                     //move lift to height for specimen pickup and open claw
                     robot.specDrop(),
 
-                    robot.drive.actionBuilder(new Pose2d(35, 10, Math.toRadians(0)))
+                    robot.drive.actionBuilder(new Pose2d(2.9, -29, Math.toRadians(90)))
                             .setReversed(true)
-                            .setTangent(Math.toRadians(80))
                     //drive away from submersible
-                            .splineToConstantHeading(new Vector2d(28, -35), Math.toRadians(0))
+                            .splineToConstantHeading(new Vector2d(39, -36), Math.toRadians(0))
                             .setTangent(Math.toRadians(0))
                     //spline to push first sample in
-                            .splineToConstantHeading(new Vector2d(58, -47), Math.toRadians(-90))
-                    //push first sample in
-                            .strafeToLinearHeading(new Vector2d(18, -47), Math.toRadians(0))
-//                                    new TranslationalVelConstraint(200.0),
-//                                    new ProfileAccelConstraint(-120, 120))
-                            .setTangent(0)
-                    //spline to second sample
-                            .splineToConstantHeading(new Vector2d(58, -60), Math.toRadians(-90))
-                    //push second sample
-                            .strafeToLinearHeading(new Vector2d(18, -60), Math.toRadians(0))
-//                                    new TranslationalVelConstraint(200.0),
-//                                    new ProfileAccelConstraint(-120, 120))
-                            .setTangent(0)
-                    //spline to third sample
-                            .splineToConstantHeading(new Vector2d(58, -69), Math.toRadians(-90))
-                    // push third sample and go to position to pick up specimen
-                            .strafeToLinearHeading(new Vector2d(8, -68), Math.toRadians(0))
-//                                    new TranslationalVelConstraint(200.0),
-//                                    new ProfileAccelConstraint(-120, 120))
-                            .build()
-            ));
-            scheduler.addAction(new SequentialAction(
-                    new SleepAction(.5),
-                    new InstantAction(robot.arm::grab),
-                    new SleepAction(.5),
-                    robot.lift.setTargetPositionAction(1700),
-                    new InstantAction(robot::outtakeSpec),
-                    new SleepAction(1),
-                    robot.drive.actionBuilder(new Pose2d(8, -68, Math.toRadians(0)))
-                            .strafeToLinearHeading(new Vector2d(30, 6), Math.toRadians(0))
-                            .strafeToLinearHeading(new Vector2d(42, 6), Math.toRadians(0))
-                            .build(),
-                    new SleepAction(.5),
-                    new InstantAction(robot.arm::drop)
-            ));
-            scheduler.addAction(new ParallelAction(
-                    new InstantAction(robot.arm::specIntake),
-                    robot.specDrop(),
-                    robot.drive.actionBuilder(new Pose2d(42, 6, Math.toRadians(0)))
-                            .strafeToLinearHeading(new Vector2d(9, -38), Math.toRadians(0))
-                            .build()
-            ));
+                            .splineToConstantHeading(new Vector2d(46, -17.4), Math.toRadians(90))
+                            .splineToConstantHeading(new Vector2d(57, -6), Math.toRadians(-90))
+                            .splineToConstantHeading(new Vector2d(57, -46), Math.toRadians(-90))
+                            .build()));
+                     scheduler.run();
+                     robot.relocalize();
+
+                     scheduler.addAction(
+            robot.drive.actionBuilder(robot.drive.pose)
+                    .setReversed(false)
+                            .splineToConstantHeading(new Vector2d(50, -17.4), Math.toRadians(90))
+                            .splineToConstantHeading(new Vector2d(62, -15), Math.toRadians(-90))
+                            //.setReversed(true)
+                            .splineToConstantHeading(new Vector2d(63, -56), Math.toRadians(-90))
+                    .build());
+                     scheduler.run();
+                     robot.relocalize();
+
+                    scheduler.addAction(
+                    robot.drive.actionBuilder(robot.drive.pose)
+                            .afterTime(0, ()-> Lift.targetPosition = 80)
+                            .setReversed(false)
+                            .splineToConstantHeading(new Vector2d(55, -17.4), Math.toRadians(90))
+                            .splineToConstantHeading(new Vector2d(68, -15), Math.toRadians(-90))
+                            //.setReversed(true)
+                            .splineToConstantHeading(new Vector2d(64, -63), Math.toRadians(-90))
+                    .build());
+            scheduler.addAction(robot.relocalize());
+            scheduler.run();
 
             scheduler.addAction(new SequentialAction(
-                    new SleepAction(.5),
+                    new InstantAction(robot.arm::specIntake),
                     new InstantAction(robot.arm::grab),
-                    new SleepAction(.5),
-                    robot.lift.setTargetPositionAction(1700),
-                    new InstantAction(robot::outtakeSpec),
-                    new SleepAction(1),
-                    robot.drive.actionBuilder(new Pose2d(42, 6, Math.toRadians(0)))
-                            .strafeToLinearHeading(new Vector2d(30, 2), Math.toRadians(0))
-                            .strafeToLinearHeading(new Vector2d(44, 2), Math.toRadians(0))
+                    new SleepAction(0.2),
+                    robot.drive.actionBuilder(robot.drive.pose)
+                            .setTangent(Math.toRadians(120))
+                            .afterTime(0, ()->{
+                                Lift.targetPosition = 1125;
+                                robot.outtakeSpec();
+                            })
+                            .splineToConstantHeading(new Vector2d(-9, -28), Math.toRadians(90))
+                            .build()
+                    ));
+            scheduler.run();
+
+            scheduler.addAction(new SequentialAction(
+                    new InstantAction(robot.arm::drop),
+                    new InstantAction(robot.arm::autoSpecIntake),
+                    new InstantAction(()-> Lift.targetPosition = 388),
+                    robot.drive.actionBuilder(robot.drive.pose)
+                            .setTangent(Math.toRadians(-90))
+                            .splineToConstantHeading(new Vector2d(39, -64), Math.toRadians(-90))
+                            .build()));
+                    scheduler.run();
+                    robot.relocalize();
+
+                    scheduler.addAction(new SequentialAction(
+                    new InstantAction(robot.arm::grab),
+                    new SleepAction(.2),
+                    new InstantAction(()-> Lift.targetPosition = 1125),
+                    new InstantAction(()->robot.outtakeSpec()),
+                    robot.drive.actionBuilder(robot.drive.pose)
+                            .setReversed(true)
+                            .setTangent(90)
+                            .splineToConstantHeading(new Vector2d(-6, -28), Math.toRadians(90))
                             .build()
 
             ));
             scheduler.run();
+           // robot.relocalize();
+
+
+//            ));
+        //    scheduler.run();
+//            scheduler.addAction(new SequentialAction(
+//                    new SleepAction(.5),
+//                    new InstantAction(robot.arm::grab),
+//                    new SleepAction(.5),
+//                    robot.lift.setTargetPositionAction(1700),
+//                    new InstantAction(robot::outtakeSpec),
+//                    new SleepAction(1),
+//                    robot.drive.actionBuilder(new Pose2d(8, -68, Math.toRadians(0)))
+//                            .strafeToLinearHeading(new Vector2d(30, 6), Math.toRadians(0))
+//                            .strafeToLinearHeading(new Vector2d(42, 6), Math.toRadians(0))
+//                            .build(),
+//                    new SleepAction(.5),
+//                    new InstantAction(robot.arm::drop)
+//            ));
+//            scheduler.addAction(new ParallelAction(
+//                    new InstantAction(robot.arm::specIntake),
+//                    robot.specDrop(),
+//                    robot.drive.actionBuilder(new Pose2d(42, 6, Math.toRadians(0)))
+//                            .strafeToLinearHeading(new Vector2d(9, -38), Math.toRadians(0))
+//                            .build()
+//            ));
+//
+//            scheduler.addAction(new SequentialAction(
+//                    new SleepAction(.5),
+//                    new InstantAction(robot.arm::grab),
+//                    new SleepAction(.5),
+//                    robot.lift.setTargetPositionAction(1700),
+//                    new InstantAction(robot::outtakeSpec),
+//                    new SleepAction(1),
+//                    robot.drive.actionBuilder(new Pose2d(42, 6, Math.toRadians(0)))
+//                            .strafeToLinearHeading(new Vector2d(30, 2), Math.toRadians(0))
+//                            .strafeToLinearHeading(new Vector2d(44, 2), Math.toRadians(0))
+//                            .build()
+//
+//            ));
+//            scheduler.run();
 
 
             sleep(30000);

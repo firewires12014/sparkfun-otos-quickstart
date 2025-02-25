@@ -31,23 +31,35 @@ public class Relocalization extends LinearOpMode {
         MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
         KalmanFilter filter = new KalmanFilter(Q,R, (int) N);
         while (opModeIsActive()) {
+            drive.localizer.update();
            // filter = new KalmanFilter(Q,R, (int) N);
             TelemetryPacket packet = new TelemetryPacket();
 
 
-            telemetry.addData("back", sensor.getBack());
-            telemetry.addData("right", sensor.getRight());
-            double x = 72-sensor.getBack() + Sensors.backOffset[1];
-            double y = 72-sensor.getRight() - Sensors.rightOffset[0];
+//            telemetry.addData("back", sensor.getBack());
+//            telemetry.addData("right", sensor.getRight());
+//            double y = -72+sensor.getBack() - Sensors.backOffset[1];
+//            double x = 72-sensor.getRight() - Sensors.rightOffset[0];
+//            double h = drive.pose.heading.toDouble();
+//            Pose2d rotatedPose = new  Pose2d(x * Math.cos(h)-Math.sin(h) * y, x * Math.sin(h)+ Math.cos(h)* y, h);
+//            Canvas c = packet.fieldOverlay();
+//            c.setStroke("#4CAF50");
+//            Drawing.drawRobot(c, new Pose2d(x, y, Math.toRadians(-90)));
+//            FtcDashboard.getInstance().sendTelemetryPacket(packet);
+//            telemetry.addData("position", rotatedPose.toString());
+//            drive.pose = new Pose2d(x, y, Math.toRadians(-90));
+//            telemetry.addData("kalmanBack", filter.estimate(sensor.getBack()));
+//            telemetry.update();
+
+            if (gamepad1.cross) {
+                drive.pose = sensor.getSpecimenPosition(drive.pose);
+
+            }
+
             Canvas c = packet.fieldOverlay();
             c.setStroke("#4CAF50");
-            Drawing.drawRobot(c, new Pose2d(x, y, Math.toRadians(-90)));
+            Drawing.drawRobot(c, drive.pose);
             FtcDashboard.getInstance().sendTelemetryPacket(packet);
-            telemetry.addData("position", (x + offestX) + "\t" + (y + offsetY));
-            drive.pose = new Pose2d(x, y, Math.toRadians(-90));
-            telemetry.addData("kalmanBack", filter.estimate(sensor.getBack()));
-            telemetry.update();
-
         }
 
     }

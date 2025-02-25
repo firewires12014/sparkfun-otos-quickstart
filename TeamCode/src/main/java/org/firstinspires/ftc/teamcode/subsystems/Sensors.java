@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -63,9 +64,12 @@ public class Sensors {
         return frontDistance.getDistance(distanceUnit);
     }
 
-    public Pose2d getSpecimenPosition () {
-        double x = 72-getBack() + Sensors.backOffset[1];
-        double y = 72-getRight() - Sensors.rightOffset[0];
-        return null;
+    public Pose2d getSpecimenPosition (Pose2d old) {
+        double y = -72+getBack() - Sensors.backOffset[1];
+        double x = 72-getRight() - Sensors.rightOffset[0];
+        Vector2d newPose = new Vector2d(x,y);
+
+        return new Pose2d(newPose, old.heading.toDouble());
+        //return new Pose2d(newPose, Math.toRadians(90));
     }
 }

@@ -20,27 +20,27 @@ import org.firstinspires.ftc.teamcode.util.PIDFController;
 @Config
 public class Lift {
 
-    public static double SPECIMEN_PICKUP = 40;
+    public static double SPECIMEN_PICKUP = 388;
     public static double ARM_FLIP_BACK = 100;
     public static double AUTO_SPECIMEN_PICKUP = 82;
-    public static double SPECIMEN = 1300;
-    public static double SPECIMEN_AUTO = 1700;
+    public static double SPECIMEN = 1125;  // Was 1300
+    public static double SPECIMEN_AUTO = 1125;
     public static double LOW_BUCKET = 500;
-    public static double HIGH_BUCKET = 1960;
+    public static double HIGH_BUCKET = 2000;
     public static double OBSERVATION_ZONE = 0;
     public static double ZERO = 0;
 
     public static double targetPosition = 0;
     public static boolean PID_ENABLED = true;
     public static double joystickDeadzone = 0.05;
-    public static double tolerance = 75;
+    public static double tolerance = 50;
 
-    private PIDCoefficients coef;
-    private PIDFController pid;
+    public PIDCoefficients coef;
+    public PIDFController pid;
 
-    public static double kP = 0.0065;
+    public static double kP = 0.009;
     public static double kI = 0;
-    public static double kD = 0;
+    public static double kD = 0.00006;
 
     private double newPower = 0.0;
 
@@ -74,12 +74,20 @@ public class Lift {
     public void update() {
         pid.setTargetPosition(targetPosition);
 
-        //setPIDCoef(new PIDCoefficients(kP, kI, kD));
-
         if (PID_ENABLED) {
             newPower = this.pid.update(lift.getCurrentPosition(), lift.getVelocity());
             lift.setPower(newPower);
         }
+    }
+
+    public void updatePID() {
+        coef = new PIDCoefficients(kP, kI, kD);
+        pid = new PIDFController(coef, 0, 0,0,(t, x, v)-> 0.0);
+    }
+
+    public void updatePID(double kP, double kI, double kD) {
+        coef = new PIDCoefficients(kP, kI, kD);
+        pid = new PIDFController(coef, 0, 0,0,(t, x, v)-> 0.0);
     }
 
     /**

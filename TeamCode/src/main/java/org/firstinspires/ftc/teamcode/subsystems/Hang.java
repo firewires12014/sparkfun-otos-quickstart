@@ -18,12 +18,12 @@ import org.firstinspires.ftc.teamcode.util.PIDFController;
 public class Hang {
     public DcMotorEx hang;
 
-    PIDCoefficients coef;
-    PIDFController pid;
+    public PIDCoefficients coef;
+    public PIDFController pid;
 
     public static double targetPosition = 0;
     public static int hangOutPosition = 3000;
-    public static int hangInPosition = 100;
+    public static int hangInPosition = 0;
 
     public static boolean PID_ENABLED = true;
     public static double joystickDeadzone = 0.05;
@@ -42,7 +42,7 @@ public class Hang {
 
         resetEncoder();
 
-        coef = new PIDCoefficients(0.0018, 0, 0);
+        coef = new PIDCoefficients(0.0021, 0, 0);
         pid = new PIDFController(coef, 0, 0, 0, (t, x, v) -> 0.0);
 
     }
@@ -68,7 +68,7 @@ public class Hang {
 
         if (PID_ENABLED) {
             double newPower = this.pid.update(hang.getCurrentPosition(), hang.getVelocity());
-            hang.setPower(newPower);
+            hang.setPower(-newPower);
         }
     }
 
@@ -176,9 +176,7 @@ public class Hang {
      *
      * @return
      */
-    public Action hangOut() {
-        return setTargetPositionActionBlocking(hangOutPosition);
-    }
+    public Action hangOut() { return setTargetPositionAction(hangOutPosition); }
 
     /**
      * Move the hang in
@@ -186,7 +184,7 @@ public class Hang {
      * @return
      */
     public Action hangIn() {
-        return setTargetPositionActionBlocking(hangInPosition);
+        return setTargetPositionAction(hangInPosition);
     }
 }
 

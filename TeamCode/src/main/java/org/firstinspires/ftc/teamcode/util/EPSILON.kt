@@ -25,7 +25,7 @@ class PIDFController
  * @param clock clock
  */
 @JvmOverloads constructor(
-    private val pid: PIDCoefficients,
+    val pid: PIDCoefficients,
     private val kV: Double = 0.0,
     private val kA: Double = 0.0,
     private val kStatic: Double = 0.0,

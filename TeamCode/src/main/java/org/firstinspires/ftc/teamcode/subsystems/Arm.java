@@ -14,23 +14,24 @@ public class Arm {
 
     public static double BUCKET_TOLERANCE = 5; // in mm
 
-    public static double OPEN = 0.80;
-    public static double MIDDLE = 0.73;
-    public static double CLOSED = .65;
+    public static double OPEN = 0.90;
+    public static double MIDDLE = 0.77;
+    public static double CLOSED = .67;
 
-    public static double WRIST_MIDDLE = 0.9;
+    public static double WRIST_MIDDLE = 0.32;
     public static double WRIST_INTAKE = 0.38;
     public static double WRIST_SPECIMEN_GRAB = 0.25;
     public static double WRIST_SPECIMEN_DROP = 0.25;
     public static double WRIST_BUCKET_PRIME = 0.45;
     public static double WRIST_BUCKET_DROP = 0.73;
+    public static double WRIST_AUTO_PICKUP = 0.1;
 
     // FORMAT: Anything prior to the decimal is the left servo and right is right servo position.
     // Example 01.99 would be left: 0.01, and right = 0.99, NOTE: only two decimal places are work
-    public static double PIVOT_INTAKE = 03.97;
+    public static double PIVOT_INTAKE = 01.99;
     public static double PIVOT_SPECIMEN_HORIZONTAL = 93.07;
     public static double PIVOT_SPECIMEN_PICKUP = 30.70;
-    public static double PIVOT_SPECIMEN_PICKUP_AUTO = 27.83;
+    public static double PIVOT_SPECIMEN_PICKUP_AUTO = 18.82;
     public static double PIVOT_BUCKET = 55.45;
     public static double PIVOT_OBSERVATION = 20.80;
     public static double PIVOT_AUTO_CLIP = 75.25;
@@ -40,8 +41,7 @@ public class Arm {
     public Servo rightPivot;
     public Servo wrist;
     public Servo grabber;
-    public RevColorSensorV3 bucketSensor;
-    public Rev2mDistanceSensor armSensor;
+    public Rev2mDistanceSensor bucketSensor;
     public static double wristPosition = 0;
 
 
@@ -54,8 +54,7 @@ public class Arm {
         rightPivot = hardwareMap.get(Servo.class, "rightpivot");
         wrist = hardwareMap.get(Servo.class, "wrist");
         grabber = hardwareMap.get(Servo.class, "grab");
-        bucketSensor = hardwareMap.get(RevColorSensorV3.class, "bucketColor");
-        armSensor = hardwareMap.get(Rev2mDistanceSensor.class, "armSensor");
+        bucketSensor = hardwareMap.get(Rev2mDistanceSensor.class, "bucket");
     }
 
     /**
@@ -92,6 +91,10 @@ public class Arm {
         wristPosition = WRIST_INTAKE;
     }
 
+    public double getBucketDistance() {
+        return bucketSensor.getDistance(DistanceUnit.MM);
+    }
+
     /**
      * Close the grabber/claw
      */
@@ -117,10 +120,19 @@ public class Arm {
      * Set the position of the pivot to the specimen pickup position
      */
     public void specIntake() {
-        setPivot(PIVOT_SPECIMEN_PICKUP);
-        wrist.setPosition(WRIST_SPECIMEN_GRAB);
-        wristPosition = WRIST_SPECIMEN_GRAB;
+//        setPivot(PIVOT_SPECIMEN_PICKUP);
+//        wrist.setPosition(WRIST_SPECIMEN_GRAB);
+//        wristPosition = WRIST_SPECIMEN_GRAB;
+
+        autoSpecIntake();
     }
+
+    public void autoSpecIntake() {
+        setPivot(PIVOT_SPECIMEN_PICKUP_AUTO);
+        wrist.setPosition(WRIST_AUTO_PICKUP);
+        wristPosition = WRIST_AUTO_PICKUP;
+    }
+
 
     /**
      * Check the distance of the bucket sensor to the bucket

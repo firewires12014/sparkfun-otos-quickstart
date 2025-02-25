@@ -3,6 +3,10 @@ package org.firstinspires.ftc.teamcode.util;
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.ParallelAction;
+import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
+import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -40,6 +44,23 @@ public class ActionUtil {
             throw new RuntimeException(e);
          }
       }
+   }
+
+   public static Action Offset(double offset, Action firstAction, Action secondAction) {
+      return new ParallelAction(
+               firstAction,
+              new SequentialAction(
+                      new SleepAction(offset),
+                      secondAction
+              )
+      );
+   }
+
+   public static Action Delay(double offset, Action action) {
+      return new SequentialAction(
+              new SleepAction(offset),
+              action
+      );
    }
 
    public static class ServoPositionAction implements Action {
