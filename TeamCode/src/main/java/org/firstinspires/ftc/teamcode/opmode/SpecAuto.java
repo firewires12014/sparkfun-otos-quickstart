@@ -11,29 +11,25 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.teamcode.MecanumDrive;
-import org.firstinspires.ftc.teamcode.subsystems.Arm;
-import org.firstinspires.ftc.teamcode.subsystems.Intake;
-import org.firstinspires.ftc.teamcode.subsystems.Lift;
-import org.firstinspires.ftc.teamcode.subsystems.Robot;
+import org.firstinspires.ftc.teamcode.subsystems.Auto;
 import org.firstinspires.ftc.teamcode.util.AutoActionScheduler;
 
 
-@Autonomous(name = "specAuto", group = "Into the Deep")
-public class specAuto extends LinearOpMode {
-    Robot robot;
+@Autonomous(name = "01. Specimen Auto", group = "Into the Deep")
+public class SpecAuto extends LinearOpMode {
+    Auto auto;
     AutoActionScheduler scheduler;
     Pose2d startingPosition = new Pose2d(7.1, -64, Math.toRadians(90));
 
     @Override
     public void runOpMode() throws InterruptedException {
-        robot = new Robot(telemetry, hardwareMap, startingPosition);
+        auto = new Auto(telemetry, hardwareMap, startingPosition);
         scheduler = new AutoActionScheduler(this::update);
 
-        robot.arm.grab();
-        robot.outtakeSpecAuto();
-        robot.lift.setTargetPosition(400);
-        robot.intake.intakeUp();
+        auto.arm.grab();
+        auto.outtakeSpecAuto();
+        auto.lift.setTargetPosition(400);
+        auto.intake.intakeUp();
 
         waitForStart();
         while (opModeIsActive() && !isStopRequested()) {
@@ -41,23 +37,23 @@ public class specAuto extends LinearOpMode {
             // ----------------- PRELOAD SPECIMEN  -----------------
             scheduler.addAction(new ParallelAction(
                     //first spec score position
-                    robot.drive.actionBuilder(startingPosition)
+                    auto.drive.actionBuilder(startingPosition)
                             .strafeToLinearHeading(new Vector2d(-2.9, -29), Math.toRadians(90),
                                     new TranslationalVelConstraint(70.0),
                                     new ProfileAccelConstraint(-120, 100))
                             .build(),
-                    robot.lift.setTargetPositionAction(1150)));
-                            new InstantAction(robot.arm::drop);
+                    auto.lift.setTargetPositionAction(1150)));
+                            new InstantAction(auto.arm::drop);
             scheduler.run();
 
-            robot.setPose(new Pose2d(-2.9, -29, Math.toRadians(90)));
+            auto.setPose(new Pose2d(-2.9, -29, Math.toRadians(90)));
 
             // ----------------- SAMPLE 1 -----------------
             scheduler.addAction(new SequentialAction(
-                    new InstantAction(robot.arm::drop),
-                    robot.lift.setTargetPositionAction(80),
-                    new InstantAction(robot.arm::specIntake),
-                    robot.drive.actionBuilder(new Pose2d(2.9, -29, Math.toRadians(90)))
+                    new InstantAction(auto.arm::drop),
+                    auto.lift.setTargetPositionAction(80),
+                    new InstantAction(auto.arm::specIntake),
+                    auto.drive.actionBuilder(new Pose2d(2.9, -29, Math.toRadians(90)))
                             .setReversed(true)
                             .splineToConstantHeading(new Vector2d(39, -36), Math.toRadians(0))
                             .setTangent(Math.toRadians(0))
@@ -68,11 +64,11 @@ public class specAuto extends LinearOpMode {
             ));
              scheduler.run();
 
-             robot.relocalizePoll(-62);
+            auto.relocalizePoll(-62);
 
             // ----------------- SAMPLE 2 -----------------
             scheduler.addAction(new SequentialAction(
-                robot.drive.actionBuilder(robot.drive.pose)
+                    auto.drive.actionBuilder(auto.drive.pose)
                     .setReversed(false)
                     .splineToConstantHeading(new Vector2d(58, -17.4), Math.toRadians(90))
                     .splineToConstantHeading(new Vector2d(72, -15), Math.toRadians(-90))
@@ -80,10 +76,10 @@ public class specAuto extends LinearOpMode {
                 .build())
             );
              scheduler.run();
-             robot.relocalizePoll(-62);
+            auto.relocalizePoll(-62);
 
             scheduler.addAction(new SequentialAction(
-                robot.drive.actionBuilder(robot.drive.pose)
+                    auto.drive.actionBuilder(auto.drive.pose)
                         .setReversed(false)
                         .splineToConstantHeading(new Vector2d(70, -15), Math.toRadians(90))
                         .splineToConstantHeading(new Vector2d(80.5, -15), Math.toRadians(-90))
@@ -91,13 +87,13 @@ public class specAuto extends LinearOpMode {
                 .build())
             );
             scheduler.run();
-            robot.relocalizePoll(-62);
+            auto.relocalizePoll(-62);
 
             scheduler.addAction(new SequentialAction(
-                    new InstantAction(robot.arm::grab),
+                    new InstantAction(auto.arm::grab),
                     new SleepAction(0.2),
-                    robot.lift.setTargetPositionAction(640),
-                    robot.drive.actionBuilder(robot.drive.pose)
+                    auto.lift.setTargetPositionAction(640),
+                    auto.drive.actionBuilder(auto.drive.pose)
                             .setTangent(Math.toRadians(120))
                             .splineToConstantHeading(new Vector2d(-9, -28), Math.toRadians(90))
                             .build()
@@ -105,8 +101,8 @@ public class specAuto extends LinearOpMode {
             scheduler.run();
 
             scheduler.addAction(new SequentialAction(
-                    new InstantAction(robot::outtakeSpecAutoVertical),
-                    new InstantAction(robot.arm::drop)
+                    new InstantAction(auto::outtakeSpecAutoVertical),
+                    new InstantAction(auto.arm::drop)
 
             ));
             scheduler.run();
@@ -184,8 +180,8 @@ public class specAuto extends LinearOpMode {
     }
 
     public void update() {
-        robot.update();
-        telemetry.addData("relocalization", robot.sensors.getSpecimenPosition(robot.drive.pose));
+        auto.update();
+        telemetry.addData("relocalization", auto.sensors.getSpecimenPosition(auto.drive.pose));
         telemetry.update();
 
     }
