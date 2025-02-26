@@ -1,6 +1,10 @@
 package com.example.meepmeeptesting;
 
+import com.acmerobotics.roadrunner.InstantAction;
+import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.ProfileAccelConstraint;
+import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.TranslationalVelConstraint;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.noahbres.meepmeep.MeepMeep;
@@ -24,12 +28,30 @@ public class TestPath {
                 )
                 .build();
 
-        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(39, -64, Math.toRadians(-90)))
+        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(7.1, -64, Math.toRadians(90)))
                // robot.drive.actionBuilder(robot.drive.pose)
+
+                                .strafeToLinearHeading(new Vector2d(-2.9, -29), Math.toRadians(90),
+                                        new TranslationalVelConstraint(70.0),
+                                        new ProfileAccelConstraint(-120, 100))
+                               // .build()
+
+
                         .setReversed(true)
-                        .setTangent(90)
-                        .splineToConstantHeading(new Vector2d(-9, -37), Math.toRadians(90))
+                        .splineToConstantHeading(new Vector2d(39, -36), Math.toRadians(0))
+                        .setTangent(Math.toRadians(0))
+                        .splineToConstantHeading(new Vector2d(46, -17.4), Math.toRadians(90))
+                        .splineToConstantHeading(new Vector2d(57, -6), Math.toRadians(-90))
+                        .splineToConstantHeading(new Vector2d(57, -46), Math.toRadians(-90))
+                       // .build()
+
+
+                        .setReversed(false)
+                        .splineToConstantHeading(new Vector2d(50, -17.4), Math.toRadians(90))
+                        .splineToConstantHeading(new Vector2d(62, -15), Math.toRadians(-90))
+                        .splineToConstantHeading(new Vector2d(63, -56), Math.toRadians(-90))
                         .build());
+                       // .build());
 
 //                .splineToConstantHeading(new Vector2d(54.1, -46), Math.toRadians(0))
 //                .setTangent(0)

@@ -1,13 +1,10 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import static java.lang.Thread.currentThread;
 import static java.lang.Thread.sleep;
 
 import android.annotation.SuppressLint;
-import android.net.http.SslCertificate;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.dashboard.message.redux.GetRobotStatus;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.ParallelAction;
@@ -15,17 +12,16 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.qualcomm.hardware.lynx.LynxModule;
-import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
-import org.firstinspires.ftc.teamcode.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.util.ActionUtil;
 
 import java.util.List;
-import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Config
 public class Robot {
@@ -92,6 +88,31 @@ public class Robot {
         drive.pose = sensors.getSpecimenPosition(drive.pose);
         return new InstantAction(()->drive.pose = sensors.getSpecimenPosition(drive.pose));
     }
+
+    public Action relocalizePoll(double shutOffDistance) {
+        AtomicReference<Double> x = new AtomicReference<>((double) 0);
+        AtomicInteger loops = new AtomicInteger(0);
+        return new SequentialAction(
+                new ActionUtil.RunnableAction(()-> {
+                    Pose2d p = sensors.getSpecimenPosition(drive.pose);
+
+                    x.updateAndGet(v -> +p.position.x);
+                    loops.addAndGet(1);
+
+                    return p.position.y > shutOffDistance;
+                }),
+                new InstantAction(()-> {
+                    Pose2d p = sensors.getSpecimenPosition(drive.pose);
+                    drive.pose = new Pose2d(x.get() / loops.get(), p.position.y, drive.pose.heading.toDouble());
+                })
+        );
+    }
+
+    public Action relocalizeRight() {
+        drive.pose = sensors.getSpecimenRightPosition(drive.pose);
+        return new InstantAction(()->drive.pose = sensors.getSpecimenPosition(drive.pose));
+    }
+
 
     public Action setPose(Pose2d pose) {
         drive.pose = pose;
@@ -195,6 +216,7 @@ public class Robot {
         switch (TRANSFER_STATE) {
             case IDLE:
                 if (intake.hasSample() && intake.isRightColor()) TRANSFER_STATE = tranfserState.PRIME;
+                intake.spin.setPower(0);
                 break;
 
             case PRIME:
@@ -202,6 +224,7 @@ public class Robot {
                 intake.intakeUp();
                 arm.intakePrimePosition();
                 arm.clawPrime();
+
 
                 Intake.PID_ENABLED = false;
                 intake.extension.setPower(-1);
@@ -245,7 +268,6 @@ public class Robot {
 
             case TO_POSITION:
                 if (isSample) outtakeBucket();
-                else outtakeObservation();
                 intake.stopIntake();
 
 
@@ -269,16 +291,25 @@ public class Robot {
     public void outtakeObservation() {
         arm.grab();
         arm.observationDrop();
+        lift.setTargetPosition(40);
     }
 
     /**
      * Outtake the specimen
      */
-    public void outtakeSpec() {
+    public void outtakeSpecTeleop() {
         arm.grab();
         Lift.targetPosition = Lift.SPECIMEN;
-        arm.specDrop();
+        arm.specDropTeleop();
     }
+
+    public void outtakeSpecAuto() {
+        arm.grab();
+        Lift.targetPosition = Lift.SPECIMEN;
+        arm.specDropAuto();
+    }
+
+
 
     public void outtakeSpecArm() {
         Lift.targetPosition = Lift.SPECIMEN;
@@ -331,21 +362,21 @@ public class Robot {
      * Intake the specimen from the wall and move to scoring position
      * @return
      */
-    public Action specIntake() {
-        return new SequentialAction(
-                new InstantAction(() -> {
-                    arm.grab();
-                    Lift.targetPosition = Lift.ARM_FLIP_BACK;
-                }),
-                new SleepAction(5),
-                new InstantAction(arm::specIntake),
-                new SleepAction(5),
-                new InstantAction(() -> {
-                    Lift.targetPosition = Lift.SPECIMEN_PICKUP;
-                    arm.drop();
-                })
-        );
-    }
+//    public Action specIntake() {
+//        return new SequentialAction(
+//                new InstantAction(() -> {
+//                    arm.grab();
+//                    Lift.targetPosition = Lift.ARM_FLIP_BACK;
+//                }),
+//                new SleepAction(5),
+//                new InstantAction(arm::specIntake),
+//                new SleepAction(5),
+//                new InstantAction(() -> {
+//                    Lift.targetPosition = Lift.SPECIMEN_PICKUP;
+//                    arm.drop();
+//                })
+//        );
+//    }
 
     /**
      * Score the specimen and reset to intake position
@@ -360,6 +391,12 @@ public class Robot {
                     arm.specIntake();
                 })
         );
+    }
+
+    public void outtakeSpecAutoVertical() {
+        arm.wrist.setPosition(arm.WRIST_SPECIMEN_DROP);
+        arm.setPivot(arm.PIVOT_SPECIMEN_DROP);
+        Lift.targetPosition = Lift.SPECIMEN_DROP;
     }
 
     public Action specScoreAuto() {

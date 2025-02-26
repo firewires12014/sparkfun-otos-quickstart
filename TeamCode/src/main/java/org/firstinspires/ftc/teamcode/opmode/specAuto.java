@@ -31,107 +31,110 @@ public class specAuto extends LinearOpMode {
         scheduler = new AutoActionScheduler(this::update);
 
         robot.arm.grab();
-        robot.outtakeSpec();
+        robot.outtakeSpecAuto();
         robot.lift.setTargetPosition(400);
         robot.intake.intakeUp();
 
         waitForStart();
         while (opModeIsActive() && !isStopRequested()) {
+
+            // ----------------- PRELOAD SPECIMEN  -----------------
             scheduler.addAction(new ParallelAction(
-            //first spec score position
+                    //first spec score position
                     robot.drive.actionBuilder(startingPosition)
                             .strafeToLinearHeading(new Vector2d(-2.9, -29), Math.toRadians(90),
                                     new TranslationalVelConstraint(70.0),
                                     new ProfileAccelConstraint(-120, 100))
                             .build(),
                     robot.lift.setTargetPositionAction(1150)));
+                            new InstantAction(robot.arm::drop);
             scheduler.run();
 
             robot.setPose(new Pose2d(-2.9, -29, Math.toRadians(90)));
 
-            robot.arm.drop();
-
-            scheduler.addAction(new ParallelAction(
-                    //move arm/wrist to position to pick up specimen from wall
+            // ----------------- SAMPLE 1 -----------------
+            scheduler.addAction(new SequentialAction(
+                    new InstantAction(robot.arm::drop),
+                    robot.lift.setTargetPositionAction(80),
                     new InstantAction(robot.arm::specIntake),
-                    //move lift to height for specimen pickup and open claw
-                    robot.specDrop(),
-
                     robot.drive.actionBuilder(new Pose2d(2.9, -29, Math.toRadians(90)))
                             .setReversed(true)
-                    //drive away from submersible
                             .splineToConstantHeading(new Vector2d(39, -36), Math.toRadians(0))
                             .setTangent(Math.toRadians(0))
-                    //spline to push first sample in
                             .splineToConstantHeading(new Vector2d(46, -17.4), Math.toRadians(90))
                             .splineToConstantHeading(new Vector2d(57, -6), Math.toRadians(-90))
                             .splineToConstantHeading(new Vector2d(57, -46), Math.toRadians(-90))
-                            .build()));
-                     scheduler.run();
-                     robot.relocalize();
+                     .build()
+            ));
+             scheduler.run();
 
-                     scheduler.addAction(
-            robot.drive.actionBuilder(robot.drive.pose)
+             robot.relocalizePoll(-62);
+
+            // ----------------- SAMPLE 2 -----------------
+            scheduler.addAction(new SequentialAction(
+                robot.drive.actionBuilder(robot.drive.pose)
                     .setReversed(false)
-                            .splineToConstantHeading(new Vector2d(50, -17.4), Math.toRadians(90))
-                            .splineToConstantHeading(new Vector2d(62, -15), Math.toRadians(-90))
-                            //.setReversed(true)
-                            .splineToConstantHeading(new Vector2d(63, -56), Math.toRadians(-90))
-                    .build());
-                     scheduler.run();
-                     robot.relocalize();
-
-                    scheduler.addAction(
-                    robot.drive.actionBuilder(robot.drive.pose)
-                            .afterTime(0, ()-> Lift.targetPosition = 80)
-                            .setReversed(false)
-                            .splineToConstantHeading(new Vector2d(55, -17.4), Math.toRadians(90))
-                            .splineToConstantHeading(new Vector2d(68, -15), Math.toRadians(-90))
-                            //.setReversed(true)
-                            .splineToConstantHeading(new Vector2d(64, -63), Math.toRadians(-90))
-                    .build());
-            scheduler.addAction(robot.relocalize());
-            scheduler.run();
+                    .splineToConstantHeading(new Vector2d(58, -17.4), Math.toRadians(90))
+                    .splineToConstantHeading(new Vector2d(72, -15), Math.toRadians(-90))
+                    .splineToConstantHeading(new Vector2d(72, -50), Math.toRadians(-90))
+                .build())
+            );
+             scheduler.run();
+             robot.relocalizePoll(-62);
 
             scheduler.addAction(new SequentialAction(
-                    new InstantAction(robot.arm::specIntake),
+                robot.drive.actionBuilder(robot.drive.pose)
+                        .setReversed(false)
+                        .splineToConstantHeading(new Vector2d(70, -15), Math.toRadians(90))
+                        .splineToConstantHeading(new Vector2d(80.5, -15), Math.toRadians(-90))
+                        .splineToConstantHeading(new Vector2d(80.5, -55), Math.toRadians(-90))
+                .build())
+            );
+            scheduler.run();
+            robot.relocalizePoll(-62);
+
+            scheduler.addAction(new SequentialAction(
                     new InstantAction(robot.arm::grab),
                     new SleepAction(0.2),
+                    robot.lift.setTargetPositionAction(640),
                     robot.drive.actionBuilder(robot.drive.pose)
                             .setTangent(Math.toRadians(120))
-                            .afterTime(0, ()->{
-                                Lift.targetPosition = 1125;
-                                robot.outtakeSpec();
-                            })
                             .splineToConstantHeading(new Vector2d(-9, -28), Math.toRadians(90))
                             .build()
                     ));
             scheduler.run();
 
             scheduler.addAction(new SequentialAction(
-                    new InstantAction(robot.arm::drop),
-                    new InstantAction(robot.arm::autoSpecIntake),
-                    new InstantAction(()-> Lift.targetPosition = 388),
-                    robot.drive.actionBuilder(robot.drive.pose)
-                            .setTangent(Math.toRadians(-90))
-                            .splineToConstantHeading(new Vector2d(39, -64), Math.toRadians(-90))
-                            .build()));
-                    scheduler.run();
-                    robot.relocalize();
-
-                    scheduler.addAction(new SequentialAction(
-                    new InstantAction(robot.arm::grab),
-                    new SleepAction(.2),
-                    new InstantAction(()-> Lift.targetPosition = 1125),
-                    new InstantAction(()->robot.outtakeSpec()),
-                    robot.drive.actionBuilder(robot.drive.pose)
-                            .setReversed(true)
-                            .setTangent(90)
-                            .splineToConstantHeading(new Vector2d(-6, -28), Math.toRadians(90))
-                            .build()
+                    new InstantAction(robot::outtakeSpecAutoVertical),
+                    new InstantAction(robot.arm::drop)
 
             ));
             scheduler.run();
+
+//            scheduler.addAction(new SequentialAction(
+//                    new InstantAction(robot.arm::drop),
+//                    new InstantAction(robot.arm::autoSpecIntake),
+//                    new InstantAction(()-> Lift.targetPosition = 388),
+//                    robot.drive.actionBuilder(robot.drive.pose)
+//                            .setTangent(Math.toRadians(-90))
+//                            .splineToConstantHeading(new Vector2d(39, -64), Math.toRadians(-90))
+//                            .build()));
+//                    scheduler.run();
+//            robot.relocalizePoll(-62);
+//
+//                    scheduler.addAction(new SequentialAction(
+//                    new InstantAction(robot.arm::grab),
+//                    new SleepAction(.2),
+//                    new InstantAction(()-> Lift.targetPosition = 1125),
+//                    new InstantAction(()->robot.outtakeSpecAuto()),
+//                    robot.drive.actionBuilder(robot.drive.pose)
+//                            .setReversed(true)
+//                            .setTangent(90)
+//                            .splineToConstantHeading(new Vector2d(-4, -28), Math.toRadians(90))
+//                            .build()
+//
+//            ));
+//            scheduler.run();
            // robot.relocalize();
 
 
@@ -182,7 +185,9 @@ public class specAuto extends LinearOpMode {
 
     public void update() {
         robot.update();
+        telemetry.addData("relocalization", robot.sensors.getSpecimenPosition(robot.drive.pose));
         telemetry.update();
+
     }
 }
 

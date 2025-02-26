@@ -6,23 +6,16 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.SequentialAction;
-import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Vector2d;
-import com.acmerobotics.roadrunner.ftc.Actions;
-import com.acmerobotics.roadrunner.ftc.RawEncoder;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.subsystems.Arm;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Lift;
 import org.firstinspires.ftc.teamcode.subsystems.Robot;
 import org.firstinspires.ftc.teamcode.util.ActionScheduler;
-import org.firstinspires.ftc.teamcode.util.ActionUtil;
-
-import java.util.TreeMap;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 @Config
@@ -30,13 +23,16 @@ public class TeleOp extends LinearOpMode {
     ElapsedTime clawTimer = new ElapsedTime();
     ElapsedTime flickerTimer = new ElapsedTime();
     ElapsedTime hangTimer = new ElapsedTime();
+    ElapsedTime intakeColorTimer = new ElapsedTime();
+    ElapsedTime sampleColorTimer = new ElapsedTime();
 
     enum SPECGRAB {
         IDLE,
         SPECFRONT,
         SPECBACK,
         SPECWAIT,
-        SPECLIFT
+        SPECLIFT,
+        SPECSIGMA,
     }
 
     SPECGRAB specGrabState = SPECGRAB.IDLE;
@@ -57,12 +53,14 @@ public class TeleOp extends LinearOpMode {
 
         robot.arm.intakePrimePosition();
 
-        /**
-         * Initialize the robot
-         */
-        while (opModeInInit()) {
-            // turn off leds
-            if (gamepad2.touchpad) {
+        robot.intake.leftLight.setPosition(0);
+        robot.intake.rightLight.setPosition(0);
+
+        waitForStart();
+        double lastLoopTime = System.nanoTime() / 1e9;
+        while (opModeIsActive() && !isStopRequested()) {
+// turn off leds
+            if (gamepad2.touchpad && intakeColorTimer.seconds() > .5) {
                 if (Intake.selected_color.equalsIgnoreCase("R")) {
                     robot.intake.setColorBlue();
                     gamepad2.setLedColor(0, 0, 255, -1);
@@ -74,28 +72,25 @@ public class TeleOp extends LinearOpMode {
                     robot.intake.leftLight.setPosition(Intake.RED);
                     robot.intake.rightLight.setPosition(Intake.RED);
                 }
+                intakeColorTimer.reset();
             }
 
-            if (gamepad1.touchpad) {
+            if (gamepad1.touchpad && sampleColorTimer.seconds() > .5) {
+                telemetry.addLine("Touchpad Pressed GP1");
                 if (Intake.selected_color.equalsIgnoreCase("R")) {
                     Robot.isSample = true;
                     gamepad1.setLedColor(255, 255, 0, -1);
                 } else {
                     Robot.isSample = false;
-                    gamepad1.setLedColor(0, 0, 255, -1);
+                    gamepad1.setLedColor(48, 213, 200, -1);
                 }
+                sampleColorTimer.reset();
             }
+
             telemetry.addData("Selected Color", Intake.selected_color);
             telemetry.addData("Status", "Initializing");
-            telemetry.update();
-        }
 
-        robot.intake.leftLight.setPosition(0);
-        robot.intake.rightLight.setPosition(0);
 
-        waitForStart();
-        double lastLoopTime = System.nanoTime() / 1e9;
-        while (opModeIsActive() && !isStopRequested()) {
             //robot.clearCache();
 
             //telemetry.addData("armDistance:", robot.arm.armSensor.getDistance(DistanceUnit.MM));
@@ -129,10 +124,6 @@ public class TeleOp extends LinearOpMode {
                     -gamepad1.right_stick_x
             ));
 
-            // Allow the driver to open the grabber/claw
-            if (gamepad1.right_bumper) robot.arm.grabber.setPosition(Arm.OPEN);
-
-
             /**
              * Co-Pilot Section
              */
@@ -143,11 +134,11 @@ public class TeleOp extends LinearOpMode {
             robot.intake.manualControl(-gamepad2.left_stick_y);
             robot.lift.manualControl(-gamepad2.right_stick_y);
 
-            if ((gamepad2.right_trigger > 0.1) && (!hasWrongColor)) {
+            if ((gamepad2.right_trigger > 0.61) && (!hasWrongColor)) {
                 robot.intake.spin.setPower(1);
-
-               if (gamepad2.right_trigger > 0.61) {
-                   robot.intake.intakeDown();
+                robot.intake.intakeDown();
+               if (gamepad2.right_trigger < 0.6) {
+                   robot.intake.intakeUp();
                }
             } else if (gamepad2.left_trigger > 0.1) {
                 robot.intake.spin.setPower(-1);
@@ -163,7 +154,7 @@ public class TeleOp extends LinearOpMode {
 
                 // Specimen Outtake
                 if ((gamepad2.dpad_down)) {
-                    robot.outtakeSpec();
+                    robot.outtakeSpecTeleop();
                 }
 
                 // Observation Drop
@@ -244,15 +235,25 @@ public class TeleOp extends LinearOpMode {
                 case SPECFRONT:
                     scheduler.queueAction(
                             new SequentialAction(
-                                    new InstantAction(robot.arm::specIntake),
+                                    new InstantAction(robot.arm::autoSpecIntake),
                                     new InstantAction(() -> {
                                          robot.arm.drop();
                                     })
                             )
                     );
+                    if (robot.lift.lift.getCurrentPosition() == Lift.SPECIMEN_DROP_PRIME) {
+                        Lift.targetPosition = Lift.SPECIMEN_DROP;
+                    }
                     specGrabTimer.reset();
-                    specGrabState = SPECGRAB.SPECBACK;
+                    specGrabState = SPECGRAB.SPECSIGMA;
                     break;
+                case SPECSIGMA:
+                    if (specGrabTimer.seconds() > .5) {
+                        robot.arm.drop();
+                        specGrabState = SPECGRAB.SPECBACK;
+                    }
+                    break;
+
                 case SPECBACK:
                     if (specGrabTimer.seconds() > .5) {
                         specGrabTimer.reset();
@@ -271,7 +272,7 @@ public class TeleOp extends LinearOpMode {
             if (gamepad2.cross && clawTimer.seconds() > .5) {
                 if (compareDouble(Arm.CLOSED, robot.arm.grabber.getPosition())) {
                     // If the wrist is in the bucket prime position, move it to the bucket drop position
-                    if (Lift.targetPosition > 1600 || 400 < Lift.targetPosition && Lift.targetPosition < 1000) {
+                    if (Lift.targetPosition > 1700 || 450 < Lift.targetPosition && Lift.targetPosition < 600) {
                         robot.arm.setPivot(robot.arm.PIVOT_BUCKET);
                         robot.arm.wrist.setPosition(robot.arm.WRIST_BUCKET_DROP);
                         robot.arm.wristPosition = robot.arm.WRIST_BUCKET_DROP;
@@ -285,7 +286,7 @@ public class TeleOp extends LinearOpMode {
                 clawTimer.reset();
             }
 
-            if (gamepad1.right_bumper && hangTimer.seconds() > .5) {
+            if (gamepad1.right_bumper && flickerTimer.seconds() > .5) {
                 if (compareDouble(robot.intake.FLICKER_IN, robot.intake.flicker.getPosition())) {
                     robot.intake.flickerOut();
                 } else if (compareDouble(robot.intake.FLICKER_OUT, robot.intake.flicker.getPosition())) {

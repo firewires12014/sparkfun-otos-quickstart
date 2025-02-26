@@ -2,8 +2,6 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
-import com.qualcomm.hardware.rev.RevColorSensorV3;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -21,7 +19,8 @@ public class Arm {
     public static double WRIST_MIDDLE = 0.32;
     public static double WRIST_INTAKE = 0.38;
     public static double WRIST_SPECIMEN_GRAB = 0.25;
-    public static double WRIST_SPECIMEN_DROP = 0.25;
+    public static double WRIST_SPECIMEN_DROP = 0.2;
+    public static double WRIST_SPECIMEN_DROP_AUTO = .25;
     public static double WRIST_BUCKET_PRIME = 0.45;
     public static double WRIST_BUCKET_DROP = 0.73;
     public static double WRIST_AUTO_PICKUP = 0.1;
@@ -29,12 +28,14 @@ public class Arm {
     // FORMAT: Anything prior to the decimal is the left servo and right is right servo position.
     // Example 01.99 would be left: 0.01, and right = 0.99, NOTE: only two decimal places are work
     public static double PIVOT_INTAKE = 01.99;
-    public static double PIVOT_SPECIMEN_HORIZONTAL = 93.07;
+    public static double PIVOT_SPECIMEN_DROP = 70.30;
+    public static double PIVOT_SPECIMEN_DROP_AUTO = 93.07;
     public static double PIVOT_SPECIMEN_PICKUP = 30.70;
     public static double PIVOT_SPECIMEN_PICKUP_AUTO = 18.82;
     public static double PIVOT_BUCKET = 55.45;
-    public static double PIVOT_OBSERVATION = 20.80;
+    public static double PIVOT_OBSERVATION = 34.66;
     public static double PIVOT_AUTO_CLIP = 75.25;
+
    // public static double PIVOT_AUTO_UP =
 
     public Servo leftPivot;
@@ -120,11 +121,11 @@ public class Arm {
      * Set the position of the pivot to the specimen pickup position
      */
     public void specIntake() {
-//        setPivot(PIVOT_SPECIMEN_PICKUP);
-//        wrist.setPosition(WRIST_SPECIMEN_GRAB);
-//        wristPosition = WRIST_SPECIMEN_GRAB;
+        setPivot(PIVOT_SPECIMEN_PICKUP);
+        wrist.setPosition(WRIST_SPECIMEN_GRAB);
+        wristPosition = WRIST_SPECIMEN_GRAB;
 
-        autoSpecIntake();
+//        autoSpecIntake();
     }
 
     public void autoSpecIntake() {
@@ -145,10 +146,16 @@ public class Arm {
     /**
      * Set the position of the pivot to the specimen drop position
      */
-    public void specDrop() {
-        setPivot(PIVOT_SPECIMEN_HORIZONTAL);
+    public void specDropTeleop() {
+        setPivot(PIVOT_SPECIMEN_DROP);
         wrist.setPosition(WRIST_SPECIMEN_DROP);
         wristPosition = WRIST_SPECIMEN_DROP;
+    }
+
+    public void specDropAuto() {
+        setPivot(PIVOT_SPECIMEN_DROP_AUTO);
+        wrist.setPosition(WRIST_SPECIMEN_DROP_AUTO);
+        wristPosition = WRIST_SPECIMEN_DROP_AUTO;
     }
 
 

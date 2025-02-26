@@ -6,13 +6,10 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
-import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
-import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.util.PIDCoefficients;
 import org.firstinspires.ftc.teamcode.util.PIDFController;
@@ -20,13 +17,15 @@ import org.firstinspires.ftc.teamcode.util.PIDFController;
 @Config
 public class Lift {
 
-    public static double SPECIMEN_PICKUP = 388;
+    public static double SPECIMEN_PICKUP = 450;
     public static double ARM_FLIP_BACK = 100;
     public static double AUTO_SPECIMEN_PICKUP = 82;
-    public static double SPECIMEN = 1125;  // Was 1300
+    public static double SPECIMEN = 265;  // Was 1300
+    public static double SPECIMEN_DROP_PRIME = 640;
+    public static double SPECIMEN_DROP = 750;
     public static double SPECIMEN_AUTO = 1125;
     public static double LOW_BUCKET = 500;
-    public static double HIGH_BUCKET = 2000;
+    public static double HIGH_BUCKET = 2100;
     public static double OBSERVATION_ZONE = 0;
     public static double ZERO = 0;
 

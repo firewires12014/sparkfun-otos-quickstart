@@ -68,8 +68,17 @@ public class Sensors {
         double y = -72+getBack() - Sensors.backOffset[1];
         double x = 72-getRight() - Sensors.rightOffset[0];
         Vector2d newPose = new Vector2d(x,y);
+        return new Pose2d(newPose, old.heading.toDouble());
+
+        //return new Pose2d(newPose, Math.toRadians(90));
+    }
+
+    public Pose2d getSpecimenRightPosition (Pose2d old) {
+        double x = 72-getRight() - Sensors.rightOffset[0];
+        Vector2d newPose = new Vector2d(x,old.position.y);
 
         return new Pose2d(newPose, old.heading.toDouble());
         //return new Pose2d(newPose, Math.toRadians(90));
     }
+
 }
