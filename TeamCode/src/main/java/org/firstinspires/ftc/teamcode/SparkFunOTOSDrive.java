@@ -5,18 +5,14 @@ package org.firstinspires.ftc.teamcode;
 import static com.acmerobotics.roadrunner.ftc.OTOSKt.OTOSPoseToRRPose;
 import static com.acmerobotics.roadrunner.ftc.OTOSKt.RRPoseToOTOSPose;
 
-import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
-import com.acmerobotics.roadrunner.Rotation2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.DownsampledWriter;
 import com.acmerobotics.roadrunner.ftc.FlightRecorder;
 import com.acmerobotics.roadrunner.ftc.SparkFunOTOSCorrected;
 import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.messages.PoseMessage;
@@ -28,15 +24,8 @@ import org.firstinspires.ftc.teamcode.messages.PoseMessage;
  * Portions of this code made and released under the MIT License by SparkFun
  * Unless otherwise noted, comments are from SparkFun
  */
-@Config
 public class SparkFunOTOSDrive extends MecanumDrive {
-    public static double x = 2;
-    public static double y = -5;
-    public static double linearScalar = 1;
-    public static double angularScalar = .93628;
-    public static double amgle = -90;
-
-    public class Params {
+    public static class Params {
         // Assuming you've mounted your sensor to a robot and it's not centered,
         // you can specify the offset for the sensor relative to the center of the
         // robot. The units default to inches and degrees, but if you want to use
@@ -50,9 +39,7 @@ public class SparkFunOTOSDrive extends MecanumDrive {
         // tweaked slightly to compensate for imperfect mounting (eg. 1.3 degrees).
 
         // RR localizer note: These units are inches and radians.
-
-
-        public SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(x, y, Math.toRadians(amgle));
+        public SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(0, 0, Math.toRadians(0));
 
         // Here we can set the linear and angular scalars, which can compensate for
         // scaling issues with the sensor measurements. Note that as of firmware
@@ -70,17 +57,18 @@ public class SparkFunOTOSDrive extends MecanumDrive {
         // multiple speeds to get an average, then set the linear scalar to the
         // inverse of the error. For example, if you move the robot 100 inches and
         // the sensor reports 103 inches, set the linear scalar to 100/103 = 0.971
-
+        public double linearScalar = 1.0;
+        public double angularScalar = 1.0;
     }
 
-    public SparkFunOTOSDrive.Params PARAMS = new SparkFunOTOSDrive.Params();
+    public static SparkFunOTOSDrive.Params PARAMS = new SparkFunOTOSDrive.Params();
     public SparkFunOTOSCorrected otos;
     private Pose2d lastOtosPose = pose;
 
     private final DownsampledWriter estimatedPoseWriter = new DownsampledWriter("ESTIMATED_POSE", 50_000_000);
 
-    public SparkFunOTOSDrive(Telemetry telemetry,HardwareMap hardwareMap, Pose2d pose) {
-        super( hardwareMap, pose);
+    public SparkFunOTOSDrive(HardwareMap hardwareMap, Pose2d pose) {
+        super(hardwareMap, pose);
         FlightRecorder.write("OTOS_PARAMS",PARAMS);
         otos = hardwareMap.get(SparkFunOTOSCorrected.class,"sensor_otos");
         // RR localizer note:
@@ -90,10 +78,9 @@ public class SparkFunOTOSDrive extends MecanumDrive {
         otos.setAngularUnit(AngleUnit.RADIANS);
 
         otos.setOffset(PARAMS.offset);
-        telemetry.addLine("OTOS calibration beginning!");
-        telemetry.addLine(String.valueOf(otos.setLinearScalar(linearScalar)));
-        telemetry.addLine(String.valueOf(otos.setAngularScalar(angularScalar)));
-        telemetry.update();
+        System.out.println("OTOS calibration beginning!");
+        System.out.println(otos.setLinearScalar(PARAMS.linearScalar));
+        System.out.println(otos.setAngularScalar(PARAMS.angularScalar));
 
         otos.setPosition(RRPoseToOTOSPose(pose));
         // The IMU on the OTOS includes a gyroscope and accelerometer, which could
@@ -113,9 +100,8 @@ public class SparkFunOTOSDrive extends MecanumDrive {
         // this would allow your OpMode code to run while the calibration occurs.
         // However, that may cause other issues.
         // In the future I hope to do that by default and just add a check in updatePoseEstimate for it
-        telemetry.addLine(String.valueOf(otos.calibrateImu(255, true)));
-        telemetry.addLine("OTOS calibration complete!");
-        telemetry.update();
+        System.out.println(otos.calibrateImu(255, true));
+        System.out.println("OTOS calibration complete!");
     }
     @Override
     public PoseVelocity2d updatePoseEstimate() {
@@ -142,7 +128,6 @@ public class SparkFunOTOSDrive extends MecanumDrive {
         SparkFunOTOS.Pose2D otosAcc = new SparkFunOTOS.Pose2D();
         otos.getPosVelAcc(otosPose,otosVel,otosAcc);
         pose = OTOSPoseToRRPose(otosPose);
-        pose = new Pose2d(pose.position, pose.heading.toDouble() * angularScalar);
         lastOtosPose = pose;
 
         // RR standard
@@ -155,7 +140,7 @@ public class SparkFunOTOSDrive extends MecanumDrive {
 
         // RR localizer note:
         // OTOS velocity units happen to be identical to Roadrunners, so we don't need any conversion!
-        return new PoseVelocity2d(new Vector2d(otosVel.x, otosVel.y),otosVel.h); // Maybe multiply angular scalar to velocities
+        return new PoseVelocity2d(new Vector2d(otosVel.x, otosVel.y),otosVel.h);
     }
 
 
