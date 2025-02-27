@@ -17,6 +17,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
+import org.firstinspires.ftc.teamcode.PinpointDrive;
 import org.firstinspires.ftc.teamcode.util.ActionUtil;
 
 import java.util.List;
@@ -48,7 +49,8 @@ public class Auto {
         hang = new Hang(hardwareMap);
         intake = new Intake(hardwareMap);
         lift = new Lift(hardwareMap);
-        drive = new MecanumDrive(hardwareMap, pose);
+//        drive = new MecanumDrive(hardwareMap, pose);
+        drive = new PinpointDrive(hardwareMap, pose);
         sensors = new Sensors(hardwareMap);
 
         allHubs = hardwareMap.getAll(LynxModule.class);
