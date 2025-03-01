@@ -134,6 +134,7 @@ public class TeleOp extends LinearOpMode {
             robot.intake.manualControl(-gamepad2.left_stick_y);
             robot.lift.manualControl(-gamepad2.right_stick_y);
 
+            telemetry.addData("Intake Speed", robot.intake.spin.getPower());
             if ((gamepad2.right_trigger > 0.61) && (!hasWrongColor)) {
                 robot.intake.spin.setPower(1);
                 robot.intake.intakeDown();
@@ -222,6 +223,10 @@ public class TeleOp extends LinearOpMode {
                         ) {
                             specGrabState = SPECGRAB.SPECLIFT;
                         }
+                        if (robot.arm.wristPosition == robot.arm.WRIST_SPECIMEN_DROP) {
+                            robot.specScore();
+                            specGrabState = SPECGRAB.SPECLIFT;
+                        }
                     }
                     break;
                 case SPECLIFT:
@@ -282,6 +287,9 @@ public class TeleOp extends LinearOpMode {
                     // If cross pressed and the grabber is open, close it
                 } else if (compareDouble(Arm.OPEN, robot.arm.grabber.getPosition())) {
                     robot.arm.grab();
+                    if (compareDouble(robot.arm.wrist.getPosition(), robot.arm.WRIST_SPECIMEN_GRAB)) {
+                        robot.lift.setTargetPosition(Lift.SPECIMEN_PICKUP + 100);
+                    }
                 }
                 clawTimer.reset();
             }
@@ -320,6 +328,9 @@ public class TeleOp extends LinearOpMode {
 
             //telemetry.addData("Has Sample", robot.intake.hasSample());
             telemetry.addData("intake current", robot.intake.extension.getCurrent(CurrentUnit.MILLIAMPS));
+            telemetry.addData("lift current", robot.lift.lift.getCurrent(CurrentUnit.MILLIAMPS));
+            telemetry.addData("hang current", robot.hang.hang.getCurrent(CurrentUnit.MILLIAMPS));
+            telemetry.addData("intake roller current", robot.intake.spin.getCurrent(CurrentUnit.MILLIAMPS));
             //telemetry.addData("Bucket D", robot.arm.getBucketDistance());
             telemetry.addData("Extension", robot.intake.extension.getCurrentPosition());
             telemetry.addData("Lift pos", robot.lift.lift.getCurrentPosition());

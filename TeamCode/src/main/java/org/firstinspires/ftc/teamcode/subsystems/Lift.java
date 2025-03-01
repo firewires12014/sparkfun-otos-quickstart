@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.util.PIDCoefficients;
 import org.firstinspires.ftc.teamcode.util.PIDFController;
 
@@ -21,11 +22,11 @@ public class Lift {
     public static double ARM_FLIP_BACK = 100;
     public static double AUTO_SPECIMEN_PICKUP = 82;
     public static double SPECIMEN = 265;  // Was 1300
-    public static double SPECIMEN_DROP_PRIME = 640;
-    public static double SPECIMEN_DROP = 750;
+    public static double SPECIMEN_DROP_PRIME = 0;
+    public static double SPECIMEN_DROP = 1000;
     public static double SPECIMEN_AUTO = 1125;
     public static double LOW_BUCKET = 500;
-    public static double HIGH_BUCKET = 2100;
+    public static double HIGH_BUCKET = 2000;
     public static double OBSERVATION_ZONE = 0;
     public static double ZERO = 0;
 
@@ -71,8 +72,10 @@ public class Lift {
      * Update the lift
      */
     public void update() {
+        if (lift.getCurrent(CurrentUnit.MILLIAMPS) > 8000) {
+            targetPosition = lift.getCurrentPosition();
+        }
         pid.setTargetPosition(targetPosition);
-
         if (PID_ENABLED) {
             newPower = this.pid.update(lift.getCurrentPosition(), lift.getVelocity());
             lift.setPower(newPower);
@@ -139,10 +142,8 @@ public class Lift {
      * @param position
      * @return
      */
-    public Action setTargetPosition(double position) {
-        return new InstantAction(() -> {
-            targetPosition = position;
-        });
+    public void setTargetPosition(double position) {
+        targetPosition = position;
     }
 
 

@@ -15,7 +15,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Auto;
 import org.firstinspires.ftc.teamcode.util.AutoActionScheduler;
 
 
-@Autonomous(name = "01. Specimen Auto", group = "Into the Deep")
+@Autonomous(name = "01. Spec Auto", group = "Into the Deep")
 public class SpecAuto extends LinearOpMode {
     Auto auto;
     AutoActionScheduler scheduler;

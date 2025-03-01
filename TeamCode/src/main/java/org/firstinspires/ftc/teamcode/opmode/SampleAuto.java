@@ -26,6 +26,7 @@ public class SampleAuto extends LinearOpMode {
     // TODO: preload position fix, color ejection, timeouts for being stuck, strafing in sub (better pickup)
 
     public static double intakeDistance1 = 1300;
+    public static boolean sampleColorCorrect = false;
     public static double sub = 1100;
     Robot robot;
     AutoActionScheduler scheduler;
@@ -110,7 +111,7 @@ public class SampleAuto extends LinearOpMode {
         while (opModeIsActive() && !isStopRequested()) {
             scheduler.addAction(new ParallelAction(
                     bucket(),
-                    ActionUtil.Offset(1.1, toBucket, drop())
+                    ActionUtil.Offset(1.3, toBucket, drop())
             ));
 
             // Cycle 1
@@ -123,7 +124,7 @@ public class SampleAuto extends LinearOpMode {
                             transfer(),
                             bucket()
                     ),
-                    ActionUtil.Offset(1, depositFirst, drop())
+                    ActionUtil.Offset(1.4, depositFirst, drop())
             ));
 
             // Cycle 2
@@ -136,7 +137,7 @@ public class SampleAuto extends LinearOpMode {
                             transfer(),
                             bucket()
                     ),
-                    ActionUtil.Offset(1, depositSecond, drop())
+                    ActionUtil.Offset(1.4, depositSecond, drop())
             ));
 
             // Cycle 3
@@ -149,7 +150,7 @@ public class SampleAuto extends LinearOpMode {
                             transfer(),
                             bucket()
                     ),
-                    ActionUtil.Offset(1, depositThird, drop())
+                    ActionUtil.Offset(1.4, depositThird, drop())
             ));
 
             // Cycle sub 1
@@ -157,38 +158,52 @@ public class SampleAuto extends LinearOpMode {
                     //ActionUtil.Delay(0.5, intake(2,0.5, intakeDistance1)),
                     ActionUtil.Offset(0.5, moveToSub1, returnLift()) // TODO: make this and the following action in one add action, and make the flick flick sooner
             ));
-            scheduler.addAction(new SequentialAction(
-                    ActionUtil.Offset(0.3, flick(), subIntake(2, 0.5, intakeDistance1))
-            ));
+            scheduler.run();
+//            scheduler.addAction(new SequentialAction(
+//                    ActionUtil.Offset(0.3, flick(), subIntake(2, 0.5, intakeDistance1))
+//            ));
+//
+//            scheduler.addAction(new SequentialAction(
+//                    new SequentialAction(
+//                            transfer(),
+//                            bucket()
+//                    ),
+//                    ActionUtil.Offset(2.3, depositSub1, drop())
+//            ));
+//            scheduler.run();
 
-            scheduler.addAction(new SequentialAction(
-                    new SequentialAction(
-                            transfer(),
-                            bucket()
-                    ),
-                    ActionUtil.Offset(2.3, depositSub1, drop())
-            ));
+//            while (!sampleColorCorrect) {
+//                scheduler.addAction(new SequentialAction(
+//                        robot.eject(),
+//                        robot.intake.setTargetPosition(0),
+//                        robot.drive.actionBuilder(subIntake1)
+//                                .lineToX(robot.drive.pose.position.x + 4)
+//                                .build(),
+//                        subIntake(2, 2, intakeDistance1)
+//                ));
+//                scheduler.run();
+//            }
 
             // Cycle sub 2
-            scheduler.addAction(new ParallelAction(
-                    //ActionUtil.Delay(0.5, intake(2,0.5, intakeDistance1)),
-                    ActionUtil.Offset(0.5, moveToSub2, returnLift()) // TODO: make this and the following action in one add action, and make the flick flick sooner
-            ));
-            scheduler.addAction(new SequentialAction(
-                    ActionUtil.Offset(0.3, flick(), subIntake(2, 0.5, intakeDistance1))
-            ));
-
-            scheduler.addAction(new SequentialAction(
-                    new SequentialAction(
-                            transfer(),
-                            bucket()
-                    ),
-                    ActionUtil.Offset(2.3, depositSub2, drop())
-            ));
-
-            scheduler.run();
-            scheduler.addAction(robot.endAuto(telemetry, 30));
-            scheduler.run();
+//            scheduler.addAction(new ParallelAction(
+//                    //ActionUtil.Delay(0.5, intake(2,0.5, intakeDistance1)),
+//                    ActionUtil.Offset(0.5, moveToSub2, returnLift()) // TODO: make this and the following action in one add action, and make the flick flick sooner
+//            ));
+//            scheduler.addAction(new SequentialAction(
+//                    ActionUtil.Offset(0.3, flick(), subIntake(2, 0.5, intakeDistance1))
+//            ));
+//
+//            scheduler.addAction(new SequentialAction(
+//                    new SequentialAction(
+//                            transfer(),
+//                            bucket()
+//                    ),
+//                    ActionUtil.Offset(2.3, depositSub2, drop())
+//            ));
+//
+//            scheduler.run();
+//            scheduler.addAction(robot.endAuto(telemetry, 30));
+//            scheduler.run();
         }
     }
 
@@ -234,6 +249,8 @@ public class SampleAuto extends LinearOpMode {
                     } else {
                         //robot.intake.intakeDown();
                     }
+
+                    sampleColorCorrect = robot.intake.isRightColor();
 
                     if(robot.intake.hasSample()) return false;
 

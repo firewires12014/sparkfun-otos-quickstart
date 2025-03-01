@@ -270,6 +270,11 @@ public class Robot {
                 if (isSample) outtakeBucket();
                 intake.stopIntake();
 
+                intake.extension.setPower(0);
+                Intake.targetPosition = intake.extension.getCurrentPosition();
+                Intake.PID_ENABLED = true;
+
+
 
                 TRANSFER_STATE = tranfserState.IDLE;
                 break;
@@ -299,7 +304,7 @@ public class Robot {
      */
     public void outtakeSpecTeleop() {
         arm.grab();
-        Lift.targetPosition = Lift.SPECIMEN;
+        Lift.targetPosition = Lift.SPECIMEN_DROP_PRIME;
         arm.specDropTeleop();
     }
 
@@ -309,11 +314,6 @@ public class Robot {
         arm.specDropAuto();
     }
 
-
-
-    public void outtakeSpecArm() {
-        Lift.targetPosition = Lift.SPECIMEN;
-    }
 
     /**
      * Outtake the low bucket
@@ -337,15 +337,6 @@ public class Robot {
     /**
      * Drop the specimen
      */
-    public Action specDrop() {
-        return new SequentialAction(
-                new InstantAction(() -> {
-                    Lift.targetPosition = Lift.SPECIMEN_PICKUP;
-                    arm.drop();
-                })
-
-        );
-    }
 
     /**
      * Drop the sample into the bucket
@@ -384,11 +375,10 @@ public class Robot {
      */
     public Action specScore() {
         return new SequentialAction(
-                new InstantAction(arm::drop),
-                new SleepAction(.5),
                 new InstantAction(() -> {
-                    Lift.targetPosition = Lift.SPECIMEN_PICKUP;
-                    arm.specIntake();
+                    Lift.targetPosition = Lift.SPECIMEN_DROP;
+                new SleepAction(.5);
+                arm.drop();
                 })
         );
     }

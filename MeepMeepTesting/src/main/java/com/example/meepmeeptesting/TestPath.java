@@ -20,37 +20,46 @@ public class TestPath {
     public static void main(String[] args) {
         MeepMeep meepMeep = new MeepMeep(800);
 
+        Pose2d preloadSubmersible = new Pose2d(new Vector2d(-2.9, -29), Math.toRadians(90));
+        Pose2d splineAwayFromSubmersible = new Pose2d(new Vector2d(39, -36), Math.toRadians(90));
+        Pose2d splineNextToFirstSample = new Pose2d(new Vector2d(46, -17.4), Math.toRadians(90));
+        Pose2d splineToFirstSample = new Pose2d(new Vector2d(57, -8), Math.toRadians(-90));
+        Pose2d pushFirstSample = new Pose2d(new Vector2d(57, -46), Math.toRadians(-90));
+
+        Pose2d splineNextToSecondSample = new Pose2d(new Vector2d(58, -17.4), Math.toRadians(90));
+        Pose2d splineToSecondSample = new Pose2d(new Vector2d(72, -8), Math.toRadians(-90));
+        Pose2d pushSecondSample = new Pose2d(new Vector2d(72, -50), Math.toRadians(-90));
+
         RoadRunnerBotEntity myBot = new DefaultBotBuilder(meepMeep)
                 // Set bot constraints: maxVel, maxAccel, maxAngVel, maxAngAccel, track width
                 .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
                 .setStartPose(new Pose2d(7.1, -64, Math.toRadians(90))
 
+
+
+
+
                 )
                 .build();
 
         myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(7.1, -64, Math.toRadians(90)))
-               // robot.drive.actionBuilder(robot.drive.pose)
 
-                                .strafeToLinearHeading(new Vector2d(-2.9, -29), Math.toRadians(90),
-                                        new TranslationalVelConstraint(70.0),
-                                        new ProfileAccelConstraint(-120, 100))
-                               // .build()
+                .setReversed(true)
+                .splineToConstantHeading(splineAwayFromSubmersible.position, splineAwayFromSubmersible.heading)
+                .splineToConstantHeading(splineNextToFirstSample.position, splineNextToFirstSample.heading)
+                .splineToConstantHeading(splineToFirstSample.position, splineToFirstSample.heading)
+                .splineToConstantHeading(pushFirstSample.position, pushFirstSample.heading)
 
+                .waitSeconds(.5)
 
-                        .setReversed(true)
-                        .splineToConstantHeading(new Vector2d(39, -36), Math.toRadians(0))
-                        .setTangent(Math.toRadians(0))
-                        .splineToConstantHeading(new Vector2d(46, -17.4), Math.toRadians(90))
-                        .splineToConstantHeading(new Vector2d(57, -6), Math.toRadians(-90))
-                        .splineToConstantHeading(new Vector2d(57, -46), Math.toRadians(-90))
-                       // .build()
+                .splineToConstantHeading(splineNextToSecondSample.position, splineNextToSecondSample.heading)
+                .waitSeconds(.5)
+                .splineToConstantHeading(splineToSecondSample.position, splineToSecondSample.heading)
+//                .waitSeconds(.5)
+//                        .setTangent(Math.toRadians(-90))
+                .splineToConstantHeading(pushSecondSample.position, pushSecondSample.heading)
+                .build());
 
-
-                        .setReversed(false)
-                        .splineToConstantHeading(new Vector2d(50, -17.4), Math.toRadians(90))
-                        .splineToConstantHeading(new Vector2d(62, -15), Math.toRadians(-90))
-                        .splineToConstantHeading(new Vector2d(63, -56), Math.toRadians(-90))
-                        .build());
                        // .build());
 
 //                .splineToConstantHeading(new Vector2d(54.1, -46), Math.toRadians(0))

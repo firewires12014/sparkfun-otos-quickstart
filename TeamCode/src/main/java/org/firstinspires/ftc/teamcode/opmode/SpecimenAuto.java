@@ -1,0 +1,190 @@
+package org.firstinspires.ftc.teamcode.opmode;
+
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.InstantAction;
+import com.acmerobotics.roadrunner.ParallelAction;
+import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
+import com.acmerobotics.roadrunner.Vector2d;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+
+import org.firstinspires.ftc.teamcode.subsystems.Arm;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.Lift;
+import org.firstinspires.ftc.teamcode.subsystems.Robot;
+import org.firstinspires.ftc.teamcode.util.ActionUtil;
+import org.firstinspires.ftc.teamcode.util.AutoActionScheduler;
+
+@Config
+@Autonomous(name = "03. Specimen Auto", group = "Into the Deep")
+public class SpecimenAuto extends LinearOpMode {
+
+    // TODO: preload position fix, color ejection, timeouts for being stuck, strafing in sub (better pickup)
+
+    public static double liftPrime = 100;
+    public static double sub = 1100;
+    public static double liftScore = 750;
+
+    Robot robot;
+    AutoActionScheduler scheduler;
+    double startTime = System.nanoTime() / 1e9;
+
+    Pose2d start = new Pose2d(7.1, -64, Math.toRadians(90));
+
+    Pose2d preloadSubmersible = new Pose2d(new Vector2d(-2.9, -29), Math.toRadians(90));
+    Pose2d splineAwayFromSubmersible = new Pose2d(new Vector2d(39, -36), Math.toRadians(90));
+    Pose2d splineNextToFirstSample = new Pose2d(new Vector2d(46, -17.4), Math.toRadians(90));
+    Pose2d splineToFirstSample = new Pose2d(new Vector2d(57, -8), Math.toRadians(-90));
+    Pose2d pushFirstSample = new Pose2d(new Vector2d(57, -50), Math.toRadians(-90));
+
+    Pose2d splineNextToSecondSample = new Pose2d(new Vector2d(58, -17.4), Math.toRadians(90));
+    Pose2d splineToSecondSample = new Pose2d(new Vector2d(72, -8), Math.toRadians(-90));
+    Pose2d pushSecondSample = new Pose2d(new Vector2d(72, -50), Math.toRadians(-90));
+
+    Pose2d splineNextToThirdSample = new Pose2d(new Vector2d(70, -17.4), Math.toRadians(90));
+    Pose2d splineToThirdSample = new Pose2d(new Vector2d(84, -8), Math.toRadians(-90));
+    Pose2d pushThirdSample = new Pose2d(new Vector2d(84, -61.5), Math.toRadians(-90));
+
+    Pose2d scoreFirstSpecimen = new Pose2d(new Vector2d(10, -28), Math.toRadians(90));
+
+    Pose2d grabSpecimen = new Pose2d(new Vector2d(52, -63), Math.toRadians(-90));
+
+    Pose2d scoreSecondSpecimen = new Pose2d(new Vector2d( 12, -28), Math.toRadians(90));
+
+    Pose2d scoreThirdSpecimen = new Pose2d(new Vector2d( 14, -28), Math.toRadians(90));
+    Pose2d scoreFourthSpecimen = new Pose2d(new Vector2d( 16, -28), Math.toRadians(90));
+    Pose2d scoreFifthSpecimen = new Pose2d(new Vector2d(18, -28), Math.toRadians(90));
+
+    @Override
+    public void runOpMode() throws InterruptedException {
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+        robot = new Robot(telemetry, hardwareMap, start);
+        scheduler = new AutoActionScheduler(this::update);
+
+        Action toSubmersible = robot.drive.actionBuilder(start)
+                .strafeToLinearHeading(preloadSubmersible.position, preloadSubmersible.heading)
+                .build();
+
+        Action firstSample = robot.drive.actionBuilder(preloadSubmersible)
+                .setReversed(true)
+                .splineToConstantHeading(splineAwayFromSubmersible.position, splineAwayFromSubmersible.heading)
+                .splineToConstantHeading(splineNextToFirstSample.position, splineNextToFirstSample.heading)
+                .splineToConstantHeading(splineToFirstSample.position, splineToFirstSample.heading)
+                .splineToConstantHeading(pushFirstSample.position, pushFirstSample.heading)
+
+                .waitSeconds(.5)
+
+                .splineToConstantHeading(splineNextToSecondSample.position, splineNextToSecondSample.heading)
+                .splineToConstantHeading(splineToSecondSample.position, splineToSecondSample.heading)
+                .splineToConstantHeading(pushSecondSample.position, pushSecondSample.heading)
+
+                .waitSeconds(.5)
+
+                .splineToConstantHeading(splineNextToThirdSample.position, splineNextToThirdSample.heading)
+                .splineToConstantHeading(splineToThirdSample.position, splineToThirdSample.heading)
+                .splineToConstantHeading(pushThirdSample.position, pushThirdSample.heading)
+                .build();
+
+        Action scoreFirstSpec = robot.drive.actionBuilder(new Pose2d(pushThirdSample.position, pushThirdSample.heading.toDouble() + Math.toRadians(180)))
+                        .splineToConstantHeading(scoreFirstSpecimen.position, scoreFirstSpecimen.heading)
+                        .build();
+
+        Action grabSecondSpec = robot.drive.actionBuilder(new Pose2d(scoreFirstSpecimen.position, scoreFirstSpecimen.heading.toDouble() + Math.toRadians(0)))
+                        .strafeToConstantHeading(grabSpecimen.position)
+                                .build();
+
+        Action scoreSecondSpec = robot.drive.actionBuilder(new Pose2d(grabSpecimen.position, grabSpecimen.heading.toDouble() + Math.toRadians(180)))
+                        .strafeToConstantHeading(scoreSecondSpecimen.position)
+                                .build();
+
+        Action grabThirdSpec = robot.drive.actionBuilder(new Pose2d(scoreSecondSpecimen.position, scoreFirstSpecimen.heading.toDouble() + Math.toRadians(0)))
+                        .strafeToConstantHeading(grabSpecimen.position)
+                                .build();
+
+        Action scoreThirdSpec = robot.drive.actionBuilder(new Pose2d(grabSpecimen.position, grabSpecimen.heading.toDouble() + Math.toRadians(180)))
+                        .strafeToConstantHeading(scoreThirdSpecimen.position)
+                                .build();
+
+        Action grabFourthSpec = robot.drive.actionBuilder(new Pose2d(scoreThirdSpecimen.position, scoreThirdSpecimen.heading.toDouble() + Math.toRadians(0)))
+                        .strafeToConstantHeading(grabSpecimen.position)
+                                .build();
+        Action scoreFourthSpec = robot.drive.actionBuilder(new Pose2d(grabSpecimen.position, grabSpecimen.heading.toDouble() + Math.toRadians(180)))
+                        .strafeToConstantHeading(scoreFourthSpecimen.position)
+                                .build();
+        Action grabFifthSpec = robot.drive.actionBuilder(new Pose2d(scoreFourthSpecimen.position, scoreFourthSpecimen.heading.toDouble() + Math.toRadians(0)))
+                        .strafeToConstantHeading(grabSpecimen.position)
+                                .build();
+        Action scoreFifthSpec = robot.drive.actionBuilder(new Pose2d(grabSpecimen.position, grabSpecimen.heading.toDouble() + Math.toRadians(180)))
+                        .strafeToConstantHeading(scoreFifthSpecimen.position)
+                                .build();
+
+
+        robot.arm.grab();
+        robot.intake.intakeUp();
+        robot.arm.wrist.setPosition(Arm.WRIST_SPECIMEN_DROP);
+        robot.outtakeSpecAuto();
+        waitForStart();
+
+        while (opModeIsActive() && !isStopRequested()) {
+            scheduler.addAction(new SequentialAction(
+                    primeScore(),
+                    toSubmersible,
+                    score(),
+
+
+
+
+                    firstSample,
+                    scoreFirstSpec,
+                    grabSecondSpec,
+                    scoreSecondSpec,
+                    grabThirdSpec,
+                    scoreThirdSpec,
+                    grabFourthSpec,
+                    scoreFourthSpec,
+                    grabFifthSpec,
+                    scoreFifthSpec
+            ));
+
+            scheduler.run();
+            scheduler.addAction(robot.endAuto(telemetry, 30));
+            scheduler.run();
+            sleep(30000);
+        }
+    }
+
+    public Action returnLift() {
+        return new InstantAction(()-> {
+            Lift.targetPosition = 0;
+            robot.arm.intakePrimePosition();
+        });
+    }
+
+    public Action primeScore() {
+        return new ParallelAction(
+                new InstantAction(()->Lift.targetPosition = liftPrime),
+                new InstantAction(()->robot.arm.wrist.setPosition(Arm.WRIST_SPECIMEN_DROP)),
+                new InstantAction(()-> robot.arm.setPivot(Arm.PIVOT_SPECIMEN_DROP)));
+    }
+
+    public Action score() {
+        return new SequentialAction(
+                new InstantAction(()-> Lift.targetPosition = liftScore),
+                new SleepAction(1),
+                new InstantAction(robot.arm::drop),
+                new SleepAction(.1),
+                new InstantAction(robot.arm::autoSpecIntake)
+
+        );
+    }
+
+    public void update() {
+        robot.update();
+        //telemetry.update();
+    }
+}
