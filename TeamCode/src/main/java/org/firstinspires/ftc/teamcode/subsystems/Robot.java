@@ -17,6 +17,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
+import org.firstinspires.ftc.teamcode.PinpointDrive;
 import org.firstinspires.ftc.teamcode.util.ActionUtil;
 
 import java.util.List;
@@ -55,12 +56,29 @@ public class Robot {
      * Constructor for the Robot class
      * @param hardwareMap
      */
-    public Robot(Telemetry telemetry, HardwareMap hardwareMap, Pose2d pose) {
+    public Robot(Telemetry telemetry, HardwareMap hardwareMap, Pose2d pose, boolean usePinpoint) {
         arm = new Arm(hardwareMap);
         hang = new Hang(hardwareMap);
         intake = new Intake(hardwareMap);
         lift = new Lift(hardwareMap);
-        drive = new MecanumDrive(hardwareMap, pose);
+        if (usePinpoint) drive = new PinpointDrive(hardwareMap, pose);
+        else drive = new MecanumDrive(hardwareMap, pose);
+        sensors = new Sensors(hardwareMap);
+
+        allHubs = hardwareMap.getAll(LynxModule.class);
+
+        for (LynxModule hub : allHubs) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+        }
+    }
+
+    public Robot(Telemetry telemetry, HardwareMap hardwareMap, boolean usePinpoint) {
+        arm = new Arm(hardwareMap);
+        hang = new Hang(hardwareMap);
+        intake = new Intake(hardwareMap);
+        lift = new Lift(hardwareMap);
+        if (usePinpoint) drive = new PinpointDrive(hardwareMap, new Pose2d(0, 0, 0));
+        else drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
         sensors = new Sensors(hardwareMap);
 
         allHubs = hardwareMap.getAll(LynxModule.class);
@@ -84,6 +102,8 @@ public class Robot {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
     }
+
+
 
     public Action relocalize() {
         drive.pose = sensors.getSpecimenPosition(drive.pose);

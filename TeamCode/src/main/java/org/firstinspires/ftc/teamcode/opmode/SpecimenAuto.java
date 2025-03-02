@@ -36,23 +36,24 @@ public class SpecimenAuto extends LinearOpMode {
 
     Pose2d start = new Pose2d(7.1, -64, Math.toRadians(90));
 
-    Pose2d preloadSubmersible = new Pose2d(new Vector2d(-9, -27), Math.toRadians(90));
-    Pose2d splineAwayFromSubmersible = new Pose2d(new Vector2d(39, -36), Math.toRadians(90));
-    Pose2d splineNextToFirstSample = new Pose2d(new Vector2d(46, -17.4), Math.toRadians(90));
-    Pose2d splineToFirstSample = new Pose2d(new Vector2d(57, -8), Math.toRadians(-90));
-    Pose2d pushFirstSample = new Pose2d(new Vector2d(57, -50), Math.toRadians(-90));
+    Pose2d preloadSubmersible = new Pose2d(new Vector2d(-4, -30), Math.toRadians(90));
 
-    Pose2d splineNextToSecondSample = new Pose2d(new Vector2d(58, -17.4), Math.toRadians(90));
-    Pose2d splineToSecondSample = new Pose2d(new Vector2d(72, -8), Math.toRadians(-90));
-    Pose2d pushSecondSample = new Pose2d(new Vector2d(72, -50), Math.toRadians(-90));
+    Pose2d splineAwayFromSubmersible = new Pose2d(new Vector2d(35, -36), Math.toRadians(90));
+    Pose2d splineNextToFirstSample = new Pose2d(new Vector2d(40, -17.4), Math.toRadians(90));
+    Pose2d splineToFirstSample = new Pose2d(new Vector2d(50, -11), Math.toRadians(-90));
+    Pose2d pushFirstSample = new Pose2d(new Vector2d(47, -50), Math.toRadians(-90));
 
-    Pose2d splineNextToThirdSample = new Pose2d(new Vector2d(70, -17.4), Math.toRadians(90));
-    Pose2d splineToThirdSample = new Pose2d(new Vector2d(84, -8), Math.toRadians(-90));
-    Pose2d pushThirdSample = new Pose2d(new Vector2d(84, -62.5), Math.toRadians(-90));
+    Pose2d splineNextToSecondSample = new Pose2d(new Vector2d(50, -17.4), Math.toRadians(90));
+    Pose2d splineToSecondSample = new Pose2d(new Vector2d(58, -8), Math.toRadians(-90));
+    Pose2d pushSecondSample = new Pose2d(new Vector2d(54, -50), Math.toRadians(-90));
 
-    Pose2d scoreFirstSpecimen = new Pose2d(new Vector2d(2, -27), Math.toRadians(90));
+    Pose2d splineNextToThirdSample = new Pose2d(new Vector2d(54, -17.4), Math.toRadians(90));
+    Pose2d splineToThirdSample = new Pose2d(new Vector2d(65, -8), Math.toRadians(-90));
+    Pose2d pushThirdSample = new Pose2d(new Vector2d(66, -61), Math.toRadians(-90));
 
-    Pose2d grabSpecimen = new Pose2d(new Vector2d(52, -64), Math.toRadians(-90));
+    Pose2d scoreFirstSpecimen = new Pose2d(new Vector2d(2, -26.5), Math.toRadians(90));
+
+    Pose2d grabSpecimen = new Pose2d(new Vector2d(38, -64), Math.toRadians(-90));
 
     Pose2d scoreSecondSpecimen = new Pose2d(new Vector2d( 8, -26), Math.toRadians(90));
 
@@ -63,7 +64,7 @@ public class SpecimenAuto extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-        robot = new Robot(telemetry, hardwareMap, start);
+        robot = new Robot(telemetry, hardwareMap, start, true);
         scheduler = new AutoActionScheduler(this::update);
 
         Action toSubmersible = robot.drive.actionBuilder(start)
@@ -141,12 +142,14 @@ public class SpecimenAuto extends LinearOpMode {
             scheduler.addAction(new SequentialAction(
                     primeScore(),
                     toSubmersible,
-                    score(),
+                    ActionUtil.Offset(0.2, score(), firstSample),
+//                    score(),
+
 
                     // First Cycle
-                    firstSample,
+
                     new InstantAction(robot.arm::grab),
-                    ActionUtil.Offset(0.4,
+                    ActionUtil.Offset(0.6,
                             new SequentialAction(
                                     new SleepAction(0.2),
                                     robot.lift.setTargetPositionAction(500)), primeScore()),

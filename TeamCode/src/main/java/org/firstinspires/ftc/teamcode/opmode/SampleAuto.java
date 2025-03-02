@@ -53,7 +53,7 @@ public class SampleAuto extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-        robot = new Robot(telemetry, hardwareMap, start);
+        robot = new Robot(telemetry, hardwareMap, start, true);
         scheduler = new AutoActionScheduler(this::update);
 
         Action toBucket = robot.drive.actionBuilder(start)

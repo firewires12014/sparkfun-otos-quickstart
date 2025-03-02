@@ -20,7 +20,7 @@ public class Arm {
     public static double WRIST_INTAKE = 0.38;
     public static double WRIST_SPECIMEN_GRAB = 0.25;
     public static double WRIST_SPECIMEN_DROP = 0.2;
-    public static double WRIST_SPECIMEN_DROP_AUTO = .25;
+    public static double WRIST_SPECIMEN_DROP_AUTO = .28;
     public static double WRIST_BUCKET_PRIME = 0.45;
     public static double WRIST_BUCKET_DROP = 0.73;
     public static double WRIST_AUTO_PICKUP = 0.1;
