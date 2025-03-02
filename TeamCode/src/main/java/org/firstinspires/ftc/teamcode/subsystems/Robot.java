@@ -12,6 +12,7 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -21,6 +22,7 @@ import org.firstinspires.ftc.teamcode.PinpointDrive;
 import org.firstinspires.ftc.teamcode.util.ActionUtil;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -136,13 +138,17 @@ public class Robot {
 
     // The actual one this time :)
     public Action autoSpecGrab() {
+        return autoSpecGrab(0.7);
+    }
+
+    public Action autoSpecGrab(double waitForDetect) {
         return new SequentialAction(
                 new ParallelAction(
                         new InstantAction(arm::grab),
-                        lift.setTargetPositionAction(390),
+                        lift.setTargetPositionAction(360),
                         new InstantAction(arm::autoSpecIntake)
                 ),
-                ActionUtil.Offset(0.7, new InstantAction(arm::drop), new ActionUtil.RunnableAction(()-> !sensors.hasSpec())),
+                ActionUtil.Offset(waitForDetect, new InstantAction(arm::drop), new ActionUtil.RunnableAction(()-> !sensors.hasSpec())),
                 new InstantAction(arm::grab),
                 new SleepAction(0.3),
                 ActionUtil.Offset(0.2, lift.setTargetPositionAction(1000), new InstantAction(this::outtakeSpecTeleop)),
@@ -435,16 +441,24 @@ public class Robot {
     }
 
     @SuppressLint("DefaultLocale")
-    public Action endAuto(Telemetry telemetry, double timeout) {
+    public Action endAuto(LinearOpMode opmode, Telemetry telemetry, double timeout) {
+        AtomicBoolean runtime = new AtomicBoolean(false);
+        AtomicReference<Double> runTimeTime = new AtomicReference<>((double) 0);
         return new ParallelAction(
                 new SleepAction(timeout),
                 new ActionUtil.RunnableAction(()-> {
+                    if (!runtime.get()) {
+                        runTimeTime.set(opmode.getRuntime());
+                        runtime.set(true);
+                    }
+
                     Pose2d pose = drive.pose;
 
                     double x = pose.position.x;
                     double y = pose.position.y;
                     double h = pose.heading.toDouble();
 
+                    telemetry.addData("Duration", runTimeTime);
                     telemetry.addData("Robot Pose", String.format("x:%.2f \t y:%.2f \t heading:%.2f", x, y, Math.toDegrees(h)));
                     telemetry.update();
 

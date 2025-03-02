@@ -90,9 +90,9 @@ public class MecanumDrivePinpoint extends MecanumDrive {
         public double kA = 0.045;
 
         // path profile parameters (in inches)
-        public double maxWheelVel = 70;
+        public double maxWheelVel = 60;
         public double minProfileAccel = -30; // -45
-        public double maxProfileAccel = 65; //70
+        public double maxProfileAccel = 60; //70
 
         // turn profile parameters (in radians)
         public double maxAngVel = Math.PI; // shared with path

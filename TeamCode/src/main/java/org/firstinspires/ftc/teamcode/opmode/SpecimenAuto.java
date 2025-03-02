@@ -7,12 +7,14 @@ import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.teamcode.PinpointDrive;
 import org.firstinspires.ftc.teamcode.subsystems.Arm;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Lift;
@@ -26,7 +28,7 @@ public class SpecimenAuto extends LinearOpMode {
 
     // TODO: preload position fix, color ejection, timeouts for being stuck, strafing in sub (better pickup)
 
-    public static double liftPrime = 100;
+    public static double liftPrime = 50;
     public static double sub = 1100;
     public static double liftScore = 750;
 
@@ -36,30 +38,31 @@ public class SpecimenAuto extends LinearOpMode {
 
     Pose2d start = new Pose2d(7.1, -64, Math.toRadians(90));
 
-    Pose2d preloadSubmersible = new Pose2d(new Vector2d(-4, -30), Math.toRadians(90));
+    Pose2d preloadSubmersible = new Pose2d(new Vector2d(-6, -30.7), Math.toRadians(90));
 
     Pose2d splineAwayFromSubmersible = new Pose2d(new Vector2d(35, -36), Math.toRadians(90));
-    Pose2d splineNextToFirstSample = new Pose2d(new Vector2d(40, -17.4), Math.toRadians(90));
-    Pose2d splineToFirstSample = new Pose2d(new Vector2d(50, -11), Math.toRadians(-90));
-    Pose2d pushFirstSample = new Pose2d(new Vector2d(47, -50), Math.toRadians(-90));
+    Pose2d splineNextToFirstSample = new Pose2d(new Vector2d(38, -17), Math.toRadians(90));
+    Pose2d splineToFirstSample = new Pose2d(new Vector2d(47, -8), Math.toRadians(-90));
+    Pose2d pushFirstSample = new Pose2d(new Vector2d(50, -50), Math.toRadians(-90));
 
     Pose2d splineNextToSecondSample = new Pose2d(new Vector2d(50, -17.4), Math.toRadians(90));
-    Pose2d splineToSecondSample = new Pose2d(new Vector2d(58, -8), Math.toRadians(-90));
+    Pose2d splineToSecondSample = new Pose2d(new Vector2d(58, -11), Math.toRadians(-90));
     Pose2d pushSecondSample = new Pose2d(new Vector2d(54, -50), Math.toRadians(-90));
 
     Pose2d splineNextToThirdSample = new Pose2d(new Vector2d(54, -17.4), Math.toRadians(90));
-    Pose2d splineToThirdSample = new Pose2d(new Vector2d(65, -8), Math.toRadians(-90));
-    Pose2d pushThirdSample = new Pose2d(new Vector2d(66, -61), Math.toRadians(-90));
+    Pose2d splineToThirdSample = new Pose2d(new Vector2d(67, -18), Math.toRadians(-90));
+    Pose2d pushThirdSample = new Pose2d(new Vector2d(67, -61.5), Math.toRadians(-90));
 
-    Pose2d scoreFirstSpecimen = new Pose2d(new Vector2d(2, -26.5), Math.toRadians(90));
+    // TODO: PICK UP FOR BEAM BRAKE CYCLES
+    Pose2d grabSpecimen = new Pose2d(new Vector2d(36, -64), Math.toRadians(-90));
 
-    Pose2d grabSpecimen = new Pose2d(new Vector2d(38, -64), Math.toRadians(-90));
+    // TODO: POSITION WHEN SCORING SPECIMEN
+    Pose2d scoreFirstSpecimen = new Pose2d(new Vector2d(-2, -30), Math.toRadians(90));
+    Pose2d scoreSecondSpecimen = new Pose2d(new Vector2d( -1, -30), Math.toRadians(90));
+    Pose2d scoreThirdSpecimen = new Pose2d(new Vector2d( 1.5, -29.5), Math.toRadians(90));
+    Pose2d scoreFourthSpecimen = new Pose2d(new Vector2d( 4, -29.5), Math.toRadians(90));
 
-    Pose2d scoreSecondSpecimen = new Pose2d(new Vector2d( 8, -26), Math.toRadians(90));
-
-    Pose2d scoreThirdSpecimen = new Pose2d(new Vector2d( 10, -26), Math.toRadians(90));
-    Pose2d scoreFourthSpecimen = new Pose2d(new Vector2d( 11, -26), Math.toRadians(90));
-    Pose2d scoreFifthSpecimen = new Pose2d(new Vector2d(14, -26), Math.toRadians(90));
+    Pose2d parkPosition = new Pose2d(55, -60, Math.toRadians(0));
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -107,11 +110,13 @@ public class SpecimenAuto extends LinearOpMode {
                                 .build();
 
         Action scoreSecondSpec = robot.drive.actionBuilder(new Pose2d(grabSpecimen.position, grabSpecimen.heading.toDouble() + Math.toRadians(180)))
-                        .strafeToConstantHeading(scoreSecondSpecimen.position)
+//                .strafeTo(new Vector2d(-8, -26))
+                .strafeToConstantHeading(scoreSecondSpecimen.position)
                                 .build();
 
         Action grabThirdSpec = robot.drive.actionBuilder(new Pose2d(scoreSecondSpecimen.position, scoreFirstSpecimen.heading.toDouble() + Math.toRadians(0)))
-                        .strafeToConstantHeading(grabSpecimen.position)
+
+                .strafeToConstantHeading(grabSpecimen.position)
                                 .build();
 
         Action scoreThirdSpec = robot.drive.actionBuilder(new Pose2d(grabSpecimen.position, grabSpecimen.heading.toDouble() + Math.toRadians(180)))
@@ -124,12 +129,11 @@ public class SpecimenAuto extends LinearOpMode {
         Action scoreFourthSpec = robot.drive.actionBuilder(new Pose2d(grabSpecimen.position, grabSpecimen.heading.toDouble() + Math.toRadians(180)))
                         .strafeToConstantHeading(scoreFourthSpecimen.position)
                                 .build();
-        Action grabFifthSpec = robot.drive.actionBuilder(new Pose2d(scoreFourthSpecimen.position, scoreFourthSpecimen.heading.toDouble() + Math.toRadians(0)))
-                        .strafeToConstantHeading(grabSpecimen.position)
-                                .build();
-        Action scoreFifthSpec = robot.drive.actionBuilder(new Pose2d(grabSpecimen.position, grabSpecimen.heading.toDouble() + Math.toRadians(180)))
-                        .strafeToConstantHeading(scoreFifthSpecimen.position)
-                                .build();
+
+        Action park = robot.drive.actionBuilder(scoreFourthSpecimen)
+                .setTangent(Math.toRadians(-90))
+                .splineTo(parkPosition.position, parkPosition.heading)
+                .build();
 
 
         robot.arm.grab();
@@ -138,47 +142,42 @@ public class SpecimenAuto extends LinearOpMode {
         robot.outtakeSpecAuto();
         waitForStart();
 
+        resetRuntime();
+
         while (opModeIsActive() && !isStopRequested()) {
             scheduler.addAction(new SequentialAction(
                     primeScore(),
-                    toSubmersible,
-                    ActionUtil.Offset(0.2, score(), firstSample),
-//                    score(),
-
+                    ActionUtil.Offset(1.45, toSubmersible, ActionUtil.Offset(.5, score(), firstSample)),
 
                     // First Cycle
-
                     new InstantAction(robot.arm::grab),
-                    ActionUtil.Offset(0.6,
+                    ActionUtil.Offset(.2,
                             new SequentialAction(
                                     new SleepAction(0.2),
                                     robot.lift.setTargetPositionAction(500)), primeScore()),
-                    scoreFirstSpec,
-                    score(),
+
+                    ActionUtil.Offset(2.65,scoreFirstSpec, score()),
 
                     // Second Cycle
-                    ActionUtil.Offset(0.3, grabSecondSpec, robot.autoSpecGrab()),
-                    scoreSecondSpec,
-                    score(),
+                    ActionUtil.Offset(.6, grabSecondSpec, robot.autoSpecGrab(1)),
 
+                    ActionUtil.Offset(1.7, scoreSecondSpec,
+                            ActionUtil.Offset(0.5, score(), ActionUtil.Offset(0.3, grabThirdSpec, robot.autoSpecGrab(1)))),
 
-                    ActionUtil.Offset(0.3, grabThirdSpec, robot.autoSpecGrab()),
-                    scoreThirdSpec,
-                    score(),
+                    ActionUtil.Offset(1.7, scoreThirdSpec,
+                            ActionUtil.Offset(0.5, score(), ActionUtil.Offset(0.3, grabFourthSpec, robot.autoSpecGrab(1)))),
 
-                    ActionUtil.Offset(0.3, grabFourthSpec, robot.autoSpecGrab()),
-                    scoreFourthSpec,
-                    score(),
+                    ActionUtil.Offset(1.7, scoreFourthSpec, score()),
 
-                    ActionUtil.Offset(0.3, grabFifthSpec, robot.autoSpecGrab()),
-                    scoreFifthSpec,
-                    score()
+                    ActionUtil.Offset(1.5, ActionUtil.Offset(0.2, park, robot.returnIntake()), new InstantAction(()-> {
+                        scheduler.clearActions();
+                        robot.drive.setDrivePowers(new PoseVelocity2d(new Vector2d(0, 0), 0));
+                    }))
             ));
 
             scheduler.run();
-            scheduler.addAction(robot.endAuto(telemetry, 30));
+            scheduler.addAction(robot.endAuto(this, telemetry, 30));
             scheduler.run();
-            sleep(30000);
         }
     }
 
@@ -198,10 +197,14 @@ public class SpecimenAuto extends LinearOpMode {
 
     public Action score() {
         return new SequentialAction(
-                new InstantAction(()-> Lift.targetPosition = liftScore),
-                new SleepAction(1),
+                new InstantAction(()-> {
+                    Lift.targetPosition = liftScore;
+                    robot.arm.wrist.setPosition(Arm.WRIST_SPECIMEN_DROP);
+                }),
+                new ActionUtil.RunnableAction(()-> robot.lift.lift.getCurrentPosition() < 700),
+                //new SleepAction(1),
                 new InstantAction(robot.arm::drop),
-                new SleepAction(.1),
+                new SleepAction(.3),
                 new InstantAction(robot.arm::autoSpecIntake)
 
         );

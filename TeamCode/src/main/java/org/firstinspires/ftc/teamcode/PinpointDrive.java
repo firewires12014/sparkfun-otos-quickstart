@@ -26,7 +26,7 @@ import org.firstinspires.ftc.teamcode.messages.PoseMessage;
  * Unless otherwise noted, comments are from Gobilda
  */
 @Config
-public class PinpointDrive extends MecanumDrivePinpoint {
+public class PinpointDrive extends MecanumDrive {
     @Config
     public static class Params {
         /*

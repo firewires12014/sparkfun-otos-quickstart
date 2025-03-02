@@ -30,6 +30,10 @@ public class TestPath {
         Pose2d splineToSecondSample = new Pose2d(new Vector2d(72, -8), Math.toRadians(-90));
         Pose2d pushSecondSample = new Pose2d(new Vector2d(72, -50), Math.toRadians(-90));
 
+        Pose2d splineNextToThirdSample = new Pose2d(new Vector2d(54, -17.4), Math.toRadians(90));
+        Pose2d splineToThirdSample = new Pose2d(new Vector2d(67, -18), Math.toRadians(-90));
+        Pose2d pushThirdSample = new Pose2d(new Vector2d(65.5, -61.5), Math.toRadians(-90));
+
         RoadRunnerBotEntity myBot = new DefaultBotBuilder(meepMeep)
                 // Set bot constraints: maxVel, maxAccel, maxAngVel, maxAngAccel, track width
                 .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
@@ -45,19 +49,9 @@ public class TestPath {
         myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(7.1, -64, Math.toRadians(90)))
 
                 .setReversed(true)
-                .splineToConstantHeading(splineAwayFromSubmersible.position, splineAwayFromSubmersible.heading)
-                .splineToConstantHeading(splineNextToFirstSample.position, splineNextToFirstSample.heading)
-                .splineToConstantHeading(splineToFirstSample.position, splineToFirstSample.heading)
-                .splineToConstantHeading(pushFirstSample.position, pushFirstSample.heading)
-
-                .waitSeconds(.5)
-
-                .splineToConstantHeading(splineNextToSecondSample.position, splineNextToSecondSample.heading)
-                .waitSeconds(.5)
-                .splineToConstantHeading(splineToSecondSample.position, splineToSecondSample.heading)
-//                .waitSeconds(.5)
-//                        .setTangent(Math.toRadians(-90))
-                .splineToConstantHeading(pushSecondSample.position, pushSecondSample.heading)
+                .splineToConstantHeading(splineNextToThirdSample.position, splineNextToThirdSample.heading)
+                .splineToConstantHeading(splineToThirdSample.position, splineToThirdSample.heading)
+                .splineToConstantHeading(pushThirdSample.position, pushThirdSample.heading)
                 .build());
 
                        // .build());

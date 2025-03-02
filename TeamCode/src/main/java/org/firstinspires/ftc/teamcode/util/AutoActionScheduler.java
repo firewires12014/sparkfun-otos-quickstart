@@ -41,6 +41,10 @@ public class AutoActionScheduler {
       }
    }
 
+   public void clearActions() {
+      actions.clear();
+   }
+
    /**
     * Wait until one of the condition(s) are met,
     * each separate boolean condition is treated as an OR
