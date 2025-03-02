@@ -21,7 +21,7 @@ import org.firstinspires.ftc.teamcode.util.ActionUtil;
 import org.firstinspires.ftc.teamcode.util.AutoActionScheduler;
 
 @Config
-@Autonomous(name = "03. Specimen Auto", group = "Into the Deep")
+@Autonomous(name = "01. Specimen Auto", group = "Into the Deep")
 public class SpecimenAuto extends LinearOpMode {
 
     // TODO: preload position fix, color ejection, timeouts for being stuck, strafing in sub (better pickup)

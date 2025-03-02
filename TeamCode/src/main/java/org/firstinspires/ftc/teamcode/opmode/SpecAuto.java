@@ -9,12 +9,13 @@ import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.TranslationalVelConstraint;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.subsystems.Auto;
 import org.firstinspires.ftc.teamcode.util.AutoActionScheduler;
 
-
+@Disabled
 @Autonomous(name = "01. Spec Auto", group = "Into the Deep")
 public class SpecAuto extends LinearOpMode {
     Auto auto;
