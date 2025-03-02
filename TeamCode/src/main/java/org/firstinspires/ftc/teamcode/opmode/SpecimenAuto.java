@@ -36,7 +36,7 @@ public class SpecimenAuto extends LinearOpMode {
 
     Pose2d start = new Pose2d(7.1, -64, Math.toRadians(90));
 
-    Pose2d preloadSubmersible = new Pose2d(new Vector2d(-2.9, -29), Math.toRadians(90));
+    Pose2d preloadSubmersible = new Pose2d(new Vector2d(-9, -27), Math.toRadians(90));
     Pose2d splineAwayFromSubmersible = new Pose2d(new Vector2d(39, -36), Math.toRadians(90));
     Pose2d splineNextToFirstSample = new Pose2d(new Vector2d(46, -17.4), Math.toRadians(90));
     Pose2d splineToFirstSample = new Pose2d(new Vector2d(57, -8), Math.toRadians(-90));
@@ -48,17 +48,17 @@ public class SpecimenAuto extends LinearOpMode {
 
     Pose2d splineNextToThirdSample = new Pose2d(new Vector2d(70, -17.4), Math.toRadians(90));
     Pose2d splineToThirdSample = new Pose2d(new Vector2d(84, -8), Math.toRadians(-90));
-    Pose2d pushThirdSample = new Pose2d(new Vector2d(84, -61.5), Math.toRadians(-90));
+    Pose2d pushThirdSample = new Pose2d(new Vector2d(84, -62.5), Math.toRadians(-90));
 
-    Pose2d scoreFirstSpecimen = new Pose2d(new Vector2d(10, -28), Math.toRadians(90));
+    Pose2d scoreFirstSpecimen = new Pose2d(new Vector2d(2, -27), Math.toRadians(90));
 
-    Pose2d grabSpecimen = new Pose2d(new Vector2d(52, -63), Math.toRadians(-90));
+    Pose2d grabSpecimen = new Pose2d(new Vector2d(52, -64), Math.toRadians(-90));
 
-    Pose2d scoreSecondSpecimen = new Pose2d(new Vector2d( 12, -28), Math.toRadians(90));
+    Pose2d scoreSecondSpecimen = new Pose2d(new Vector2d( 8, -26), Math.toRadians(90));
 
-    Pose2d scoreThirdSpecimen = new Pose2d(new Vector2d( 14, -28), Math.toRadians(90));
-    Pose2d scoreFourthSpecimen = new Pose2d(new Vector2d( 16, -28), Math.toRadians(90));
-    Pose2d scoreFifthSpecimen = new Pose2d(new Vector2d(18, -28), Math.toRadians(90));
+    Pose2d scoreThirdSpecimen = new Pose2d(new Vector2d( 10, -26), Math.toRadians(90));
+    Pose2d scoreFourthSpecimen = new Pose2d(new Vector2d( 11, -26), Math.toRadians(90));
+    Pose2d scoreFifthSpecimen = new Pose2d(new Vector2d(14, -26), Math.toRadians(90));
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -71,19 +71,26 @@ public class SpecimenAuto extends LinearOpMode {
                 .build();
 
         Action firstSample = robot.drive.actionBuilder(preloadSubmersible)
+                .afterTime(2, ()-> {
+                    Lift.targetPosition = 50;
+                    robot.arm.wrist.setPosition(Arm.WRIST_SPECIMEN_GRAB);
+                    robot.arm.setPivot(Arm.PIVOT_SPECIMEN_PICKUP);
+
+                })
                 .setReversed(true)
                 .splineToConstantHeading(splineAwayFromSubmersible.position, splineAwayFromSubmersible.heading)
                 .splineToConstantHeading(splineNextToFirstSample.position, splineNextToFirstSample.heading)
                 .splineToConstantHeading(splineToFirstSample.position, splineToFirstSample.heading)
                 .splineToConstantHeading(pushFirstSample.position, pushFirstSample.heading)
 
-                .waitSeconds(.5)
+                .waitSeconds(.01)
 
                 .splineToConstantHeading(splineNextToSecondSample.position, splineNextToSecondSample.heading)
                 .splineToConstantHeading(splineToSecondSample.position, splineToSecondSample.heading)
                 .splineToConstantHeading(pushSecondSample.position, pushSecondSample.heading)
 
-                .waitSeconds(.5)
+
+                .waitSeconds(.01)
 
                 .splineToConstantHeading(splineNextToThirdSample.position, splineNextToThirdSample.heading)
                 .splineToConstantHeading(splineToThirdSample.position, splineToThirdSample.heading)
@@ -136,19 +143,33 @@ public class SpecimenAuto extends LinearOpMode {
                     toSubmersible,
                     score(),
 
-
-
-
+                    // First Cycle
                     firstSample,
+                    new InstantAction(robot.arm::grab),
+                    ActionUtil.Offset(0.4,
+                            new SequentialAction(
+                                    new SleepAction(0.2),
+                                    robot.lift.setTargetPositionAction(500)), primeScore()),
                     scoreFirstSpec,
-                    grabSecondSpec,
+                    score(),
+
+                    // Second Cycle
+                    ActionUtil.Offset(0.3, grabSecondSpec, robot.autoSpecGrab()),
                     scoreSecondSpec,
-                    grabThirdSpec,
+                    score(),
+
+
+                    ActionUtil.Offset(0.3, grabThirdSpec, robot.autoSpecGrab()),
                     scoreThirdSpec,
-                    grabFourthSpec,
+                    score(),
+
+                    ActionUtil.Offset(0.3, grabFourthSpec, robot.autoSpecGrab()),
                     scoreFourthSpec,
-                    grabFifthSpec,
-                    scoreFifthSpec
+                    score(),
+
+                    ActionUtil.Offset(0.3, grabFifthSpec, robot.autoSpecGrab()),
+                    scoreFifthSpec,
+                    score()
             ));
 
             scheduler.run();

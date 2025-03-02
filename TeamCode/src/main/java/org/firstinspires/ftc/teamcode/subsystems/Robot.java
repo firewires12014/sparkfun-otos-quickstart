@@ -76,6 +76,7 @@ public class Robot {
         intake = new Intake(hardwareMap);
         lift = new Lift(hardwareMap);
         drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
+        sensors = new Sensors(hardwareMap);
 
         allHubs = hardwareMap.getAll(LynxModule.class);
 
@@ -111,6 +112,22 @@ public class Robot {
     public Action relocalizeRight() {
         drive.pose = sensors.getSpecimenRightPosition(drive.pose);
         return new InstantAction(()->drive.pose = sensors.getSpecimenPosition(drive.pose));
+    }
+
+    // The actual one this time :)
+    public Action autoSpecGrab() {
+        return new SequentialAction(
+                new ParallelAction(
+                        new InstantAction(arm::grab),
+                        lift.setTargetPositionAction(390),
+                        new InstantAction(arm::autoSpecIntake)
+                ),
+                ActionUtil.Offset(0.7, new InstantAction(arm::drop), new ActionUtil.RunnableAction(()-> !sensors.hasSpec())),
+                new InstantAction(arm::grab),
+                new SleepAction(0.3),
+                ActionUtil.Offset(0.2, lift.setTargetPositionAction(1000), new InstantAction(this::outtakeSpecTeleop)),
+                lift.setTargetPositionAction(0)
+        );
     }
 
 
@@ -377,9 +394,9 @@ public class Robot {
         return new SequentialAction(
                 new InstantAction(() -> {
                     Lift.targetPosition = Lift.SPECIMEN_DROP;
-                new SleepAction(.5);
-                arm.drop();
-                })
+                }),
+                new ActionUtil.RunnableAction(()-> lift.lift.getCurrentPosition() < Lift.SPECIMEN_DROP - 50),
+                new InstantAction(arm::drop)
         );
     }
 

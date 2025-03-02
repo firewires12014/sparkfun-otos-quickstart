@@ -7,6 +7,8 @@ import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.hardware.DigitalChannelImpl;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
@@ -16,6 +18,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Hang;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Lift;
 import org.firstinspires.ftc.teamcode.subsystems.Robot;
+import org.firstinspires.ftc.teamcode.util.ActionScheduler;
 
 import java.time.Year;
 
@@ -30,16 +33,30 @@ public class Testing extends LinearOpMode {
     public static double wrist = 0.0;
     public static double inakePivot = 0.0;
 
+
+
     @Override
     public void runOpMode() throws InterruptedException {
         robot = new Robot(telemetry, hardwareMap);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+        ActionScheduler s = new ActionScheduler();
+
+
+        DigitalChannel brakeBeam = hardwareMap.get(DigitalChannel.class, "beam");
+        brakeBeam.setMode(DigitalChannel.Mode.INPUT);
 
         robot.intake.setColorRed();
 
         waitForStart();
 
         while (opModeIsActive() && !isStopRequested()) {
+            if (gamepad2.touchpad && !s.isBusy()) s.queueAction(robot.autoSpecGrab());
+
+            robot.update();
+            s.update();
+            telemetry.addData("Brake Beam", robot.sensors.hasSpec());
+            telemetry.update();
+
 //            robot.arm.leftPivot.setPosition(leftArm);
 //            robot.arm.rightPivot.setPosition(rightArm);
 //            robot.arm.grabber.setPosition(grabber);
@@ -74,22 +91,22 @@ public class Testing extends LinearOpMode {
 //            robot.arm.wrist.setPosition(Arm.WRIST_SPECIMEN_GRAB);
 
 
-            robot.hang.update();
-
-            robot.hang.manualControl(-gamepad2.right_stick_y);
+//            robot.hang.update();
+//
+//            robot.hang.manualControl(-gamepad2.right_stick_y);
 
 
 //            if (gamepad2.cross) robot.intake.updatePID();
 //            robot.intake.update();
 
-            telemetry.addData("hang pid", robot.hang.pid.getPid());
-            telemetry.addData("hang current", robot.hang.hang.getCurrent(CurrentUnit.MILLIAMPS));
-            telemetry.addData("hang position", robot.hang.hang.getCurrentPosition());
-            telemetry.addData("hang target", Hang.targetPosition);
-            telemetry.addData("Hang PID STATUS", Hang.PID_ENABLED);
+//            telemetry.addData("hang pid", robot.hang.pid.getPid());
+//            telemetry.addData("hang current", robot.hang.hang.getCurrent(CurrentUnit.MILLIAMPS));
+//            telemetry.addData("hang position", robot.hang.hang.getCurrentPosition());
+//            telemetry.addData("hang target", Hang.targetPosition);
+//            telemetry.addData("Hang PID STATUS", Hang.PID_ENABLED);
 
-            robot.intake.leftLight.setPosition(Intake.YELLOW);
-            robot.intake.rightLight.setPosition(Intake.YELLOW);
+//            robot.intake.leftLight.setPosition(Intake.YELLOW);
+//            robot.intake.rightLight.setPosition(Intake.YELLOW);
 
 //            telemetry.addData("lift pid", robot.hang.pid.getPid());
 //            telemetry.addData("intake current", robot.intake.extension.getCurrent(CurrentUnit.MILLIAMPS));
@@ -100,6 +117,9 @@ public class Testing extends LinearOpMode {
 //            telemetry.addData("intake pos", robot.intake.extension.getCurrentPosition());
 //            telemetry.addData("intake targ", Intake.targetPosition);
 //            telemetry.addData("Lift mode", Lift.PID_ENABLED);
+
+
+
 //
 //            telemetry.addData("bucket dist", robot.arm.bucketSensor.getDistance(DistanceUnit.MM));
 //            telemetry.addData("Sub distance", robot.intake.subSensor.getDistance(DistanceUnit.MM));
@@ -108,7 +128,7 @@ public class Testing extends LinearOpMode {
 //            telemetry.addData("isWrongColor", robot.intake.isRightColor());
 //            telemetry.addData("hasSample", robot.intake.hasSample());
 ////            robot.update();
-            telemetry.update();
+//            telemetry.update();
         }
     }
 }

@@ -153,9 +153,9 @@ public class TeleOp extends LinearOpMode {
                 // Intake Control
                     // Intake Down and Spi
 
-                // Specimen Outtake
+                // get spec ready for intake
                 if ((gamepad2.dpad_down)) {
-                    robot.outtakeSpecTeleop();
+                    scheduler.queueAction(robot.specScore());
                 }
 
                 // Observation Drop
@@ -178,6 +178,8 @@ public class TeleOp extends LinearOpMode {
                     robot.lift.resetEncoder();
                     robot.intake.resetEncoder();
                 }
+
+                if (gamepad2.left_bumper) scheduler.queueAction(robot.autoSpecGrab());
 
             }
 
@@ -213,60 +215,60 @@ public class TeleOp extends LinearOpMode {
             robot.transferFSM();
 
             // Toggle The arm between specimen score and specimen intake
-            switch (specGrabState) {
-                case IDLE:
-                    specGrabTimer.reset();
-                    if (gamepad2.left_bumper) {
-                        if (robot.arm.wristPosition == robot.arm.WRIST_INTAKE ||
-                                robot.arm.wristPosition == robot.arm.WRIST_MIDDLE ||
-                                robot.arm.wristPosition == robot.arm.WRIST_SPECIMEN_GRAB
-                        ) {
-                            specGrabState = SPECGRAB.SPECLIFT;
-                        }
-                        if (robot.arm.wristPosition == robot.arm.WRIST_SPECIMEN_DROP) {
-                            robot.specScore();
-                            specGrabState = SPECGRAB.SPECLIFT;
-                        }
-                    }
-                    break;
-                case SPECLIFT:
-                    robot.arm.grab();
-                    Lift.targetPosition = Lift.SPECIMEN_PICKUP;
-                    if (specGrabTimer.seconds() > 0.5) {
-                        specGrabTimer.reset();
-                        specGrabState = SPECGRAB.SPECFRONT;
-                    }
-                    break;
-                case SPECFRONT:
-                    scheduler.queueAction(
-                            new SequentialAction(
-                                    new InstantAction(robot.arm::autoSpecIntake),
-                                    new InstantAction(() -> {
-                                         robot.arm.drop();
-                                    })
-                            )
-                    );
-                    if (robot.lift.lift.getCurrentPosition() == Lift.SPECIMEN_DROP_PRIME) {
-                        Lift.targetPosition = Lift.SPECIMEN_DROP;
-                    }
-                    specGrabTimer.reset();
-                    specGrabState = SPECGRAB.SPECSIGMA;
-                    break;
-                case SPECSIGMA:
-                    if (specGrabTimer.seconds() > .5) {
-                        robot.arm.drop();
-                        specGrabState = SPECGRAB.SPECBACK;
-                    }
-                    break;
-
-                case SPECBACK:
-                    if (specGrabTimer.seconds() > .5) {
-                        specGrabTimer.reset();
-                        Lift.targetPosition = Lift.SPECIMEN_PICKUP;
-                        specGrabState = SPECGRAB.IDLE;
-                    }
-                    break;
-            }
+//            switch (specGrabState) {
+//                case IDLE:
+//                    specGrabTimer.reset();
+//                    if (gamepad2.left_bumper) {
+//                        if (robot.arm.wristPosition == robot.arm.WRIST_INTAKE ||
+//                                robot.arm.wristPosition == robot.arm.WRIST_MIDDLE ||
+//                                robot.arm.wristPosition == robot.arm.WRIST_SPECIMEN_GRAB
+//                        ) {
+//                            specGrabState = SPECGRAB.SPECLIFT;
+//                        }
+//                        if (robot.arm.wristPosition == robot.arm.WRIST_SPECIMEN_DROP) {
+//                            robot.specScore();
+//                            specGrabState = SPECGRAB.SPECLIFT;
+//                        }
+//                    }
+//                    break;
+//                case SPECLIFT:
+//                    robot.arm.grab();
+//                    Lift.targetPosition = Lift.SPECIMEN_PICKUP;
+//                    if (specGrabTimer.seconds() > 0.5) {
+//                        specGrabTimer.reset();
+//                        specGrabState = SPECGRAB.SPECFRONT;
+//                    }
+//                    break;
+//                case SPECFRONT:
+//                    scheduler.queueAction(
+//                            new SequentialAction(
+//                                    new InstantAction(robot.arm::autoSpecIntake),
+//                                    new InstantAction(() -> {
+//                                         robot.arm.drop();
+//                                    })
+//                            )
+//                    );
+//                    if (robot.lift.lift.getCurrentPosition() == Lift.SPECIMEN_DROP_PRIME) {
+//                        Lift.targetPosition = Lift.SPECIMEN_DROP;
+//                    }
+//                    specGrabTimer.reset();
+//                    specGrabState = SPECGRAB.SPECSIGMA;
+//                    break;
+//                case SPECSIGMA:
+//                    if (specGrabTimer.seconds() > .5) {
+//                        robot.arm.drop();
+//                        specGrabState = SPECGRAB.SPECBACK;
+//                    }
+//                    break;
+//
+//                case SPECBACK:
+//                    if (specGrabTimer.seconds() > .5) {
+//                        specGrabTimer.reset();
+//                        Lift.targetPosition = Lift.SPECIMEN_PICKUP;
+//                        specGrabState = SPECGRAB.IDLE;
+//                    }
+//                    break;
+//            }
 
             if (gamepad2.right_bumper) {
                 scheduler.queueAction(robot.returnIntake());

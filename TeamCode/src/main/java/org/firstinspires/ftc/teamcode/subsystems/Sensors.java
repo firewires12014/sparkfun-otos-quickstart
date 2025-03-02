@@ -4,6 +4,7 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.hardware.AnalogInput;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -18,6 +19,7 @@ public class Sensors {
 
     SwyftLiDarSensor rightLiDAR;
     SwyftLiDarSensor backLiDAR;
+    DigitalChannel beamBrake;
 
     Rev2mDistanceSensor frontDistance;
 
@@ -26,9 +28,15 @@ public class Sensors {
      * @param hardwareMap
      */
     public Sensors(HardwareMap hardwareMap) {
+        beamBrake = hardwareMap.get(DigitalChannel.class, "beam");
+        beamBrake.setMode(DigitalChannel.Mode.INPUT);
 
         rightLiDAR = new SwyftLiDarSensor(hardwareMap, "rightLidar", SwyftLiDarSensor.OperatingConfiguration.Short);
         backLiDAR = new SwyftLiDarSensor(hardwareMap, "backLidar", SwyftLiDarSensor.OperatingConfiguration.Short);
+    }
+
+    public boolean hasSpec() {
+        return !beamBrake.getState();
     }
 
     /**

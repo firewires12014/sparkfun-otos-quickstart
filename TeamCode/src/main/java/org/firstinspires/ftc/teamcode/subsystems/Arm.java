@@ -31,7 +31,7 @@ public class Arm {
     public static double PIVOT_SPECIMEN_DROP = 70.30;
     public static double PIVOT_SPECIMEN_DROP_AUTO = 93.07;
     public static double PIVOT_SPECIMEN_PICKUP = 30.70;
-    public static double PIVOT_SPECIMEN_PICKUP_AUTO = 18.82;
+    public static double PIVOT_SPECIMEN_PICKUP_AUTO = 19.81;
     public static double PIVOT_BUCKET = 55.45;
     public static double PIVOT_OBSERVATION = 34.66;
     public static double PIVOT_AUTO_CLIP = 75.25;

@@ -42,7 +42,7 @@ public class Hang {
 
         resetEncoder();
 
-        coef = new PIDCoefficients(0.0021, 0, 0);
+        coef = new PIDCoefficients(0.005, 0, 0);
         pid = new PIDFController(coef, 0, 0, 0, (t, x, v) -> 0.0);
 
     }
