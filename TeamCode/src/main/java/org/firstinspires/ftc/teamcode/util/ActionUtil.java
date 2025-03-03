@@ -9,6 +9,7 @@ import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import java.util.concurrent.Callable;
 
@@ -26,6 +27,32 @@ public class ActionUtil {
       public boolean run(TelemetryPacket packet) {
          motor.setPower(power);
          return false;
+      }
+   }
+
+   public static class RunnableTimedAction implements Action {
+      Callable<Boolean> action;
+      ElapsedTime timer = new ElapsedTime();
+      double offset = 0;
+      boolean startTimer = false;
+
+      public RunnableTimedAction(double offset, Callable<Boolean> action) {
+         this.action = action;
+         this.offset = offset;
+      }
+
+      @Override
+      public boolean run(TelemetryPacket packet) {
+         try {
+            if (!startTimer) {
+               timer.reset();
+               startTimer = true;
+            }
+
+            return action.call() && offset > timer.seconds();
+         } catch (Exception e) {
+            throw new RuntimeException(e);
+         }
       }
    }
 

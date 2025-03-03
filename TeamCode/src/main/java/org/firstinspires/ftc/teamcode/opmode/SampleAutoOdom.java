@@ -7,17 +7,24 @@ import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.PoseVelocity2d;
+import com.acmerobotics.roadrunner.ProfileAccelConstraint;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
+import com.acmerobotics.roadrunner.TranslationalVelConstraint;
 import com.acmerobotics.roadrunner.Vector2d;
+import com.acmerobotics.roadrunner.VelConstraint;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.teamcode.subsystems.Arm;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Lift;
 import org.firstinspires.ftc.teamcode.subsystems.Robot;
 import org.firstinspires.ftc.teamcode.util.ActionUtil;
 import org.firstinspires.ftc.teamcode.util.AutoActionScheduler;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 @Config
 @Autonomous(name = "03. Sample Auto with Odom", group = "Into the Deep")
@@ -28,27 +35,28 @@ public class SampleAutoOdom extends LinearOpMode {
     public static double intakeDistance1 = 1300;
     public static boolean sampleColorCorrect = false;
     public static double sub = 1100;
+    AtomicReference<Double> flip = new AtomicReference<>((double) 1);
+
     Robot robot;
     AutoActionScheduler scheduler;
-    double startTime = System.nanoTime() / 1e9;
+    boolean active = true;
 
     Pose2d start = new Pose2d(-41.5, -64, Math.toRadians(90));
 
-    Pose2d preloadBucket = new Pose2d(new Vector2d(-64.86, -56.32), Math.toRadians(58));
-    Pose2d sample1Bucket = new Pose2d(new Vector2d(-65.11, -57.17), Math.toRadians(49));
-    Pose2d sample2Bucket = new Pose2d(new Vector2d(-65.11, -57.17), Math.toRadians(49));
-    Pose2d sample3Bucket = new Pose2d(new Vector2d(-65.11, -57.17), Math.toRadians(49));
+    Pose2d preloadBucket = new Pose2d(new Vector2d(-60.62, -56.76), Math.toRadians(54.17));
+    Pose2d sample1Bucket = new Pose2d(new Vector2d(-60.62, -56.76), Math.toRadians(54.17));
+    Pose2d sample2Bucket = new Pose2d(new Vector2d(-60.62, -56.76), Math.toRadians(54.17));;
+    Pose2d sample3Bucket = new Pose2d(new Vector2d(-60.62, -56.76), Math.toRadians(54.17));
 
-    Pose2d cycleBucket1 = new Pose2d(new Vector2d(-62.15, -58.94), Math.toRadians(47));
-    Pose2d cycleBucket2 = new Pose2d(new Vector2d(-56.37, -62.81), Math.toRadians(47));
+    Pose2d cycleBucket1 = new Pose2d(new Vector2d(-60.62, -56.76), Math.toRadians(54.17));;
+    Pose2d cycleBucket2 = new Pose2d(new Vector2d(-60.62, -56.76), Math.toRadians(54.17));;
 
-    Pose2d sample1Pose = new Pose2d(new Vector2d(-51.6, -38.35), Math.toRadians(90));
-    Pose2d sample2Pose = new Pose2d(new Vector2d(-65.5, -38.35), Math.toRadians(92  ));
-    Pose2d sample3Pose = new Pose2d(new Vector2d(-68.76, -39.47), Math.toRadians(118.63));
-    //Pose2d sample3Pose = new Pose2d(new Vector2d(-67.27, -45.7), Math.toRadians(115.3));
+    Pose2d sample1Pose = new Pose2d(new Vector2d(-48, -42.09), Math.toRadians(92));
+    Pose2d sample2Pose = new Pose2d(new Vector2d(-58.92, -42.09), Math.toRadians(92));
+    Pose2d sample3Pose = new Pose2d(new Vector2d(-62.2, -42.78), Math.toRadians(112));
 
-    Pose2d subIntake1 = new Pose2d(-25, 0, Math.toRadians(0));
-    Pose2d subIntake2 = new Pose2d(-20, 6, Math.toRadians(0));
+    Pose2d subIntake1 = new Pose2d(-22, -12, Math.toRadians(0));
+    Pose2d subIntake2 = new Pose2d(-20, -6, Math.toRadians(0));
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -106,6 +114,7 @@ public class SampleAutoOdom extends LinearOpMode {
 
         robot.arm.grab();
         robot.intake.intakeUp();
+        robot.intake.flickerIn();
         waitForStart();
 
         while (opModeIsActive() && !isStopRequested()) {
@@ -116,7 +125,7 @@ public class SampleAutoOdom extends LinearOpMode {
 
             // Cycle 1
             scheduler.addAction(new ParallelAction(
-                    ActionUtil.Delay(0.5, intake(2,0.5, intakeDistance1)),
+                    ActionUtil.Delay(1, intake(2, intakeDistance1)),
                     ActionUtil.Offset(0.5, firstSample, returnLift())
             ));
             scheduler.addAction(new SequentialAction(
@@ -129,7 +138,7 @@ public class SampleAutoOdom extends LinearOpMode {
 
             // Cycle 2
             scheduler.addAction(new ParallelAction(
-                    ActionUtil.Delay(1, intake(2,0.5, intakeDistance1)),
+                    ActionUtil.Delay(1, intake(2, intakeDistance1)),
                     ActionUtil.Offset(0.5, secondSample, returnLift())
             ));
             scheduler.addAction(new SequentialAction(
@@ -142,7 +151,7 @@ public class SampleAutoOdom extends LinearOpMode {
 
             // Cycle 3
             scheduler.addAction(new ParallelAction(
-                    ActionUtil.Delay(1, intake(2,0.5, intakeDistance1)),
+                    ActionUtil.Delay(1, intake(2, intakeDistance1)),
                     ActionUtil.Offset(0.5, thirdSample, returnLift())
             ));
             scheduler.addAction(new SequentialAction(
@@ -154,118 +163,142 @@ public class SampleAutoOdom extends LinearOpMode {
             ));
 
             // Cycle sub 1
-            scheduler.addAction(new ParallelAction(
-                    //ActionUtil.Delay(0.5, intake(2,0.5, intakeDistance1)),
-                    ActionUtil.Offset(0.5, moveToSub1, returnLift()) // TODO: make this and the following action in one add action, and make the flick flick sooner
-            ));
+            scheduler.addAction(
+                    ActionUtil.Offset(2.7,
+                            ActionUtil.Offset(0.5, moveToSub1, returnLift()),
+                            ActionUtil.Offset(0.3, flick(), subIntake(1.5, intakeDistance1)))
+            );
             scheduler.run();
-//            scheduler.addAction(new SequentialAction(
-//                    ActionUtil.Offset(0.3, flick(), subIntake(2, 0.5, intakeDistance1))
-//            ));
+
+            checkForOpColor();
+
+            scheduler.addAction(new ParallelAction(
+                    new SequentialAction(
+                            transfer(),
+                            bucket(true)
+                    ),
+                    ActionUtil.Offset(2.9, depositSub1, drop())
+            ));
+            scheduler.addAction(new InstantAction(robot.intake::stopIntake));
+            scheduler.addAction(returnLift());
+            scheduler.addAction(moveToSub2);
+            scheduler.run();
+
+//            // Cycle sub 2
+//            scheduler.addAction(
+//                    ActionUtil.Offset(2.2,
+//                            ActionUtil.Offset(0.5, moveToSub2, returnLift()),
+//                            ActionUtil.Offset(0.3, flick(), subIntake(1.5, intakeDistance1)))
+//            );
+
+            //checkForOpColor();
 //
-//            scheduler.addAction(new SequentialAction(
-//                    new SequentialAction(
-//                            transfer(),
-//                            bucket()
-//                    ),
-//                    ActionUtil.Offset(2.3, depositSub1, drop())
-//            ));
-//            scheduler.run();
-
-//            while (!sampleColorCorrect) {
-//                scheduler.addAction(new SequentialAction(
-//                        robot.eject(),
-//                        robot.intake.setTargetPosition(0),
-//                        robot.drive.actionBuilder(subIntake1)
-//                                .lineToX(robot.drive.pose.position.x + 4)
-//                                .build(),
-//                        subIntake(2, 2, intakeDistance1)
-//                ));
-//                scheduler.run();
-//            }
-
-            // Cycle sub 2
 //            scheduler.addAction(new ParallelAction(
-//                    //ActionUtil.Delay(0.5, intake(2,0.5, intakeDistance1)),
-//                    ActionUtil.Offset(0.5, moveToSub2, returnLift()) // TODO: make this and the following action in one add action, and make the flick flick sooner
-//            ));
-//            scheduler.addAction(new SequentialAction(
-//                    ActionUtil.Offset(0.3, flick(), subIntake(2, 0.5, intakeDistance1))
-//            ));
-//
-//            scheduler.addAction(new SequentialAction(
 //                    new SequentialAction(
 //                            transfer(),
-//                            bucket()
+//                            bucket(true)
 //                    ),
 //                    ActionUtil.Offset(2.3, depositSub2, drop())
 //            ));
-//
 //            scheduler.run();
-//            scheduler.addAction(robot.endAuto(telemetry, 30));
-//            scheduler.run();
+            scheduler.addAction(robot.endAuto( this, telemetry, 30));
+            scheduler.run();
         }
     }
 
-    public Action intake(double longTimeout, double shortTimeout, double distance) {
-
-        return new SequentialAction(
-                new InstantAction(()-> {
-                    startTime = System.nanoTime() / 1e9;
-                }),
-                new ActionUtil.RunnableAction(()-> {
-                    Intake.PID_ENABLED = true;
-                    Intake.targetPosition = distance;
-                    robot.intake.spin.setPower(1);
-                    robot.intake.intakeDown();
-
-                    if (robot.intake.extension.getCurrentPosition() > 1100) {
-                        robot.intake.intakeUp();
-                    } else {
-                        //robot.intake.intakeDown();
-                    }
-
-                    if(robot.intake.hasSample()) return false;
-
-                    return (startTime + longTimeout < (System.nanoTime() / 1e9) || !robot.intake.hasSample());
-                }
-        ));
+    public void checkForOpColor() {
+        sampleColorCorrect = robot.intake.isRightColor();
+        while (!sampleColorCorrect && active) {
+            scheduler.addAction(
+                    new SequentialAction(
+                    new ParallelAction(
+                            robot.eject(),
+                            robot.intake.setTargetPosition(0),
+                            robot.drive.actionBuilder(robot.drive.pose)
+                                    .strafeTo(new Vector2d(robot.drive.pose.position.x, robot.drive.pose.position.y+6))
+                                    .build()),
+                    subIntake(2, intakeDistance1),
+                    new InstantAction(()->sampleColorCorrect = robot.intake.isRightColor())
+            ));
+            scheduler.run();
+        }
     }
 
-    public Action subIntake(double longTimeout, double shortTimeout, double distance) {
-
+    public Action intake(double timeout, double distance) {
         return new SequentialAction(
-                new InstantAction(()-> {
-                    startTime = System.nanoTime() / 1e9;
-                }),
-                new ActionUtil.RunnableAction(()-> {
-                    Intake.PID_ENABLED = true;
-                    Intake.targetPosition = distance;
-                    robot.intake.spin.setPower(1);
-                    robot.intake.intakeDown();
+                new InstantAction(()-> flip.set(0.0)),
+                new ActionUtil.RunnableTimedAction(timeout, ()-> {
+                    flip.getAndSet(new Double((double) (flip.get() + 1)));
+                    robot.intake.startIntake();
+                    Intake.PID_ENABLED = false;
+                    robot.intake.extension.setPower(1);
+                    //robot.intake.intakeDown();
 
                     if (robot.intake.extension.getCurrentPosition() > 1100) {
-                        robot.intake.intakeUp();
-                    } else {
-                        //robot.intake.intakeDown();
+                        if (flip.get() % 10 == 0) robot.intake.intakeDown();
+                        else robot.intake.intakeUp();
+                    } else if (flip.get() % 10 != 0) {
+                        robot.intake.intakeDown();
                     }
-
-                    sampleColorCorrect = robot.intake.isRightColor();
 
                     if(robot.intake.hasSample()) return false;
 
-                    return (startTime + longTimeout < (System.nanoTime() / 1e9) || !robot.intake.hasSample());
-                }
-                ));
+                    return !robot.intake.hasSample();
+                }),
+                new InstantAction(()-> {
+                    Intake.targetPosition = distance;
+                    Intake.PID_ENABLED = true;
+                }));
+    }
+
+    public Action subIntake(double timeout, double distance) {
+        return new SequentialAction(
+                new InstantAction(()-> flip.set(0.0)),
+                new ActionUtil.RunnableTimedAction(timeout, ()-> {
+                    Intake.PID_ENABLED = false;
+                    robot.intake.extension.setPower(1);
+
+                    //Intake.targetPosition = distance;
+                    robot.intake.spin.setPower(1);
+
+                    if (robot.intake.extension.getCurrentPosition() > 50){
+                        robot.intake.intakeDown();
+                    }
+
+                    if (robot.intake.extension.getCurrentPosition() > 1100) {
+                        if (flip.get() % 10 == 0) robot.intake.intakeDown();
+                        else robot.intake.intakeUp();
+                    } else if (flip.get() % 10 != 0) {
+                        robot.intake.intakeDown();
+                    }
+                    sampleColorCorrect = robot.intake.isRightColor();
+
+//                    robot.drive.setDrivePowers(new PoseVelocity2d(new Vector2d(0.1, 0.2), 0));
+
+                    if(robot.intake.hasSample()) return false;
+
+                    return !robot.intake.hasSample();
+                }),
+                new InstantAction(()-> {
+                    Intake.targetPosition = distance;
+                    Intake.PID_ENABLED = true;
+                    sampleColorCorrect = robot.intake.isRightColor();
+                }));
     }
 
     public Action transfer() {
-        return new ActionUtil.RunnableAction(()-> {
-            robot.intake.spin.setPower(0);
-            robot.transferFSM();
+        return new SequentialAction(new InstantAction(()-> robot.TRANSFER_STATE = Robot.tranfserState.IDLE),
+                new ActionUtil.RunnableAction(()-> {
+                    //robot.intake.spin.setPower(0);
+                    robot.transferFSM();
 
-            return !robot.TRANSFER_STATE.equals(Robot.tranfserState.TO_POSITION);
-        });
+                    if (!robot.intake.hasSample()) {
+                        Intake.targetPosition = 0;
+                        return false;
+                    }
+
+                    return !robot.TRANSFER_STATE.equals(Robot.tranfserState.DONE);
+                }));
     }
 
     public Action drop() {
@@ -290,16 +323,29 @@ public class SampleAutoOdom extends LinearOpMode {
     }
 
     public Action bucket() {
+        return bucket(false);
+    }
+
+    public Action bucket(boolean cycle) {
         return new ParallelAction(
                 new InstantAction(()-> {
-                    robot.intake.stopIntake();
+                    robot.intake.reverseIntake();
+                    //robot.intake.stopIntake();
                     robot.outtakeBucket();
+                    if (cycle) robot.arm.setPivot(Arm.PIVOT_ARM_PRIME_AUTO);
                 })
         );
     }
 
     public void update() {
         robot.update();
-        //telemetry.update();
+
+        if (robot.intake.hasSample()) active = false;
+        else active = true;
+//
+//        telemetry.addData("scheudluer", scheduler.isBusy());
+//        telemetry.addData("current action", scheduler.currentAction().getClass().getName());
+//        telemetry.addData("Color correct", sampleColorCorrect);
+//        telemetry.update();
     }
 }

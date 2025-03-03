@@ -44,7 +44,7 @@ public class SampleAuto extends LinearOpMode {
 
     Pose2d sample1Pose = new Pose2d(new Vector2d(-51.6, -38.35), Math.toRadians(90));
     Pose2d sample2Pose = new Pose2d(new Vector2d(-65.5, -38.35), Math.toRadians(92  ));
-    Pose2d sample3Pose = new Pose2d(new Vector2d(-68.76, -39.47), Math.toRadians(118.63));
+    Pose2d sample3Pose = new Pose2d(new Vector2d(-61.38, -40.92), Math.toRadians(114.80));
     //Pose2d sample3Pose = new Pose2d(new Vector2d(-67.27, -45.7), Math.toRadians(115.3));
 
     Pose2d subIntake1 = new Pose2d(-25, 0, Math.toRadians(0));
@@ -159,18 +159,18 @@ public class SampleAuto extends LinearOpMode {
                     ActionUtil.Offset(0.5, moveToSub1, returnLift()) // TODO: make this and the following action in one add action, and make the flick flick sooner
             ));
             scheduler.run();
-//            scheduler.addAction(new SequentialAction(
-//                    ActionUtil.Offset(0.3, flick(), subIntake(2, 0.5, intakeDistance1))
-//            ));
-//
-//            scheduler.addAction(new SequentialAction(
-//                    new SequentialAction(
-//                            transfer(),
-//                            bucket()
-//                    ),
-//                    ActionUtil.Offset(2.3, depositSub1, drop())
-//            ));
-//            scheduler.run();
+            scheduler.addAction(new SequentialAction(
+                    ActionUtil.Offset(0.3, flick(), subIntake(2, 0.5, intakeDistance1))
+            ));
+
+            scheduler.addAction(new SequentialAction(
+                    new SequentialAction(
+                            transfer(),
+                            bucket()
+                    ),
+                    ActionUtil.Offset(2.3, depositSub1, drop())
+            ));
+            scheduler.run();
 
 //            while (!sampleColorCorrect) {
 //                scheduler.addAction(new SequentialAction(

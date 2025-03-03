@@ -27,6 +27,7 @@ public class Arm {
 
     // FORMAT: Anything prior to the decimal is the left servo and right is right servo position.
     // Example 01.99 would be left: 0.01, and right = 0.99, NOTE: only two decimal places are work
+    public static double PIVOT_ARM_PRIME_AUTO = 58.42;
     public static double PIVOT_INTAKE = 01.99;
     public static double PIVOT_SPECIMEN_DROP = 70.30;
     public static double PIVOT_SPECIMEN_DROP_AUTO = 93.07;

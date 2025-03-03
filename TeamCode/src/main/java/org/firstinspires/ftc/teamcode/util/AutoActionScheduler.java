@@ -45,6 +45,14 @@ public class AutoActionScheduler {
       actions.clear();
    }
 
+   public boolean isBusy() {
+      return !actions.isEmpty();
+   }
+
+   public Action currentAction() {
+      return actions.peek();
+   }
+
    /**
     * Wait until one of the condition(s) are met,
     * each separate boolean condition is treated as an OR

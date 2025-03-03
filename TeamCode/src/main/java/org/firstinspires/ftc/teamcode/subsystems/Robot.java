@@ -49,7 +49,8 @@ public class Robot {
         RETRY,
         GRAB,
         CHECK_TRANSFER,
-        TO_POSITION
+        TO_POSITION,
+        DONE
     }
 
     public tranfserState TRANSFER_STATE = tranfserState.IDLE;
@@ -259,7 +260,8 @@ public class Robot {
         switch (TRANSFER_STATE) {
             case IDLE:
                 if (intake.hasSample() && intake.isRightColor()) TRANSFER_STATE = tranfserState.PRIME;
-                intake.spin.setPower(0);
+                if (!intake.hasSample()) TRANSFER_STATE = tranfserState.RETRACT_ALL;
+                intake.spin.setPower(1); // was 0
                 break;
 
             case PRIME:
@@ -279,6 +281,11 @@ public class Robot {
                 Lift.PID_ENABLED = false;
                 lift.lift.setPower(-1);
 
+                if (!intake.hasSample()) {
+                    Intake.PID_ENABLED = false;
+                    intake.extension.setPower(-1);
+                    TRANSFER_STATE = tranfserState.IDLE;
+                }
                 if (lift.lift.getCurrentPosition() < 10 || lift.lift.getCurrent(CurrentUnit.MILLIAMPS) > 6000) TRANSFER_STATE = tranfserState.GRAB;
                 break;
 
@@ -319,8 +326,10 @@ public class Robot {
 
 
 
-                TRANSFER_STATE = tranfserState.IDLE;
+                TRANSFER_STATE = tranfserState.DONE;
                 break;
+            case DONE:
+                TRANSFER_STATE = tranfserState.IDLE;
         }
     }
 
