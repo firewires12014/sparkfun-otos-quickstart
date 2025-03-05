@@ -42,7 +42,7 @@ public class Robot {
     public Sensors sensors;
     List<LynxModule> allHubs;
 
-    public enum tranfserState {
+    public enum transferState {
         IDLE,
         PRIME,
         RETRACT_ALL,
@@ -53,7 +53,7 @@ public class Robot {
         DONE
     }
 
-    public tranfserState TRANSFER_STATE = tranfserState.IDLE;
+    public transferState TRANSFER_STATE = transferState.IDLE;
 
     /**
      * Constructor for the Robot class
@@ -259,8 +259,8 @@ public class Robot {
     public void transferFSM() {
         switch (TRANSFER_STATE) {
             case IDLE:
-                if (intake.hasSample() && intake.isRightColor()) TRANSFER_STATE = tranfserState.PRIME;
-                if (!intake.hasSample()) TRANSFER_STATE = tranfserState.RETRACT_ALL;
+                if (intake.hasSample() && intake.isRightColor()) TRANSFER_STATE = transferState.PRIME;
+                if (!intake.hasSample()) TRANSFER_STATE = transferState.RETRACT_ALL;
                 intake.spin.setPower(1); // was 0
                 break;
 
@@ -274,7 +274,7 @@ public class Robot {
                 Intake.PID_ENABLED = false;
                 intake.extension.setPower(-1);
 
-                if (intake.extension.getCurrent(CurrentUnit.MILLIAMPS) > 7000 || intake.extension.getCurrentPosition() < extensionTrigger) TRANSFER_STATE = tranfserState.RETRACT_ALL;
+                if (intake.extension.getCurrent(CurrentUnit.MILLIAMPS) > 7000 || intake.extension.getCurrentPosition() < extensionTrigger) TRANSFER_STATE = transferState.RETRACT_ALL;
                 break;
 
             case RETRACT_ALL:
@@ -284,9 +284,9 @@ public class Robot {
                 if (!intake.hasSample()) {
                     Intake.PID_ENABLED = false;
                     intake.extension.setPower(-1);
-                    TRANSFER_STATE = tranfserState.IDLE;
+                    TRANSFER_STATE = transferState.IDLE;
                 }
-                if (lift.lift.getCurrentPosition() < 10 || lift.lift.getCurrent(CurrentUnit.MILLIAMPS) > 6000) TRANSFER_STATE = tranfserState.GRAB;
+                if (lift.lift.getCurrentPosition() < 10 || lift.lift.getCurrent(CurrentUnit.MILLIAMPS) > 6000) TRANSFER_STATE = transferState.GRAB;
                 break;
 
             case RETRY:
@@ -294,7 +294,7 @@ public class Robot {
                 lift.lift.setPower(-1);
                 arm.clawPrime();
 
-                if (lift.lift.getCurrentPosition() < 10 || lift.lift.getCurrent(CurrentUnit.MILLIAMPS) > 6000) TRANSFER_STATE = tranfserState.GRAB;
+                if (lift.lift.getCurrentPosition() < 10 || lift.lift.getCurrent(CurrentUnit.MILLIAMPS) > 6000) TRANSFER_STATE = transferState.GRAB;
                 break;
 
             case GRAB:
@@ -305,15 +305,15 @@ public class Robot {
                 Lift.targetPosition = lift.lift.getCurrentPosition();
                 Lift.PID_ENABLED = true;
 
-                if (System.nanoTime() / 1e9 > startTime + 0.2) TRANSFER_STATE = tranfserState.CHECK_TRANSFER;
+                if (System.nanoTime() / 1e9 > startTime + 0.2) TRANSFER_STATE = transferState.CHECK_TRANSFER;
                 break;
 
             case CHECK_TRANSFER:
                 intake.reverseIntake();
                 Lift.targetPosition = 450;
 
-                if (!intake.hasSample()) TRANSFER_STATE = tranfserState.TO_POSITION;
-                if (lift.lift.getCurrentPosition() > 400 && intake.hasSample()) TRANSFER_STATE = tranfserState.RETRY;
+                if (!intake.hasSample()) TRANSFER_STATE = transferState.TO_POSITION;
+                if (lift.lift.getCurrentPosition() > 400 && intake.hasSample()) TRANSFER_STATE = transferState.RETRY;
                 break;
 
             case TO_POSITION:
@@ -326,10 +326,10 @@ public class Robot {
 
 
 
-                TRANSFER_STATE = tranfserState.DONE;
+                TRANSFER_STATE = transferState.DONE;
                 break;
             case DONE:
-                TRANSFER_STATE = tranfserState.IDLE;
+                TRANSFER_STATE = transferState.IDLE;
         }
     }
 

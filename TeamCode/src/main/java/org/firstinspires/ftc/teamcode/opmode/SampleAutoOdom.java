@@ -7,13 +7,9 @@ import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.PoseVelocity2d;
-import com.acmerobotics.roadrunner.ProfileAccelConstraint;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
-import com.acmerobotics.roadrunner.TranslationalVelConstraint;
 import com.acmerobotics.roadrunner.Vector2d;
-import com.acmerobotics.roadrunner.VelConstraint;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -53,7 +49,7 @@ public class SampleAutoOdom extends LinearOpMode {
 
     Pose2d sample1Pose = new Pose2d(new Vector2d(-48, -42.09), Math.toRadians(92));
     Pose2d sample2Pose = new Pose2d(new Vector2d(-58.92, -42.09), Math.toRadians(92));
-    Pose2d sample3Pose = new Pose2d(new Vector2d(-62.2, -42.78), Math.toRadians(112));
+    Pose2d sample3Pose = new Pose2d(new Vector2d(-62.2, -42.78), Math.toRadians(122));
 
     Pose2d subIntake1 = new Pose2d(-22, -12, Math.toRadians(0));
     Pose2d subIntake2 = new Pose2d(-20, -6, Math.toRadians(0));
@@ -151,7 +147,7 @@ public class SampleAutoOdom extends LinearOpMode {
 
             // Cycle 3
             scheduler.addAction(new ParallelAction(
-                    ActionUtil.Delay(1, intake(2, intakeDistance1)),
+                    ActionUtil.Delay(.5, intake(1, intakeDistance1)),
                     ActionUtil.Offset(0.5, thirdSample, returnLift())
             ));
             scheduler.addAction(new SequentialAction(
@@ -177,30 +173,28 @@ public class SampleAutoOdom extends LinearOpMode {
                             transfer(),
                             bucket(true)
                     ),
-                    ActionUtil.Offset(2.9, depositSub1, drop())
+                    ActionUtil.Offset(2.9, depositSub1, drop()) //2.9
             ));
             scheduler.addAction(new InstantAction(robot.intake::stopIntake));
             scheduler.addAction(returnLift());
             scheduler.addAction(moveToSub2);
             scheduler.run();
 
-//            // Cycle sub 2
-//            scheduler.addAction(
-//                    ActionUtil.Offset(2.2,
-//                            ActionUtil.Offset(0.5, moveToSub2, returnLift()),
-//                            ActionUtil.Offset(0.3, flick(), subIntake(1.5, intakeDistance1)))
-//            );
+            // Cycle sub 2
+            scheduler.addAction(
+                            ActionUtil.Offset(0.3, flick(), subIntake(1.5, intakeDistance1))
+            );
 
-            //checkForOpColor();
-//
-//            scheduler.addAction(new ParallelAction(
-//                    new SequentialAction(
-//                            transfer(),
-//                            bucket(true)
-//                    ),
-//                    ActionUtil.Offset(2.3, depositSub2, drop())
-//            ));
-//            scheduler.run();
+            checkForOpColor();
+
+            scheduler.addAction(new ParallelAction(
+                    new SequentialAction(
+                            transfer(),
+                            bucket(true)
+                    ),
+                    ActionUtil.Offset(1, depositSub2, drop())
+            ));
+            scheduler.run();
             scheduler.addAction(robot.endAuto( this, telemetry, 30));
             scheduler.run();
         }
@@ -287,7 +281,7 @@ public class SampleAutoOdom extends LinearOpMode {
     }
 
     public Action transfer() {
-        return new SequentialAction(new InstantAction(()-> robot.TRANSFER_STATE = Robot.tranfserState.IDLE),
+        return new SequentialAction(new InstantAction(()-> robot.TRANSFER_STATE = Robot.transferState.IDLE),
                 new ActionUtil.RunnableAction(()-> {
                     //robot.intake.spin.setPower(0);
                     robot.transferFSM();
@@ -297,7 +291,7 @@ public class SampleAutoOdom extends LinearOpMode {
                         return false;
                     }
 
-                    return !robot.TRANSFER_STATE.equals(Robot.tranfserState.DONE);
+                    return !robot.TRANSFER_STATE.equals(Robot.transferState.DONE);
                 }));
     }
 

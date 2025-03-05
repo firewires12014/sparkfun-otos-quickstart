@@ -3,9 +3,7 @@ package org.firstinspires.ftc.teamcode.opmode;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
-import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
-import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -307,7 +305,7 @@ public class TeleOp extends LinearOpMode {
 
             if (gamepad2.right_stick_button) {
                 scheduler.clearActions();
-                robot.TRANSFER_STATE = Robot.tranfserState.IDLE;
+                robot.TRANSFER_STATE = Robot.transferState.IDLE;
             }
 
             if (gamepad2.circle && (flickerTimer.seconds() > .5)) {
@@ -319,7 +317,7 @@ public class TeleOp extends LinearOpMode {
 
             if (gamepad2.right_stick_button) {
                 scheduler.clearActions();
-                robot.TRANSFER_STATE = Robot.tranfserState.IDLE;
+                robot.TRANSFER_STATE = Robot.transferState.IDLE;
             }
 
             scheduler.update();

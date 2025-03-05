@@ -264,7 +264,7 @@ public class SampleAuto extends LinearOpMode {
             robot.intake.spin.setPower(0);
             robot.transferFSM();
 
-            return !robot.TRANSFER_STATE.equals(Robot.tranfserState.TO_POSITION);
+            return !robot.TRANSFER_STATE.equals(Robot.transferState.TO_POSITION);
         });
     }
 
