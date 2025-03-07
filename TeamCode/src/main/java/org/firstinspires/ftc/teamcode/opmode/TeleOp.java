@@ -132,13 +132,17 @@ public class TeleOp extends LinearOpMode {
             robot.intake.manualControl(-gamepad2.left_stick_y);
             robot.lift.manualControl(-gamepad2.right_stick_y);
 
-            telemetry.addData("Intake Speed", robot.intake.spin.getPower());
-            if ((gamepad2.right_trigger > 0.61) && (!hasWrongColor)) {
+            if (gamepad1.dpad_up) {
+                robot.hang.manualControl(1);
+            } else if (gamepad1.dpad_down) {
+                robot.hang.manualControl(-1);
+            } else {
+                robot.hang.manualControl(0);
+            }
+
+            if ((gamepad2.right_trigger > 0.1) && (!hasWrongColor)) {
                 robot.intake.spin.setPower(1);
                 robot.intake.intakeDown();
-               if (gamepad2.right_trigger < 0.6) {
-                   robot.intake.intakeUp();
-               }
             } else if (gamepad2.left_trigger > 0.1) {
                 robot.intake.spin.setPower(-1);
             } else {
@@ -194,23 +198,24 @@ public class TeleOp extends LinearOpMode {
                 robot.intake.clearLED();
             }
 
-            if (gamepad1.right_trigger < 0.1 && gamepad1.left_trigger < 0.1) {
-                if (robot.intake.hasSample() &&
-                 //if(
-                        robot.intake.isRightColor() &&
-                        gamepad2.left_trigger < 0.1 &&
-                        !scheduler.isBusy()) {
-                     //scheduler.queueAction(robot.transfer());
-                } else if (robot.intake.hasSample() &&
-                 //} else if (
-                        !robot.intake.isRightColor() &&
-                        !scheduler.isBusy()) {
-                    // TODO Move back into robot? Gamepad is not accessible as it is right now
-                    scheduler.queueAction(robot.eject());
-                }
+            if (robot.intake.hasSample() && !robot.intake.isRightColor() && !scheduler.isBusy()) {
+                scheduler.queueAction(robot.eject());
             }
 
             robot.transferFSM();
+
+//            if (gamepad1.right_trigger < 0.1 && gamepad1.left_trigger < 0.1) {
+//                if (robot.intake.hasSample() &&
+//                        robot.intake.isRightColor() &&
+//                        gamepad2.left_trigger < 0.1 &&
+//                        !scheduler.isBusy()) {
+//                     //scheduler.queueAction(robot.transfer());
+//                } else if (robot.intake.hasSample() &&
+//                        !robot.intake.isRightColor() &&
+//                        !scheduler.isBusy()) {
+//                    scheduler.queueAction(robot.eject());
+//                }
+//            }
 
             // Toggle The arm between specimen score and specimen intake
 //            switch (specGrabState) {

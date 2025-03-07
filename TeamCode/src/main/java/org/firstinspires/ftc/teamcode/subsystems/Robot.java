@@ -149,6 +149,7 @@ public class Robot {
                         lift.setTargetPositionAction(360),
                         new InstantAction(arm::autoSpecIntake)
                 ),
+                lift.setTargetPositionAction(360),
                 ActionUtil.Offset(waitForDetect, new InstantAction(arm::drop), new ActionUtil.RunnableAction(()-> !sensors.hasSpec())),
                 new InstantAction(arm::grab),
                 new SleepAction(0.3),
@@ -256,20 +257,20 @@ public class Robot {
         );
     }
 
+    //new transfer
+
     public void transferFSM() {
         switch (TRANSFER_STATE) {
             case IDLE:
                 if (intake.hasSample() && intake.isRightColor()) TRANSFER_STATE = transferState.PRIME;
-                if (!intake.hasSample()) TRANSFER_STATE = transferState.RETRACT_ALL;
-                intake.spin.setPower(1); // was 0
                 break;
 
             case PRIME:
-                Lift.targetPosition = 250;
                 intake.intakeUp();
+                intake.spin.setPower(0);
+                Lift.targetPosition = 250;
                 arm.intakePrimePosition();
                 arm.clawPrime();
-
 
                 Intake.PID_ENABLED = false;
                 intake.extension.setPower(-1);
@@ -281,11 +282,6 @@ public class Robot {
                 Lift.PID_ENABLED = false;
                 lift.lift.setPower(-1);
 
-                if (!intake.hasSample()) {
-                    Intake.PID_ENABLED = false;
-                    intake.extension.setPower(-1);
-                    TRANSFER_STATE = transferState.IDLE;
-                }
                 if (lift.lift.getCurrentPosition() < 10 || lift.lift.getCurrent(CurrentUnit.MILLIAMPS) > 6000) TRANSFER_STATE = transferState.GRAB;
                 break;
 
@@ -296,7 +292,6 @@ public class Robot {
 
                 if (lift.lift.getCurrentPosition() < 10 || lift.lift.getCurrent(CurrentUnit.MILLIAMPS) > 6000) TRANSFER_STATE = transferState.GRAB;
                 break;
-
             case GRAB:
                 long startTime = (long) (System.nanoTime() / 1e9);
                 arm.grab();
@@ -326,13 +321,91 @@ public class Robot {
 
 
 
-                TRANSFER_STATE = transferState.DONE;
-                break;
-            case DONE:
                 TRANSFER_STATE = transferState.IDLE;
+                break;
         }
     }
 
+
+
+    //broken transfer
+//    public void transferFSM() {
+//        switch (TRANSFER_STATE) {
+//            case IDLE:
+//                if (intake.hasSample() && intake.isRightColor()) TRANSFER_STATE = transferState.PRIME;
+//                if (!intake.hasSample()) TRANSFER_STATE = transferState.RETRACT_ALL;
+//                intake.spin.setPower(1); // was 0
+//                break;
+//
+//            case PRIME:
+//                Lift.targetPosition = 250;
+//                intake.intakeUp();
+//                arm.intakePrimePosition();
+//                arm.clawPrime();
+//
+//
+//                Intake.PID_ENABLED = false;
+//                intake.extension.setPower(-1);
+//
+//                if (intake.extension.getCurrent(CurrentUnit.MILLIAMPS) > 7000 || intake.extension.getCurrentPosition() < extensionTrigger) TRANSFER_STATE = transferState.RETRACT_ALL;
+//                break;
+//
+//            case RETRACT_ALL:
+//                Lift.PID_ENABLED = false;
+//                lift.lift.setPower(-1);
+//
+//                if (!intake.hasSample()) {
+//                    Intake.PID_ENABLED = false;
+//                    intake.extension.setPower(-1);
+//                    TRANSFER_STATE = transferState.IDLE;
+//                }
+//                if (lift.lift.getCurrentPosition() < 10 || lift.lift.getCurrent(CurrentUnit.MILLIAMPS) > 6000) TRANSFER_STATE = transferState.GRAB;
+//                break;
+//
+//            case RETRY:
+//                Lift.PID_ENABLED = false;
+//                lift.lift.setPower(-1);
+//                arm.clawPrime();
+//
+//                if (lift.lift.getCurrentPosition() < 10 || lift.lift.getCurrent(CurrentUnit.MILLIAMPS) > 6000) TRANSFER_STATE = transferState.GRAB;
+//                break;
+//
+//            case GRAB:
+//                long startTime = (long) (System.nanoTime() / 1e9);
+//                arm.grab();
+//
+//                lift.lift.setPower(0);
+//                Lift.targetPosition = lift.lift.getCurrentPosition();
+//                Lift.PID_ENABLED = true;
+//
+//                if (System.nanoTime() / 1e9 > startTime + 0.2) TRANSFER_STATE = transferState.CHECK_TRANSFER;
+//                break;
+//
+//            case CHECK_TRANSFER:
+//                intake.reverseIntake();
+//                Lift.targetPosition = 450;
+//
+//                if (!intake.hasSample()) TRANSFER_STATE = transferState.TO_POSITION;
+//                if (lift.lift.getCurrentPosition() > 400 && intake.hasSample()) TRANSFER_STATE = transferState.RETRY;
+//                break;
+//
+//            case TO_POSITION:
+//                if (isSample) outtakeBucket();
+//                intake.stopIntake();
+//
+//                intake.extension.setPower(0);
+//                Intake.targetPosition = intake.extension.getCurrentPosition();
+//                Intake.PID_ENABLED = true;
+//
+//
+//
+//                TRANSFER_STATE = transferState.DONE;
+//                break;
+//            case DONE:
+//                TRANSFER_STATE = transferState.IDLE;
+//        }
+//    }
+//
     public Action returnIntake() {
         return new SequentialAction(
                 new InstantAction(arm :: intakePrimePosition),

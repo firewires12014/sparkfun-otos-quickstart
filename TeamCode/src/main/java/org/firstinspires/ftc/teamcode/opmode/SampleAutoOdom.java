@@ -12,6 +12,7 @@ import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.subsystems.Arm;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
@@ -31,6 +32,8 @@ public class SampleAutoOdom extends LinearOpMode {
     public static double intakeDistance1 = 1300;
     public static boolean sampleColorCorrect = false;
     public static double sub = 1100;
+    ElapsedTime intakeColorTimer = new ElapsedTime();
+
     AtomicReference<Double> flip = new AtomicReference<>((double) 1);
 
     Robot robot;
@@ -111,6 +114,24 @@ public class SampleAutoOdom extends LinearOpMode {
         robot.arm.grab();
         robot.intake.intakeUp();
         robot.intake.flickerIn();
+
+        while (opModeInInit()) {
+            if (gamepad2.touchpad && intakeColorTimer.seconds() > .5) {
+                if (Intake.selected_color.equalsIgnoreCase("R")) {
+                    robot.intake.setColorBlue();
+                    gamepad2.setLedColor(0, 0, 255, -1);
+                    robot.intake.leftLight.setPosition(Intake.BLUE);
+                    robot.intake.rightLight.setPosition(Intake.BLUE);
+                } else {
+                    robot.intake.setColorRed();
+                    gamepad2.setLedColor(255, 0, 0, -1);
+                    robot.intake.leftLight.setPosition(Intake.RED);
+                    robot.intake.rightLight.setPosition(Intake.RED);
+                }
+                intakeColorTimer.reset();
+            }
+        }
+
         waitForStart();
 
         while (opModeIsActive() && !isStopRequested()) {
@@ -211,7 +232,7 @@ public class SampleAutoOdom extends LinearOpMode {
                             robot.drive.actionBuilder(robot.drive.pose)
                                     .strafeTo(new Vector2d(robot.drive.pose.position.x, robot.drive.pose.position.y+6))
                                     .build()),
-                    subIntake(2, intakeDistance1),
+                    subIntake(3, intakeDistance1),
                     new InstantAction(()->sampleColorCorrect = robot.intake.isRightColor())
             ));
             scheduler.run();
@@ -295,11 +316,23 @@ public class SampleAutoOdom extends LinearOpMode {
                 }));
     }
 
-    public Action drop() {
-        return new ParallelAction(
+
+    public Action drop(double timeout, double distance) {
+        return new SequentialAction(
+                new ActionUtil.RunnableTimedAction(timeout, () ->
+                        robot.arm.getBucketDistance() > distance),
                 robot.sampleDrop()
-        );
+                );
+
     }
+    public Action drop (double timeout) {
+        return drop(timeout, 220);
+    }
+    public Action drop() {
+        return drop(1,220);
+    }
+
+
 
     public Action flick() {
         return new SequentialAction(

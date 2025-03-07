@@ -8,8 +8,10 @@ import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
+import com.acmerobotics.roadrunner.ProfileAccelConstraint;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
+import com.acmerobotics.roadrunner.TranslationalVelConstraint;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -41,20 +43,21 @@ public class SpecimenAuto extends LinearOpMode {
     Pose2d preloadSubmersible = new Pose2d(new Vector2d(-6, -30.7), Math.toRadians(90));
 
     Pose2d splineAwayFromSubmersible = new Pose2d(new Vector2d(35, -36), Math.toRadians(90));
-    Pose2d splineNextToFirstSample = new Pose2d(new Vector2d(38, -17), Math.toRadians(90));
+    Pose2d splineNextToFirstSample = new Pose2d(new Vector2d(35, -17), Math.toRadians(90));
     Pose2d splineToFirstSample = new Pose2d(new Vector2d(47, -8), Math.toRadians(-90));
     Pose2d pushFirstSample = new Pose2d(new Vector2d(50, -50), Math.toRadians(-90));
 
-    Pose2d splineNextToSecondSample = new Pose2d(new Vector2d(50, -17.4), Math.toRadians(90));
+    Pose2d splineNextToSecondSample = new Pose2d(new Vector2d(46, -17.4), Math.toRadians(90));
     Pose2d splineToSecondSample = new Pose2d(new Vector2d(58, -11), Math.toRadians(-90));
     Pose2d pushSecondSample = new Pose2d(new Vector2d(54, -50), Math.toRadians(-90));
 
     Pose2d splineNextToThirdSample = new Pose2d(new Vector2d(54, -17.4), Math.toRadians(90));
-    Pose2d splineToThirdSample = new Pose2d(new Vector2d(67, -18), Math.toRadians(-90));
-    Pose2d pushThirdSample = new Pose2d(new Vector2d(67, -61.5), Math.toRadians(-90));
+    Pose2d splineToThirdSample = new Pose2d(new Vector2d(65, -18), Math.toRadians(-90));
+    Pose2d pushThirdSample = new Pose2d(new Vector2d(62, -61), Math.toRadians(-90));
+
 
     // TODO: PICK UP FOR BEAM BRAKE CYCLES
-    Pose2d grabSpecimen = new Pose2d(new Vector2d(36, -64), Math.toRadians(-90));
+    Pose2d grabSpecimen = new Pose2d(new Vector2d(37, -64.5), Math.toRadians(-90));
 
     // TODO: POSITION WHEN SCORING SPECIMEN
     Pose2d scoreFirstSpecimen = new Pose2d(new Vector2d(-2, -30), Math.toRadians(90));
@@ -62,7 +65,7 @@ public class SpecimenAuto extends LinearOpMode {
     Pose2d scoreThirdSpecimen = new Pose2d(new Vector2d( 1.5, -29.5), Math.toRadians(90));
     Pose2d scoreFourthSpecimen = new Pose2d(new Vector2d( 4, -29.5), Math.toRadians(90));
 
-    Pose2d parkPosition = new Pose2d(55, -60, Math.toRadians(0));
+    //Pose2d parkPosition = new Pose2d(55, -60, Math.toRadians(0));
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -98,7 +101,9 @@ public class SpecimenAuto extends LinearOpMode {
 
                 .splineToConstantHeading(splineNextToThirdSample.position, splineNextToThirdSample.heading)
                 .splineToConstantHeading(splineToThirdSample.position, splineToThirdSample.heading)
-                .splineToConstantHeading(pushThirdSample.position, pushThirdSample.heading)
+                .splineToConstantHeading(pushThirdSample.position, pushThirdSample.heading,
+                        new TranslationalVelConstraint(60.0),
+                        new ProfileAccelConstraint(-15, 30))
                 .build();
 
         Action scoreFirstSpec = robot.drive.actionBuilder(new Pose2d(pushThirdSample.position, pushThirdSample.heading.toDouble() + Math.toRadians(180)))
@@ -130,10 +135,10 @@ public class SpecimenAuto extends LinearOpMode {
                         .strafeToConstantHeading(scoreFourthSpecimen.position)
                                 .build();
 
-        Action park = robot.drive.actionBuilder(scoreFourthSpecimen)
-                .setTangent(Math.toRadians(-90))
-                .splineTo(parkPosition.position, parkPosition.heading)
-                .build();
+//        Action park = robot.drive.actionBuilder(scoreFourthSpecimen)
+//                .setTangent(Math.toRadians(-90))
+//                .splineTo(parkPosition.position, parkPosition.heading)
+//                .build();
 
 
         robot.arm.grab();
@@ -169,7 +174,7 @@ public class SpecimenAuto extends LinearOpMode {
 
                     ActionUtil.Offset(1.7, scoreFourthSpec, score()),
 
-                    ActionUtil.Offset(1.5, ActionUtil.Offset(0.2, park, robot.returnIntake()), new InstantAction(()-> {
+                    ActionUtil.Offset(1.5, robot.returnIntake(), new InstantAction(()-> {
                         scheduler.clearActions();
                         robot.drive.setDrivePowers(new PoseVelocity2d(new Vector2d(0, 0), 0));
                     }))

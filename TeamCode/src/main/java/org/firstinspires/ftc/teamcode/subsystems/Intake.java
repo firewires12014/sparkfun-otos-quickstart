@@ -116,7 +116,7 @@ public class Intake {
 
     public void updatePID(double kP, double kI, double kD) {
         coef = new PIDCoefficients(kP, kI, kD);
-        pid = new PIDFController(coef, 0, 0,0,(t, x, v)-> 0.0);
+        pid = new PIDFController(coef, 0, 0,0,(tnjk, x, v)-> 0.0);
     }
 
     public Action returnIntake() {
