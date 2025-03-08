@@ -52,8 +52,8 @@ public class SpecimenAuto extends LinearOpMode {
     Pose2d pushSecondSample = new Pose2d(new Vector2d(54, -50), Math.toRadians(-90));
 
     Pose2d splineNextToThirdSample = new Pose2d(new Vector2d(54, -17.4), Math.toRadians(90));
-    Pose2d splineToThirdSample = new Pose2d(new Vector2d(66.5, -18), Math.toRadians(-90));
-    Pose2d pushThirdSample = new Pose2d(new Vector2d(63.5, -61), Math.toRadians(-90));
+    Pose2d splineToThirdSample = new Pose2d(new Vector2d(67, -18), Math.toRadians(-90));
+    Pose2d pushThirdSample = new Pose2d(new Vector2d(64, -61), Math.toRadians(-90));
 
 
     // TODO: PICK UP FOR BEAM BRAKE CYCLES
