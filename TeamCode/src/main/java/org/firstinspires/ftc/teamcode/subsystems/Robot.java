@@ -139,17 +139,17 @@ public class Robot {
 
     // The actual one this time :)
     public Action autoSpecGrab() {
-        return autoSpecGrab(0.7);
+        return autoSpecGrab(1);
     }
 
     public Action autoSpecGrab(double waitForDetect) {
         return new SequentialAction(
                 new ParallelAction(
                         new InstantAction(arm::grab),
-                        lift.setTargetPositionAction(360),
+                        lift.setTargetPositionAction(290),
                         new InstantAction(arm::autoSpecIntake)
                 ),
-                lift.setTargetPositionAction(360),
+                lift.setTargetPositionAction(290),
                 ActionUtil.Offset(waitForDetect, new InstantAction(arm::drop), new ActionUtil.RunnableAction(()-> !sensors.hasSpec())),
                 new InstantAction(arm::grab),
                 new SleepAction(0.3),

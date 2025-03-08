@@ -40,7 +40,7 @@ public class SpecimenAuto extends LinearOpMode {
 
     Pose2d start = new Pose2d(7.1, -64, Math.toRadians(90));
 
-    Pose2d preloadSubmersible = new Pose2d(new Vector2d(-6, -30.7), Math.toRadians(90));
+    Pose2d preloadSubmersible = new Pose2d(new Vector2d(-6, -29), Math.toRadians(90));
 
     Pose2d splineAwayFromSubmersible = new Pose2d(new Vector2d(35, -36), Math.toRadians(90));
     Pose2d splineNextToFirstSample = new Pose2d(new Vector2d(35, -17), Math.toRadians(90));
@@ -52,18 +52,18 @@ public class SpecimenAuto extends LinearOpMode {
     Pose2d pushSecondSample = new Pose2d(new Vector2d(54, -50), Math.toRadians(-90));
 
     Pose2d splineNextToThirdSample = new Pose2d(new Vector2d(54, -17.4), Math.toRadians(90));
-    Pose2d splineToThirdSample = new Pose2d(new Vector2d(65, -18), Math.toRadians(-90));
-    Pose2d pushThirdSample = new Pose2d(new Vector2d(62, -61), Math.toRadians(-90));
+    Pose2d splineToThirdSample = new Pose2d(new Vector2d(66.5, -18), Math.toRadians(-90));
+    Pose2d pushThirdSample = new Pose2d(new Vector2d(63.5, -61), Math.toRadians(-90));
 
 
     // TODO: PICK UP FOR BEAM BRAKE CYCLES
-    Pose2d grabSpecimen = new Pose2d(new Vector2d(37, -64.5), Math.toRadians(-90));
+    Pose2d grabSpecimen = new Pose2d(new Vector2d(37, -65), Math.toRadians(-90));
 
     // TODO: POSITION WHEN SCORING SPECIMEN
-    Pose2d scoreFirstSpecimen = new Pose2d(new Vector2d(-2, -30), Math.toRadians(90));
-    Pose2d scoreSecondSpecimen = new Pose2d(new Vector2d( -1, -30), Math.toRadians(90));
-    Pose2d scoreThirdSpecimen = new Pose2d(new Vector2d( 1.5, -29.5), Math.toRadians(90));
-    Pose2d scoreFourthSpecimen = new Pose2d(new Vector2d( 4, -29.5), Math.toRadians(90));
+    Pose2d scoreFirstSpecimen = new Pose2d(new Vector2d(-2, -31), Math.toRadians(90));
+    Pose2d scoreSecondSpecimen = new Pose2d(new Vector2d( -1, -31), Math.toRadians(90));
+    Pose2d scoreThirdSpecimen = new Pose2d(new Vector2d( 1.5, -30.75), Math.toRadians(90));
+    Pose2d scoreFourthSpecimen = new Pose2d(new Vector2d( 2, -30.5), Math.toRadians(90));
 
     //Pose2d parkPosition = new Pose2d(55, -60, Math.toRadians(0));
 
