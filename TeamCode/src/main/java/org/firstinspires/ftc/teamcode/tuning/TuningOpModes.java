@@ -6,6 +6,8 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.reflection.ReflectionConfig;
 import com.acmerobotics.roadrunner.MotorFeedforward;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.PoseVelocity2d;
+import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.AngularRampLogger;
 import com.acmerobotics.roadrunner.ftc.DeadWheelDirectionDebugger;
 import com.acmerobotics.roadrunner.ftc.DriveType;
@@ -67,49 +69,6 @@ public final class TuningOpModes {
                 .build();
     }
 
-    private static PinpointView makePinpointView(PinpointLocalizer pl) {
-        return new PinpointView() {
-            GoBildaPinpointDriver.EncoderDirection parDirection = pl.initialParDirection;
-            GoBildaPinpointDriver.EncoderDirection perpDirection = pl.initialPerpDirection;
-
-            @Override
-            public void update() {
-                pl.driver.update();
-            }
-
-            @Override
-            public int getParEncoderPosition() {
-                return pl.driver.getEncoderX();
-            }
-
-            @Override
-            public int getPerpEncoderPosition() {
-                return pl.driver.getEncoderY();
-            }
-
-            @Override
-            public float getHeadingVelocity() {
-                return (float) pl.driver.getHeadingVelocity();
-            }
-
-            @Override
-            public void setParDirection(@NonNull DcMotorSimple.Direction direction) {
-                parDirection = direction == DcMotorSimple.Direction.FORWARD ?
-                        GoBildaPinpointDriver.EncoderDirection.FORWARD :
-                        GoBildaPinpointDriver.EncoderDirection.REVERSED;
-                pl.driver.setEncoderDirections(parDirection, perpDirection);
-            }
-
-            @Override
-            public void setPerpDirection(@NonNull DcMotorSimple.Direction direction) {
-                perpDirection = direction == DcMotorSimple.Direction.FORWARD ?
-                        GoBildaPinpointDriver.EncoderDirection.FORWARD :
-                        GoBildaPinpointDriver.EncoderDirection.REVERSED;
-                pl.driver.setEncoderDirections(parDirection, perpDirection);
-            }
-        };
-    }
-
     @OpModeRegistrar
     public static void register(OpModeManager manager) {
         if (DISABLED) return;
@@ -162,7 +121,7 @@ public final class TuningOpModes {
                     manager.register(metaForClass(OTOSHeadingOffsetTuner.class), new OTOSHeadingOffsetTuner(ol.otos));
                     manager.register(metaForClass(OTOSPositionOffsetTuner.class), new OTOSPositionOffsetTuner(ol.otos));
                 }  else if (md.localizer instanceof PinpointLocalizer) {
-                    PinpointView pv = makePinpointView((PinpointLocalizer) md.localizer);
+                    PinpointView pv = ((PinpointLocalizer) md.localizer).getView();
                     encoderGroups.add(new PinpointEncoderGroup(pv));
                     parEncs.add(new EncoderRef(0, 0));
                     perpEncs.add(new EncoderRef(0, 1));
@@ -172,7 +131,7 @@ public final class TuningOpModes {
                 }
 
                 return new DriveView(
-                    DriveType.MECANUM,
+                        DriveType.MECANUM,
                         MecanumDrive.PARAMS.inPerTick,
                         MecanumDrive.PARAMS.maxWheelVel,
                         MecanumDrive.PARAMS.minProfileAccel,
@@ -239,7 +198,7 @@ public final class TuningOpModes {
                     parEncs.add(new EncoderRef(0, 0));
                     perpEncs.add(new EncoderRef(0, 1));
                 }  else if (td.localizer instanceof PinpointLocalizer) {
-                    PinpointView pv = makePinpointView((PinpointLocalizer) td.localizer);
+                    PinpointView pv = ((PinpointLocalizer) td.localizer).getView();
                     encoderGroups.add(new PinpointEncoderGroup(pv));
                     parEncs.add(new EncoderRef(0, 0));
                     perpEncs.add(new EncoderRef(0, 1));
