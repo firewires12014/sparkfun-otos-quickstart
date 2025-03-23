@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.Subsystems;
 
 import android.annotation.SuppressLint;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+@Config
 public class Robot {
     public MecanumDrive drive;
     public Intake intake;
@@ -32,6 +34,7 @@ public class Robot {
     public int colorValueRed;
     public int colorValueGreen;
     public int colorValueBlue;
+    public static double yellow = .34;
 
     private RevColorSensorV3 sampleColor;
     private Rev2mDistanceSensor bucketDistance;
@@ -104,8 +107,8 @@ public class Robot {
             colorValueBlue = sampleColor.blue();
             colorValueGreen = sampleColor.green();
             if (sampleColor.green() > 1000) {
-                leftLight.setPosition(.38);
-                rightLight.setPosition(.38);
+                leftLight.setPosition(yellow);
+                rightLight.setPosition(yellow);
             } else if (sampleColor.red() > sampleColor.blue()) {
                 leftLight.setPosition(.279);
                 rightLight.setPosition(.279);

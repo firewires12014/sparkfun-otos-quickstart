@@ -23,7 +23,7 @@ public class Intake {
 
     public static double pivotMiddle = 0.53;
     public static double pivotIntake = 0.25;
-    public static double pivotTransfer = 0.92;
+    public static double pivotTransfer = 0.85;
 
     public static double sensorDistance = 15;
     public static double OUT_DISTANCE = 75;
