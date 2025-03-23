@@ -32,8 +32,8 @@ public class FArm {
 
     // Transfer
     public static double liftTransfer = 0;
-    public static double pivotTransfer = 0.17;
-    public static double wristTransfer = 0.19 + WRIST_OFFSET;
+    public static double pivotTransfer = 0.18;
+    public static double wristTransfer = 0.24 + WRIST_OFFSET;
 
     // Spec Score
     public static double liftSpecScore = 730;

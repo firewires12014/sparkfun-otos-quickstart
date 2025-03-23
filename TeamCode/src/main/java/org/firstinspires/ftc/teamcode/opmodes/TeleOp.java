@@ -120,7 +120,8 @@ public class TeleOp extends LinearOpMode {
                 else robot.farm.drop();
                 clawTimer.reset();
             }
-            if (gamepad2.square && robot.inRangeOfBucket()) robot.farm.drop(); // auto drop
+
+//            if (gamepad2.square && robot.inRangeOfBucket()) robot.farm.drop(); // auto drop
 
             if (gamepad2.triangle) {
                 robot.intake.resetEncoder();
@@ -144,6 +145,7 @@ public class TeleOp extends LinearOpMode {
                     robot.farm.setBucketScore(true);
                     break;
                 case RETURN_LIFT:
+                    robot.turnOffLight();
                     FArm.PID_ENABLED = false;
                     robot.farm.lift.setPower(-1);
                     robot.farm.lift2.setPower(-1);
@@ -233,6 +235,9 @@ public class TeleOp extends LinearOpMode {
             telemetry.addLine("---FArm---");
             telemetry.addData("State", farmState);
             telemetry.addData("Transfer State", transferState);
+            telemetry.addData("Sample Color Red", robot.colorValueRed);
+            telemetry.addData("Sample Color Blue", robot.colorValueBlue);
+            telemetry.addData("Sample Color Green", robot.colorValueGreen);
             loopTimeMeasurement(telemetry); // replaces telemetry.update()
         }
     }

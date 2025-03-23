@@ -11,6 +11,7 @@ import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -25,6 +26,12 @@ public class Robot {
     public MecanumDrive drive;
     public Intake intake;
     public FArm farm;
+
+    public Servo leftLight;
+    public Servo rightLight;
+    public int colorValueRed;
+    public int colorValueGreen;
+    public int colorValueBlue;
 
     private RevColorSensorV3 sampleColor;
     private Rev2mDistanceSensor bucketDistance;
@@ -48,6 +55,8 @@ public class Robot {
 
         sampleColor = hardwareMap.get(RevColorSensorV3.class, "sampleColor");
         bucketDistance = hardwareMap.get(Rev2mDistanceSensor.class, "bucket");
+        leftLight = hardwareMap.get(Servo.class, "leftLight");
+        rightLight = hardwareMap.get(Servo.class, "rightLight");
 
         // absolute tom foolery, slide accel compensation do NOT use
 //        intake.setFeedforwardComponent(()-> { // TODO: COULD SLOW DOWN LOOPS
@@ -83,7 +92,28 @@ public class Robot {
         return bucketDistance.getDistance(DistanceUnit.MM) < FArm.BUCKET_TOLERANCE;
     }
 
+    public void turnOffLight() {
+        leftLight.setPosition(0);
+        rightLight.setPosition(0);
+    }
+
     public boolean hasSample() {
+        // Check for color
+        if (sampleColor.getDistance(DistanceUnit.MM) < Intake.sensorDistance) {
+            colorValueRed = sampleColor.red();
+            colorValueBlue = sampleColor.blue();
+            colorValueGreen = sampleColor.green();
+            if (sampleColor.green() > 1000) {
+                leftLight.setPosition(.38);
+                rightLight.setPosition(.38);
+            } else if (sampleColor.red() > sampleColor.blue()) {
+                leftLight.setPosition(.279);
+                rightLight.setPosition(.279);
+            } else if (sampleColor.blue() > sampleColor.red()) {
+                leftLight.setPosition(.611);
+                rightLight.setPosition(.611);
+            }        }
+
         return sampleColor.getDistance(DistanceUnit.MM) < Intake.sensorDistance;
     }
 
