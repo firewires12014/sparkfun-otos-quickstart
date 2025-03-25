@@ -80,6 +80,37 @@ public class TeleOp extends LinearOpMode {
             // Lift
             robot.farm.manualControl(-gamepad2.right_stick_y);
 
+            // Hang
+            if (gamepad1.cross) {
+                robot.lockPTO();
+            }
+
+            if (gamepad1.square) {
+                robot.unlockPTO();
+            }
+
+            if (gamepad1.dpad_left) {
+                robot.lowerRack();
+            }
+
+            if (gamepad1.dpad_right) {
+                robot.liftRack();
+            }
+
+            if (gamepad1.dpad_up) {
+                robot.farm.lift.setPower(1);
+                robot.farm.lift2.setPower(1);
+                robot.drive.leftBack.setPower(1);
+                robot.drive.rightBack.setPower(1);
+            }
+
+            if (gamepad1.dpad_down) {
+                robot.farm.lift.setPower(-1);
+                robot.farm.lift2.setPower(-1);
+                robot.drive.leftBack.setPower(-1);
+                robot.drive.rightBack.setPower(-1);
+            }
+
             // Intake
             robot.intake.manualControl(-gamepad2.left_stick_y);
 

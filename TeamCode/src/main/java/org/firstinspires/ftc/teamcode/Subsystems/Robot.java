@@ -31,11 +31,24 @@ public class Robot {
 
     public Servo leftLight;
     public Servo rightLight;
+    public Servo leftPTO;
+    public Servo rightPTO;
+    public Servo rightRack;
+    public Servo leftRack;
+
     public int colorValueRed;
     public int colorValueGreen;
     public int colorValueBlue;
-    public static double yellow = .34;
 
+    public static double yellow = .34;
+    public static double PTOLockLeft = 0;
+    public static double PTOLockRight = 0;
+    public static double PTOUnlockLeft = 1;
+    public static double PTOUnlockRight = 1;
+    public static double rightRackLift = .2;
+    public static double leftRackLift = .2;
+    public static double rightRackLower = .2;
+    public static double leftRackLower = .2;
     private RevColorSensorV3 sampleColor;
     private Rev2mDistanceSensor bucketDistance;
 
@@ -60,6 +73,12 @@ public class Robot {
         bucketDistance = hardwareMap.get(Rev2mDistanceSensor.class, "bucket");
         leftLight = hardwareMap.get(Servo.class, "leftLight");
         rightLight = hardwareMap.get(Servo.class, "rightLight");
+
+//        leftPTO = hardwareMap.get(Servo.class, "leftPTO");
+//        rightPTO = hardwareMap.get(Servo.class, "rightPTO");
+//        leftRack = hardwareMap.get(Servo.class, "leftRack");
+//        rightRack = hardwareMap.get(Servo.class, "rightRack");
+
 
         // absolute tom foolery, slide accel compensation do NOT use
 //        intake.setFeedforwardComponent(()-> { // TODO: COULD SLOW DOWN LOOPS
@@ -106,7 +125,7 @@ public class Robot {
             colorValueRed = sampleColor.red();
             colorValueBlue = sampleColor.blue();
             colorValueGreen = sampleColor.green();
-            if (sampleColor.green() > 1000) {
+            if (sampleColor.green() > 800) {
                 leftLight.setPosition(yellow);
                 rightLight.setPosition(yellow);
             } else if (sampleColor.red() > sampleColor.blue()) {
@@ -145,6 +164,26 @@ public class Robot {
                     return true;
                 })
         );
+    }
+
+    public void lockPTO() {
+        leftPTO.setPosition(PTOLockLeft);
+        rightPTO.setPosition(PTOLockRight);
+    }
+
+    public void unlockPTO() {
+        leftPTO.setPosition(PTOUnlockLeft);
+        rightPTO.setPosition(PTOUnlockRight);
+    }
+
+    public void liftRack() {
+        leftRack.setPosition(leftRackLift);
+        rightRack.setPosition(rightRackLift);
+    }
+
+    public void lowerRack() {
+        leftRack.setPosition(leftRackLower);
+        rightRack.setPosition(rightRackLower);
     }
 
 }
