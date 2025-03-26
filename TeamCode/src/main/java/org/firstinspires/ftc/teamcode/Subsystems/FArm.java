@@ -9,6 +9,7 @@ import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -84,6 +85,8 @@ public class FArm {
     public Servo right;
     public Servo grab;
 
+    // Auto Grab
+    DigitalChannel beamBrake;
     public FArm(HardwareMap hardwareMap) {
         // Arm
         wrist = hardwareMap.get(Servo.class, "wrist");
@@ -97,6 +100,10 @@ public class FArm {
 
         lift2 = hardwareMap.get(DcMotorEx.class, "lift2");
         lift2.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        // Auto Grab
+        beamBrake = hardwareMap.get(DigitalChannel.class, "beam");
+        beamBrake.setMode(DigitalChannel.Mode.INPUT);
 
         resetEncoder();
 
@@ -145,6 +152,10 @@ public class FArm {
         targetPosition = liftTransfer; // Does not enable pid
         setPivot(pivotTransfer);
         wrist.setPosition(wristTransfer);
+    }
+
+    public boolean hasSpec() {
+        return !beamBrake.getState();
     }
 
     public void setBucketScore() {  // default is high, when true it is low bucket

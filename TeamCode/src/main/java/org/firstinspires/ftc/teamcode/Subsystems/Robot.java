@@ -22,6 +22,7 @@ import org.firstinspires.ftc.teamcode.util.ActionUtil;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BooleanSupplier;
 
 @Config
 public class Robot {
@@ -139,31 +140,55 @@ public class Robot {
         return sampleColor.getDistance(DistanceUnit.MM) < Intake.sensorDistance;
     }
 
+    // Same as the one below but doesn't have a timeout
+    public Action endAuto(LinearOpMode opMode, Telemetry telemetry) {
+        return endAuto(opMode, telemetry, 1e9);
+    }
+
     @SuppressLint("DefaultLocale")
     public Action endAuto(LinearOpMode opmode, Telemetry telemetry, double timeout) {
         AtomicBoolean runtime = new AtomicBoolean(false);
         AtomicReference<Double> runTimeTime = new AtomicReference<>((double) 0);
-        return new ParallelAction(
-                new SleepAction(timeout),
-                new ActionUtil.RunnableAction(()-> {
-                    if (!runtime.get()) {
-                        runTimeTime.set(opmode.getRuntime());
-                        runtime.set(true);
-                    }
+        return new ActionUtil.RunnableTimedAction(timeout, ()-> {
+            if (!runtime.get()) {
+                runTimeTime.set(opmode.getRuntime());
+                runtime.set(true);
+            }
 
-                    Pose2d pose = drive.localizer.getPose();
+            // keep position updating even if previous action isn't drive related
+            drive.updatePoseEstimate();
 
-                    double x = pose.position.x;
-                    double y = pose.position.y;
-                    double h = pose.heading.toDouble();
+            Pose2d pose = drive.localizer.getPose();
 
-                    telemetry.addData("Duration", runTimeTime);
-                    telemetry.addData("Robot Pose", String.format("x:%.2f \t y:%.2f \t heading:%.2f", x, y, Math.toDegrees(h)));
-                    telemetry.update();
+            double x = pose.position.x;
+            double y = pose.position.y;
+            double h = pose.heading.toDouble();
 
-                    return true;
-                })
-        );
+            telemetry.addData("Duration", runTimeTime);
+            telemetry.addData("Robot Pose", String.format("x:%.2f \t y:%.2f \t heading:%.2f", x, y, Math.toDegrees(h)));
+            telemetry.update();
+
+            return true;
+        });
+    }
+
+    @SuppressLint("DefaultLocale")
+    public Action pauseAuto(Telemetry telemetry, BooleanSupplier trigger, double timeout) {
+        return new ActionUtil.RunnableTimedAction(timeout, ()-> {
+            // keep position updating even if previous action isn't drive related
+            drive.updatePoseEstimate();
+
+            Pose2d pose = drive.localizer.getPose();
+
+            double x = pose.position.x;
+            double y = pose.position.y;
+            double h = pose.heading.toDouble();
+
+            telemetry.addData("Robot Pose", String.format("x:%.2f \t y:%.2f \t heading:%.2f", x, y, Math.toDegrees(h)));
+            telemetry.update();
+
+            return !trigger.getAsBoolean();
+        });
     }
 
     public void lockPTO() {
