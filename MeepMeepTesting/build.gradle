@@ -8,11 +8,16 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
+kotlin {
+    jvmToolchain(17)
+}
+
 repositories {
     maven { url = 'https://jitpack.io' }
     maven { url = 'https://maven.brott.dev/' }
 }
 
 dependencies {
-    implementation 'com.github.rh-robotics:MeepMeep:v1.1.0'
+//    implementation 'com.github.rh-robotics:MeepMeep:v1.1.0'
+    implementation 'com.acmerobotics.roadrunner:MeepMeep:0.1.6'
 }
