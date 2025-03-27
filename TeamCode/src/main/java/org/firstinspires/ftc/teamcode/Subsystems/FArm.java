@@ -15,6 +15,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.opmodes.TeleOp;
 import org.firstinspires.ftc.teamcode.util.ActionUtil;
 import org.firstinspires.ftc.teamcode.util.PIDCoefficients;
 import org.firstinspires.ftc.teamcode.util.PIDFController;
@@ -42,7 +43,7 @@ public class FArm {
     public static double wristSpecScore = 0.55 + WRIST_OFFSET;
 
     // Bucket Score
-    public static double liftBucketScore = 1350;
+    public static double liftBucketScore = 1250;
     public static double liftLowBucketScore = 300;
     public static double pivotBucketScore = 0.6;
     public static double wristBucketScore = 0.62 + WRIST_OFFSET;
@@ -207,7 +208,6 @@ public class FArm {
             case IDLE:
                 if (Math.abs(joystickInput) > joystickDeadzone)
                     state = ManualControl.ACTIVATED;
-
                 break;
             case ACTIVATED:
                 PID_ENABLED = false;
@@ -217,7 +217,6 @@ public class FArm {
             case USING:
                 lift.setPower(joystickInput);
                 lift2.setPower(joystickInput);
-
                 if (Math.abs(joystickInput) < joystickDeadzone) state = FArm.ManualControl.LET_GO;
                 break;
             case LET_GO:

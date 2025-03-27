@@ -32,6 +32,7 @@ public class TeleOp extends LinearOpMode {
     }
 
     public enum FARM_STATE {
+        IDLE,
         SPEC_INTAKE,
         LOW_BUCKET_SCORE,
         TRANSFER,
@@ -79,6 +80,11 @@ public class TeleOp extends LinearOpMode {
             // Wasi
             // Lift
             robot.farm.manualControl(-gamepad2.right_stick_y);
+
+            // If Manual mode is engaged then set the state to idle
+            if (Math.abs(-gamepad2.right_stick_y) > robot.farm.joystickDeadzone) {
+                farmState = FARM_STATE.IDLE;
+            }
 
             // Hang
             if (gamepad1.cross) {
@@ -152,7 +158,9 @@ public class TeleOp extends LinearOpMode {
                 clawTimer.reset();
             }
 
-//            if (gamepad2.square && robot.inRangeOfBucket()) robot.farm.drop(); // auto drop
+            if (gamepad2.square && robot.inRangeOfBucket()) {
+                robot.farm.drop(); // auto drop
+            }
 
             if (gamepad2.triangle) {
                 robot.intake.resetEncoder();
@@ -160,6 +168,8 @@ public class TeleOp extends LinearOpMode {
             }
 
             switch (farmState) {
+                case IDLE:
+                    break;
                 case SPEC_INTAKE:
                     robot.farm.setSpecIntake();
                     break;
