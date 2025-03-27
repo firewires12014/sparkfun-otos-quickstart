@@ -37,7 +37,7 @@ public class FArm {
     public static double wristTransfer = 0.24 + WRIST_OFFSET;
 
     // Spec Score
-    public static double liftSpecScore = 730;
+    public static double liftSpecScore = 750;
     public static double pivotSpecScore = 0.27;
     public static double wristSpecScore = 0.55 + WRIST_OFFSET;
 
@@ -51,6 +51,11 @@ public class FArm {
     public static double liftSpecIntake = 320;
     public static double pivotSpecIntake = 0.9;
     public static double wristSpecIntake = 0.85 + WRIST_OFFSET;
+
+    // Auto Spec Intake
+    public static double autoLiftSpecIntake = 0;
+    public static double autoPivotSpecIntake = 0.9;
+    public static double autoWristSpecIntake = 0.35 + WRIST_OFFSET;
 
     // Claw
     public static double clawOpen = 0.55;
@@ -99,6 +104,7 @@ public class FArm {
         lift.setDirection(DcMotorSimple.Direction.FORWARD);
 
         lift2 = hardwareMap.get(DcMotorEx.class, "lift2");
+        lift2.setDirection(DcMotorSimple.Direction.REVERSE);
         lift2.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // Auto Grab
@@ -180,6 +186,13 @@ public class FArm {
         setPivot(pivotSpecIntake);
         wrist.setPosition(wristSpecIntake);
     }
+
+    public void autoSpecIntake() {
+        targetPosition = autoLiftSpecIntake; // Does not enable pid
+        setPivot(autoPivotSpecIntake);
+        wrist.setPosition(autoWristSpecIntake);
+    }
+
 
     public void drop() {
         grab.setPosition(clawOpen);

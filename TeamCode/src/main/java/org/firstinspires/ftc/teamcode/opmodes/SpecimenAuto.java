@@ -6,6 +6,8 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.ParallelAction;
+import com.acmerobotics.roadrunner.TranslationalVelConstraint;
+import com.acmerobotics.roadrunner.ProfileAccelConstraint;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
@@ -29,22 +31,17 @@ public class SpecimenAuto extends LinearOpMode {
     Robot robot;
     AutoActionScheduler scheduler;
 
-    Pose2d start = new Pose2d(-41.5, -64, Math.toRadians(90));
+    Pose2d start = new Pose2d(7, -64, Math.toRadians(90));
 
     // Purely Positions to go to
-    Pose2d scorePreload = new Pose2d(new Vector2d(-6, -30.7), Math.toRadians(90));
+    Pose2d scorePreload = new Pose2d(new Vector2d(-6, -27), Math.toRadians(90));
+    Pose2d intakeSample1 = new Pose2d(new Vector2d(28.96, -39.15), Math.toRadians(36.61));
     Pose2d scoreSecondSpecimen = new Pose2d(new Vector2d( -1, -30), Math.toRadians(90));
     Pose2d scoreThirdSpecimen = new Pose2d(new Vector2d( 1.5, -29.5), Math.toRadians(90));
     Pose2d scoreFourthSpecimen = new Pose2d(new Vector2d( 4, -29.5), Math.toRadians(90));
     Pose2d scoreFifthSpecimen = new Pose2d(new Vector2d(-2, -30), Math.toRadians(90));
 
     Pose2d parkPosition = new Pose2d(55, -60, Math.toRadians(0));
-
-    // Actions to be used
-    Action toSubmersible = robot.drive.actionBuilder(start)
-            .strafeToLinearHeading(scorePreload.position, scorePreload.heading)
-            .build();
-
 
     double prevLoop = 0;
     @Override
@@ -55,6 +52,17 @@ public class SpecimenAuto extends LinearOpMode {
         robot = new Robot(hardwareMap, start, LynxModule.BulkCachingMode.AUTO);
         scheduler = new AutoActionScheduler(this::update);
 
+        // Actions to be used
+        Action toSubmersible = robot.drive.actionBuilder(start)
+                .setTangent(-90)
+                .strafeToLinearHeading(scorePreload.position, scorePreload.heading,
+                            new TranslationalVelConstraint(70.0),
+                            new ProfileAccelConstraint(-120, 100))
+                .build();
+        Action intakeFirstSample = robot.drive.actionBuilder(scorePreload)
+                .splineToLinearHeading(intakeSample1, intakeSample1.heading)
+                .build();
+
         // Any pre start init shi
         robot.farm.close();
         robot.intake.intakeUp();
@@ -63,14 +71,25 @@ public class SpecimenAuto extends LinearOpMode {
         robot.intake.intakeHorizontal();
         resetRuntime();
         prevLoop = System.nanoTime() / 1e9;
+
         while (opModeIsActive() && !isStopRequested()) {
             // All the actions needed should be listed below.
             scheduler.addAction(
                     new SequentialAction(
                             toSubmersible,
-                            dropSpecimen())
+                            dropSpecimen(),
+                            new InstantAction(()-> { robot.farm.autoSpecIntake(); })
+                    )
             );
-            scheduler.run(); // Do each section of code in blocks like this, not one big action, It allows for easier debugging
+            scheduler.run();
+
+            scheduler.addAction(
+                    new SequentialAction(
+                            intakeFirstSample
+                            //intake(5, 20)
+                    )
+            );
+            scheduler.run();
 
             // Example of how to pause the auto to get a value and then resume it using a button to resume
             pause(()-> gamepad1.touchpad, telemetry);
@@ -80,7 +99,7 @@ public class SpecimenAuto extends LinearOpMode {
 
             // Ends the auto and keeps it running for an indefinite amount of time to move the robot to check for position
             scheduler.addAction(robot.endAuto(this, telemetry));
-            scheduler.run();
+            //scheduler.run();
 
             // Not gonna do diddly squat
             telemetry.addLine("Telemetry Data"); // Add telemetry below this
@@ -91,6 +110,24 @@ public class SpecimenAuto extends LinearOpMode {
     public void pause(BooleanSupplier trigger, Telemetry telemetry) {
         scheduler.addAction(robot.pauseAuto(telemetry, trigger, 1e9));
         scheduler.run();
+    }
+
+    public Action intake(double timeout, double distance) {
+        return new SequentialAction(
+                new ActionUtil.RunnableTimedAction(timeout, ()-> {
+                    robot.intake.startIntake();
+                    Intake.PID_ENABLED = false;
+                    robot.intake.extension.setPower(1);
+                    robot.intake.intakeDown();
+
+                    if(robot.hasSample()) return false;
+
+                    return !robot.hasSample();
+                }),
+                new InstantAction(()-> {
+                    Intake.targetPosition = distance;
+                    Intake.PID_ENABLED = true;
+                }));
     }
 
     public Action primeScore() {
