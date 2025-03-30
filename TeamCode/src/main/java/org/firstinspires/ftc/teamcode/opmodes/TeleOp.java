@@ -87,13 +87,13 @@ public class TeleOp extends LinearOpMode {
             }
 
             // Hang
-            if (gamepad1.cross) {
-                robot.lockPTO();
-            }
+//            if (gamepad1.cross) {
+//                robot.lockPTO();
+//            }
 
-            if (gamepad1.square) {
-                robot.unlockPTO();
-            }
+//            if (gamepad1.square) {
+//                robot.unlockPTO();
+//            }
 
             if (gamepad1.dpad_left) {
                 robot.lowerRack();

@@ -22,6 +22,7 @@ import org.firstinspires.ftc.teamcode.Subsystems.Robot;
 import org.firstinspires.ftc.teamcode.util.ActionUtil;
 import org.firstinspires.ftc.teamcode.util.AutoActionScheduler;
 
+import java.util.Scanner;
 import java.util.function.BooleanSupplier;
 
 @Config
@@ -35,10 +36,18 @@ public class SpecimenAuto extends LinearOpMode {
 
     // Purely Positions to go to
     Pose2d scorePreload = new Pose2d(new Vector2d(-6, -27), Math.toRadians(90));
+    Pose2d backupFromSub = new Pose2d(new Vector2d(-6, -40), Math.toRadians(90));
     Pose2d intakeSample1 = new Pose2d(new Vector2d(28.96, -39.15), Math.toRadians(36.61));
-    Pose2d scoreSecondSpecimen = new Pose2d(new Vector2d( -1, -30), Math.toRadians(90));
-    Pose2d scoreThirdSpecimen = new Pose2d(new Vector2d( 1.5, -29.5), Math.toRadians(90));
-    Pose2d scoreFourthSpecimen = new Pose2d(new Vector2d( 4, -29.5), Math.toRadians(90));
+    Pose2d spitOutSample1 = new Pose2d(new Vector2d(31.08, -44.87), Math.toRadians(-51.95));
+    Pose2d intakeSample2 = new Pose2d(new Vector2d(46.5, -39.45), Math.toRadians(42.11));
+    Pose2d spitOutSample2 = new Pose2d(new Vector2d(42.25, -44.37), Math.toRadians(-72.81));
+    Pose2d intakeSample3 = new Pose2d(new Vector2d(50.13, -43.40), Math.toRadians(46.37));
+    Pose2d spitOutSample3 = new Pose2d(new Vector2d(47.59, -45.61), Math.toRadians(-64.94));
+    Pose2d turnToGrabSpec = new Pose2d(new Vector2d(47.59, -45.61), Math.toRadians(88.93));
+    Pose2d grabSpec = new Pose2d(new Vector2d(36, -62.70), Math.toRadians(88.93));
+    Pose2d scoreSecondSpecimen = new Pose2d(new Vector2d( -4.96, -30), Math.toRadians(90));
+    Pose2d scoreThirdSpecimen = new Pose2d(new Vector2d( -.13, -30), Math.toRadians(90));
+    Pose2d scoreFourthSpecimen = new Pose2d(new Vector2d( 4, -30), Math.toRadians(90));
     Pose2d scoreFifthSpecimen = new Pose2d(new Vector2d(-2, -30), Math.toRadians(90));
 
     Pose2d parkPosition = new Pose2d(55, -60, Math.toRadians(0));
@@ -59,14 +68,63 @@ public class SpecimenAuto extends LinearOpMode {
                             new TranslationalVelConstraint(70.0),
                             new ProfileAccelConstraint(-120, 100))
                 .build();
+
         Action intakeFirstSample = robot.drive.actionBuilder(scorePreload)
+                .strafeToLinearHeading(backupFromSub.position, backupFromSub.heading)
                 .splineToLinearHeading(intakeSample1, intakeSample1.heading)
                 .build();
 
+        Action spitOutFirstSample = robot.drive.actionBuilder(intakeSample1)
+                .turnTo(spitOutSample1.heading)
+                .build();
+
+        Action intakeSecondSample = robot.drive.actionBuilder(spitOutSample1)
+                .turnTo(intakeSample2.heading)
+                .build();
+
+        Action spitOutSecondSample = robot.drive.actionBuilder(intakeSample2)
+                .turnTo(spitOutSample2.heading)
+                .build();
+
+        Action intakeThirdSample = robot.drive.actionBuilder(spitOutSample2)
+                .turnTo(intakeSample3.heading)
+                .build();
+
+        Action spitOutThirdSample = robot.drive.actionBuilder(intakeSample3)
+                .turnTo(spitOutSample3.heading)
+                .build();
+
+        Action grabSecondSpecimen = robot.drive.actionBuilder(spitOutSample3)
+                .turnTo(turnToGrabSpec.heading)
+                .strafeToLinearHeading(grabSpec.position, grabSpec.heading)
+                .build();
+
+        Action scoreSecondSpec = robot.drive.actionBuilder(grabSpec)
+                .strafeToLinearHeading(scoreSecondSpecimen.position, scoreSecondSpecimen.heading)
+                .build();
+
+        Action grabThirdSpec = robot.drive.actionBuilder(scoreSecondSpecimen)
+                .strafeToLinearHeading(grabSpec.position, grabSpec.heading)
+                .build();
+
+        Action scoreThirdSpec = robot.drive.actionBuilder(grabSpec)
+                .strafeToLinearHeading(scoreThirdSpecimen.position, scoreThirdSpecimen.heading)
+                        .build();
+
+        Action grabFourthSpec = robot.drive.actionBuilder(scoreThirdSpecimen)
+                .strafeToLinearHeading(grabSpec.position, grabSpec.heading)
+                .build();
+
+        Action scorefourthSpec = robot.drive.actionBuilder(grabSpec)
+                .strafeToLinearHeading(scoreFourthSpecimen.position, scoreFourthSpecimen.heading)
+                .build();
+
         // Any pre start init shi
-        robot.farm.close();
+//        robot.farm.close();
         robot.intake.intakeUp();
-        robot.farm.setSpecScore();
+        Intake.PID_ENABLED = true;
+        Intake.targetPosition = 0;
+//        robot.farm.setSpecScore();
         waitForStart();
         robot.intake.intakeHorizontal();
         resetRuntime();
@@ -77,19 +135,69 @@ public class SpecimenAuto extends LinearOpMode {
             scheduler.addAction(
                     new SequentialAction(
                             toSubmersible,
-                            dropSpecimen(),
-                            new InstantAction(()-> { robot.farm.autoSpecIntake(); })
+                            dropSpecimen()
+//                            new InstantAction(()-> { robot.farm.autoSpecIntake(); })
                     )
             );
             scheduler.run();
 
             scheduler.addAction(
                     new SequentialAction(
-                            intakeFirstSample
-                            //intake(5, 20)
+                            intakeFirstSample,
+                            intake(1.5, 400),
+                            spitOutFirstSample,
+                            outtake(1.5, 400)
                     )
             );
             scheduler.run();
+
+            scheduler.addAction(
+                    new SequentialAction(
+                            intakeSecondSample,
+                            intake(1.5, 350),
+                            spitOutSecondSample,
+                            outtake(1.5, 250)
+                    )
+            );
+            scheduler.run();
+
+            scheduler.addAction(
+                    new SequentialAction(
+                            intakeThirdSample,
+                            intake(1.5, 150),
+                            spitOutThirdSample,
+                            outtake(1.5, 150),
+                            intakeEnd()
+                    )
+            );
+            scheduler.run();
+
+            scheduler.addAction(
+                    new SequentialAction(
+                            grabSecondSpecimen,
+                            scoreSecondSpec
+                    )
+            );
+            scheduler.run();
+
+            scheduler.addAction(
+                    new SequentialAction(
+                            grabThirdSpec,
+                            scoreThirdSpec
+                    )
+            );
+            scheduler.run();
+
+            scheduler.addAction(
+                    new SequentialAction(
+                            grabFourthSpec,
+                            scorefourthSpec
+                    )
+            );
+            scheduler.run();
+
+
+
 
             // Example of how to pause the auto to get a value and then resume it using a button to resume
             pause(()-> gamepad1.touchpad, telemetry);
@@ -128,6 +236,33 @@ public class SpecimenAuto extends LinearOpMode {
                     Intake.targetPosition = distance;
                     Intake.PID_ENABLED = true;
                 }));
+    }
+
+        public Action intakeEnd() {
+            return new SequentialAction(
+                    new InstantAction(()-> {
+                        robot.intake.stopIntake();
+                        robot.intake.intakeUp();
+                        Intake.PID_ENABLED = true;
+                        Intake.targetPosition = 0;
+                    })
+            );
+        }
+
+        public Action outtake(double timeout, double distanceIn) {
+        return new SequentialAction(
+                new InstantAction(()-> {
+                    Intake.PID_ENABLED = true;
+                    robot.intake.stopIntake();
+                    Intake.targetPosition = distanceIn;
+                }),
+                new SleepAction(0.2),
+                new ActionUtil.RunnableTimedAction(timeout, ()-> {
+                    robot.intake.reverseIntake();
+                    if(!robot.hasSample()) return false;
+                    return robot.hasSample();
+                })
+        );
     }
 
     public Action primeScore() {

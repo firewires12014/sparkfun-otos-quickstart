@@ -11,6 +11,7 @@ public class TestPath {
     public static void main(String[] args) {
         Pose2d start = new Pose2d(7, -64, Math.toRadians(90));
         Pose2d scorePreload = new Pose2d(new Vector2d(-6, -27), Math.toRadians(90));
+        Pose2d backupFromSub = new Pose2d(new Vector2d(-6, -40), Math.toRadians(90));
         Pose2d intakeSample1 = new Pose2d(new Vector2d(28.96, -39.15), Math.toRadians(36.61));
 
         MeepMeep meepMeep = new MeepMeep(800);
@@ -21,7 +22,8 @@ public class TestPath {
 
         myBot.runAction(myBot.getDrive().actionBuilder(start)
                         .splineToLinearHeading(scorePreload, scorePreload.heading)
-                        .setTangent(Math.toRadians(-45))
+                        //.setTangent(Math.toRadians(-45))
+                        .strafeToLinearHeading(backupFromSub.position, backupFromSub.heading)
                         .splineToLinearHeading(intakeSample1, intakeSample1.heading)
                         .build());
 
