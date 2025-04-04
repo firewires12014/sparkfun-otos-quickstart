@@ -122,10 +122,16 @@ public class SpecimenAuto extends LinearOpMode {
         // Any pre start init shi
         robot.farm.close();
         robot.intake.intakeUp();
+
+        // Shift into high gear and unlock PTO
+        robot.setGearBoxHigh();
+        robot.unlockPTO();
+
         Intake.PID_ENABLED = true;
         Intake.targetPosition = 0;
-        robot.farm.setSpecScore();
+
         waitForStart();
+        robot.farm.setSpecScore();
         robot.intake.intakeHorizontal();
         resetRuntime();
         prevLoop = System.nanoTime() / 1e9;

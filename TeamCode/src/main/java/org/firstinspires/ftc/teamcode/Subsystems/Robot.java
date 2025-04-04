@@ -35,20 +35,25 @@ public class Robot {
     public Servo rightPTO;
     public Servo rightRack;
     public Servo leftRack;
+    public Servo gearBox;
 
     public int colorValueRed;
     public int colorValueGreen;
     public int colorValueBlue;
 
     public static double yellow = .34;
-    public static double PTOLockLeft = 0;
-    public static double PTOLockRight = 0;
-    public static double PTOUnlockLeft = 1;
-    public static double PTOUnlockRight = 1;
-    public static double rightRackLift = .2;
-    public static double leftRackLift = .2;
-    public static double rightRackLower = .2;
-    public static double leftRackLower = .2;
+
+    public static double leftPtoLock = .5;
+    public static double leftPtoUnlock = .9;
+    public static double rightPtoLock = .5;
+    public static double rightPtoUnlock = .9;
+    public static double leftRackUp = 0;
+    public static double leftRackDown = .2;
+    public static double rightRackUp = 0;
+    public static double rightRackDown = .2;
+    public static double gearBoxHigh = .49;
+    public static double gearBoxLow = .54;
+
     private RevColorSensorV3 sampleColor;
     private Rev2mDistanceSensor bucketDistance;
 
@@ -73,11 +78,11 @@ public class Robot {
         bucketDistance = hardwareMap.get(Rev2mDistanceSensor.class, "bucket");
         lights = hardwareMap.get(Servo.class, "lights");
 
-//        leftPTO = hardwareMap.get(Servo.class, "leftPTO");
-//        rightPTO = hardwareMap.get(Servo.class, "rightPTO");
-//        leftRack = hardwareMap.get(Servo.class, "leftRack");
-//        rightRack = hardwareMap.get(Servo.class, "rightRack");
-
+        leftPTO = hardwareMap.get(Servo.class,"leftPTO");
+        rightPTO = hardwareMap.get(Servo.class,"rightPTO");
+        leftRack = hardwareMap.get(Servo.class, "leftRack");
+        rightRack = hardwareMap.get(Servo.class, "rightRack");
+        gearBox = hardwareMap.get(Servo.class, "gearBox");
 
         // absolute tom foolery, slide accel compensation do NOT use
 //        intake.setFeedforwardComponent(()-> { // TODO: COULD SLOW DOWN LOOPS
@@ -187,23 +192,33 @@ public class Robot {
     }
 
     public void lockPTO() {
-        leftPTO.setPosition(PTOLockLeft);
-        rightPTO.setPosition(PTOLockRight);
+        leftPTO.setPosition(leftPtoLock);
+        rightPTO.setPosition(rightPtoLock);
     }
 
     public void unlockPTO() {
-        leftPTO.setPosition(PTOUnlockLeft);
-        rightPTO.setPosition(PTOUnlockRight);
+        leftPTO.setPosition(leftPtoUnlock);
+        rightPTO.setPosition(rightPtoUnlock);
     }
 
     public void liftRack() {
-        leftRack.setPosition(leftRackLift);
-        rightRack.setPosition(rightRackLift);
+        leftRack.setPosition(leftRackUp);
+        rightRack.setPosition(rightRackUp);
     }
 
     public void lowerRack() {
-        leftRack.setPosition(leftRackLower);
-        rightRack.setPosition(rightRackLower);
+        leftRack.setPosition(leftRackDown);
+        rightRack.setPosition(rightRackDown);
     }
+
+    public void setGearBoxHigh() {
+        gearBox.setPosition(gearBoxHigh);
+    }
+
+    public void setGearBoxLow() {
+        gearBox.setPosition(gearBoxLow);
+    }
+
+
 
 }
