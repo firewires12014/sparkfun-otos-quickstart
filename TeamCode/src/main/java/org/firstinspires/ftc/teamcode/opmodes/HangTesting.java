@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
@@ -18,6 +19,18 @@ import org.firstinspires.ftc.teamcode.Subsystems.Robot;
 //@Disabled
 public class HangTesting extends LinearOpMode {
         public DcMotorEx leftBack, rightBack, lift1, lift2;
+        public Servo leftPTO, leftRack, rightPTO, rightRack, gearBox;
+
+        public static double leftPtoLock = .5;
+        public static double leftPtoUnlock = .9;
+        public static double rightPtoLock = .5;
+        public static double rightPtoUnlock = .9;
+        public static double leftRackUp = 0;
+        public static double leftRackDown = .2;
+        public static double rightRackUp = 0;
+        public static double rightRackDown = .2;
+        public static double gearBoxHigh = .49;
+        public static double gearBoxLow = .54;
 
         @Override
         public void runOpMode () throws InterruptedException {
@@ -29,25 +42,52 @@ public class HangTesting extends LinearOpMode {
             lift2.setDirection(DcMotorSimple.Direction.REVERSE);
             leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
 
-//            leftBack.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
-//            rightBack.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
-//            lift1.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
-//            lift2.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+            leftPTO = hardwareMap.get(Servo.class,"leftPTO");
+            rightPTO = hardwareMap.get(Servo.class,"rightPTO");
+            leftRack = hardwareMap.get(Servo.class, "leftRack");
+            rightRack = hardwareMap.get(Servo.class, "rightRack");
+            gearBox = hardwareMap.get(Servo.class, "gearBox");
 
             // Any pre start init
             waitForStart();
             while (opModeIsActive() && !isStopRequested()) {
                 // Hang
-                if (gamepad1.dpad_up) {
+
+                // Raise and lower rack and pinion
+                if (gamepad1.right_trigger > 0.1) {
+                    rightRack.setPosition(rightRackUp);
+                    leftRack.setPosition(leftRackUp);
+                } else if (gamepad1.left_trigger > 0.1) {
+                    rightRack.setPosition(rightRackDown);
+                    leftRack.setPosition(leftRackDown);
+                }
+
+                // Lock and Unlock PTO
+                if (gamepad1.triangle) {
+                    rightPTO.setPosition(rightPtoUnlock);
+                    leftPTO.setPosition(leftPtoUnlock);
+                } else if (gamepad1.x) {
+                    rightPTO.setPosition(rightPtoLock);
+                    leftPTO.setPosition(leftPtoLock);
+                }
+
+                // Shift from High to low gear
+                if (gamepad1.dpad_left) {
+                    gearBox.setPosition(gearBoxLow);
+                } else if (gamepad1.dpad_right) {
+                    gearBox.setPosition(gearBoxHigh);
+                }
+
+                if (gamepad1.dpad_down) {
                     lift1.setPower(1);
                     lift2.setPower(1);
-                    leftBack.setPower(1);
-                    rightBack.setPower(1);
-                } else if  (gamepad1.dpad_down) {
+//                    leftBack.setPower(1);
+//                    rightBack.setPower(1);
+                } else if  (gamepad1.dpad_up) {
                     lift1.setPower(-1);
                     lift2.setPower(-1);
-                    leftBack.setPower(-1);
-                    rightBack.setPower(-1);
+//                    leftBack.setPower(-1);
+//                    rightBack.setPower(-1);
                 } else {
                     lift1.setPower(0);
                     lift2.setPower(0);

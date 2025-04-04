@@ -39,11 +39,11 @@ public class SpecimenAuto extends LinearOpMode {
     Pose2d backupFromSub = new Pose2d(new Vector2d(-6, -40), Math.toRadians(90));
     Pose2d intakeSample1 = new Pose2d(new Vector2d(28.96, -39.15), Math.toRadians(36.61));
     Pose2d spitOutSample1 = new Pose2d(new Vector2d(31.08, -44.87), Math.toRadians(-51.95));
-    Pose2d intakeSample2 = new Pose2d(new Vector2d(46.5, -39.45), Math.toRadians(42.11));
-    Pose2d spitOutSample2 = new Pose2d(new Vector2d(42.25, -44.37), Math.toRadians(-72.81));
+    Pose2d intakeSample2 = new Pose2d(new Vector2d(48.5, -40.45), Math.toRadians(42.11));
+    Pose2d spitOutSample2 = new Pose2d(new Vector2d(48.5, -40.45), Math.toRadians(-72.81));
     Pose2d intakeSample3 = new Pose2d(new Vector2d(50.13, -43.40), Math.toRadians(46.37));
-    Pose2d spitOutSample3 = new Pose2d(new Vector2d(47.59, -45.61), Math.toRadians(-64.94));
-    Pose2d turnToGrabSpec = new Pose2d(new Vector2d(47.59, -45.61), Math.toRadians(88.93));
+    Pose2d spitOutSample3 = new Pose2d(new Vector2d(50.13, -43.40), Math.toRadians(-64.94));
+    Pose2d turnToGrabSpec = new Pose2d(new Vector2d(50.13, -43.40), Math.toRadians(88.93));
     Pose2d grabSpec = new Pose2d(new Vector2d(36, -62.70), Math.toRadians(88.93));
     Pose2d scoreSecondSpecimen = new Pose2d(new Vector2d( -4.96, -30), Math.toRadians(90));
     Pose2d scoreThirdSpecimen = new Pose2d(new Vector2d( -.13, -30), Math.toRadians(90));
@@ -120,11 +120,11 @@ public class SpecimenAuto extends LinearOpMode {
                 .build();
 
         // Any pre start init shi
-//        robot.farm.close();
+        robot.farm.close();
         robot.intake.intakeUp();
         Intake.PID_ENABLED = true;
         Intake.targetPosition = 0;
-//        robot.farm.setSpecScore();
+        robot.farm.setSpecScore();
         waitForStart();
         robot.intake.intakeHorizontal();
         resetRuntime();
@@ -135,8 +135,8 @@ public class SpecimenAuto extends LinearOpMode {
             scheduler.addAction(
                     new SequentialAction(
                             toSubmersible,
-                            dropSpecimen()
-//                            new InstantAction(()-> { robot.farm.autoSpecIntake(); })
+                            dropSpecimen(),
+                            new InstantAction(()-> { robot.farm .setSpecIntake(); })
                     )
             );
             scheduler.run();
@@ -167,6 +167,7 @@ public class SpecimenAuto extends LinearOpMode {
                             intake(1.5, 150),
                             spitOutThirdSample,
                             outtake(1.5, 150),
+                            new SleepAction(.5),
                             intakeEnd()
                     )
             );
@@ -175,7 +176,11 @@ public class SpecimenAuto extends LinearOpMode {
             scheduler.addAction(
                     new SequentialAction(
                             grabSecondSpecimen,
-                            scoreSecondSpec
+                            new InstantAction(()-> { robot.farm.close(); }),
+                            new InstantAction(()-> {robot.farm.setSpecScore();}),
+                            scoreSecondSpec,
+                            new InstantAction(()-> { robot.farm.drop(); }),
+                            new InstantAction(()-> { robot.farm .setSpecIntake(); })
                     )
             );
             scheduler.run();
@@ -183,7 +188,11 @@ public class SpecimenAuto extends LinearOpMode {
             scheduler.addAction(
                     new SequentialAction(
                             grabThirdSpec,
-                            scoreThirdSpec
+                            new InstantAction(()-> { robot.farm.close(); }),
+                            new InstantAction(()-> {robot.farm.setSpecScore();}),
+                            scoreThirdSpec,
+                            new InstantAction(()-> { robot.farm.drop(); }),
+                            new InstantAction(()-> { robot.farm .setSpecIntake(); })
                     )
             );
             scheduler.run();
@@ -191,7 +200,11 @@ public class SpecimenAuto extends LinearOpMode {
             scheduler.addAction(
                     new SequentialAction(
                             grabFourthSpec,
-                            scorefourthSpec
+                            new InstantAction(()-> { robot.farm.close(); }),
+                            new InstantAction(()-> {robot.farm.setSpecScore();}),
+                            scorefourthSpec,
+                            new InstantAction(()-> { robot.farm.drop(); }),
+                            new InstantAction(()-> { robot.farm .setSpecIntake(); })
                     )
             );
             scheduler.run();

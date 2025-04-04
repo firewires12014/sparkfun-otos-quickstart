@@ -275,6 +275,7 @@ public class TeleOp extends LinearOpMode {
             telemetry.addData("State", intakeState);
             telemetry.addLine("---FArm---");
             telemetry.addData("State", farmState);
+            telemetry.addData("Lift Height", robot.farm.targetPosition);
             telemetry.addData("Transfer State", transferState);
             telemetry.addData("Sample Color Red", robot.colorValueRed);
             telemetry.addData("Sample Color Blue", robot.colorValueBlue);

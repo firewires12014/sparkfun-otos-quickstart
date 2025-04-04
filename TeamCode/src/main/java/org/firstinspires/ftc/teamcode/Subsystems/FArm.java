@@ -38,20 +38,20 @@ public class FArm {
     public static double wristTransfer = 0.24 + WRIST_OFFSET;
 
     // Spec Score
-    public static double liftSpecScore = 750;
+    public static double liftSpecScore = 500;
     public static double pivotSpecScore = 0.27;
     public static double wristSpecScore = 0.55 + WRIST_OFFSET;
 
     // Bucket Score
-    public static double liftBucketScore = 1250;
-    public static double liftLowBucketScore = 300;
+    public static double liftBucketScore = 790;
+    public static double liftLowBucketScore = 155;
     public static double pivotBucketScore = 0.6;
     public static double wristBucketScore = 0.62 + WRIST_OFFSET;
 
     // Spec Intake
-    public static double liftSpecIntake = 320;
+    public static double liftSpecIntake = 224;
     public static double pivotSpecIntake = 0.9;
-    public static double wristSpecIntake = 0.85 + WRIST_OFFSET;
+    public static double wristSpecIntake = 0.72 + WRIST_OFFSET;
 
     // Auto Spec Intake
     public static double autoLiftSpecIntake = 0;
@@ -82,14 +82,13 @@ public class FArm {
     public ManualControl state = ManualControl.IDLE;
 
     // Lift
-    public DcMotorEx lift;
-    public DcMotorEx lift2;
+    public DcMotorEx lift, lift2;
 
     // Arm
-    public Servo wrist;
-    public Servo left;
-    public Servo right;
-    public Servo grab;
+    public Servo wrist, left, right, grab;
+
+    // Hang
+    public Servo leftPTO, leftRack, rightPTO, rightRack;
 
     // Auto Grab
     DigitalChannel beamBrake;
@@ -102,11 +101,15 @@ public class FArm {
 
         // Lift
         lift = hardwareMap.get(DcMotorEx.class, "lift");
-        lift.setDirection(DcMotorSimple.Direction.FORWARD);
-
+        lift.setDirection(DcMotorSimple.Direction.REVERSE);
         lift2 = hardwareMap.get(DcMotorEx.class, "lift2");
-        lift2.setDirection(DcMotorSimple.Direction.REVERSE);
-        lift2.setDirection(DcMotorSimple.Direction.REVERSE);
+        lift2.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        // Hang
+        leftPTO = hardwareMap.get(Servo.class,"leftPTO");
+        rightPTO = hardwareMap.get(Servo.class,"rightPTO");
+        leftRack = hardwareMap.get(Servo.class, "leftRack");
+        rightRack = hardwareMap.get(Servo.class, "rightRack");
 
         // Auto Grab
         beamBrake = hardwareMap.get(DigitalChannel.class, "beam");
@@ -187,13 +190,6 @@ public class FArm {
         setPivot(pivotSpecIntake);
         wrist.setPosition(wristSpecIntake);
     }
-
-    public void autoSpecIntake() {
-        targetPosition = autoLiftSpecIntake; // Does not enable pid
-        setPivot(autoPivotSpecIntake);
-        wrist.setPosition(autoWristSpecIntake);
-    }
-
 
     public void drop() {
         grab.setPosition(clawOpen);

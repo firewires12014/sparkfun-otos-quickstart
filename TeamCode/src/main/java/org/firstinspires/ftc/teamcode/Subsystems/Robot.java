@@ -30,8 +30,7 @@ public class Robot {
     public Intake intake;
     public FArm farm;
 
-    public Servo leftLight;
-    public Servo rightLight;
+    public Servo lights;
     public Servo leftPTO;
     public Servo rightPTO;
     public Servo rightRack;
@@ -72,8 +71,7 @@ public class Robot {
 
         sampleColor = hardwareMap.get(RevColorSensorV3.class, "sampleColor");
         bucketDistance = hardwareMap.get(Rev2mDistanceSensor.class, "bucket");
-        leftLight = hardwareMap.get(Servo.class, "leftLight");
-        rightLight = hardwareMap.get(Servo.class, "rightLight");
+        lights = hardwareMap.get(Servo.class, "lights");
 
 //        leftPTO = hardwareMap.get(Servo.class, "leftPTO");
 //        rightPTO = hardwareMap.get(Servo.class, "rightPTO");
@@ -116,8 +114,7 @@ public class Robot {
     }
 
     public void turnOffLight() {
-        leftLight.setPosition(0);
-        rightLight.setPosition(0);
+        lights.setPosition(0);
     }
 
     public boolean hasSample() {
@@ -127,15 +124,13 @@ public class Robot {
             colorValueBlue = sampleColor.blue();
             colorValueGreen = sampleColor.green();
             if (sampleColor.green() > 800) {
-                leftLight.setPosition(yellow);
-                rightLight.setPosition(yellow);
+                lights.setPosition(yellow);
             } else if (sampleColor.red() > sampleColor.blue()) {
-                leftLight.setPosition(.279);
-                rightLight.setPosition(.279);
+                lights.setPosition(.279);
             } else if (sampleColor.blue() > sampleColor.red()) {
-                leftLight.setPosition(.611);
-                rightLight.setPosition(.611);
-            }        }
+                lights.setPosition(.611);
+            }
+        }
 
         return sampleColor.getDistance(DistanceUnit.MM) < Intake.sensorDistance;
     }
