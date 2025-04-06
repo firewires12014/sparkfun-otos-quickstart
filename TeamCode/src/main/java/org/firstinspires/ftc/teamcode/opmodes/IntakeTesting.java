@@ -15,6 +15,8 @@ import org.firstinspires.ftc.teamcode.Subsystems.Intake;
 //@Disabled
 public class IntakeTesting extends LinearOpMode {
     double prevLoop = 0;
+
+    public static double power = 0;
     @Override
     public void runOpMode() throws InterruptedException {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
@@ -31,6 +33,8 @@ public class IntakeTesting extends LinearOpMode {
             // Insert actual code
             intake.updatePID();
             intake.update();
+
+            intake.spin.setPower(power);
 
             telemetry.addLine("Intake Data"); // Add telemetry below this
             telemetry.addData("Target Position", Intake.targetPosition);

@@ -18,6 +18,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.Subsystems.FArm;
 import org.firstinspires.ftc.teamcode.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Subsystems.Robot;
@@ -39,7 +40,7 @@ public class SpecimenAuto extends LinearOpMode {
     // Purely Positions to go to
     Pose2d scorePreload = new Pose2d(new Vector2d(-2, -31), Math.toRadians(90));
     Pose2d backupFromSub = new Pose2d(new Vector2d(-6, -40), Math.toRadians(90));
-    Pose2d intakeSample1 = new Pose2d(new Vector2d(36.72, -46.63), Math.toRadians(61.30));
+    Pose2d intakeSample1 = new Pose2d(new Vector2d(36.72, -46.63), Math.toRadians(60));
     Pose2d spitOutSample1 = new Pose2d(new Vector2d(35, -39.15), Math.toRadians(-51.95));
     Pose2d intakeSample2 = new Pose2d(new Vector2d(48.46, -44.71), Math.toRadians(68)); //62.08
     Pose2d spitOutSample2 = new Pose2d(new Vector2d(48.46, -44.72), Math.toRadians(-50));
@@ -51,8 +52,7 @@ public class SpecimenAuto extends LinearOpMode {
     Pose2d scoreThirdSpecimen = new Pose2d(new Vector2d( -2, -30), Math.toRadians(105));
     Pose2d scoreFourthSpecimen = new Pose2d(new Vector2d( -2, -30), Math.toRadians(105));
     Pose2d scoreFifthSpecimen = new Pose2d(new Vector2d(-2, -30), Math.toRadians(105));
-
-    Pose2d parkPosition = new Pose2d(55, -60, Math.toRadians(0));
+    Pose2d parkPosition = new Pose2d(45, -60, Math.toRadians(90));
 
     double prevLoop = 0;
     @Override
@@ -126,6 +126,10 @@ public class SpecimenAuto extends LinearOpMode {
                 .strafeToLinearHeading(scoreFifthSpecimen.position, scoreFifthSpecimen.heading)
                 .build();
 
+        Action park = robot.drive.actionBuilder(scoreFifthSpecimen)
+                .strafeToLinearHeading(parkPosition.position, parkPosition.heading)
+                .build();
+
         // Any pre start init shi
         robot.farm.close();
         robot.intake.intakeUp();
@@ -139,7 +143,7 @@ public class SpecimenAuto extends LinearOpMode {
 
         waitForStart();
         robot.farm.setAutoSpecScore();
-        robot.intake.intakeHorizontal();
+        //robot.intake.intakeHorizontal();
         robot.intake.holdIn = true;
         resetRuntime();
         prevLoop = System.nanoTime() / 1e9;
@@ -213,10 +217,11 @@ public class SpecimenAuto extends LinearOpMode {
                                     grabFifthSpec),
 
                             intakeSpecimen(),
-                            ActionUtil.Offset(placeCycleDelay , scoreFifthSpec, dropSpecimen())
-                            )
+                            ActionUtil.Offset(placeCycleDelay , scoreFifthSpec, dropSpecimen()),
 
-            );
+                            ActionUtil.Offset(.5, park, new InstantAction(robot.farm::setTransfer))
+
+            ));
             scheduler.run();
 
 
@@ -229,9 +234,9 @@ public class SpecimenAuto extends LinearOpMode {
             // --> insert code here <--
 
             // Ends the auto and keeps it running for an indefinite amount of time to move the robot to check for position
-            scheduler.addAction(robot.endAuto(this, telemetry));
+            //scheduler.addAction(robot.endAuto(this, telemetry));
             //scheduler.run();
-
+            
             // Not gonna do diddly squat
             telemetry.addLine("Telemetry Data"); // Add telemetry below this
             loopTimeMeasurement(telemetry); // Don't update telemetry again, this method already does that

@@ -34,13 +34,13 @@ public class FArm {
 
     // Transfer
     public static double liftTransfer = 0;
-    public static double pivotTransfer = 0.19;
+    public static double pivotTransfer = 0.18;
     public static double wristTransfer = 0.24 + WRIST_OFFSET;
 
     // Spec Score
     public static double liftSpecScore = 350;
-    public static double pivotSpecScore = 0.3;
-    public static double wristSpecScore = 0.55 + WRIST_OFFSET;
+    public static double pivotSpecScore = 0.31;
+    public static double wristSpecScore = 0.57 + WRIST_OFFSET;
 
     // Bucket Score
     public static double liftBucketScore = 825;
@@ -55,8 +55,8 @@ public class FArm {
 
     // Auto Spec Score
     public static double autoLiftSpecIntake = 350;
-    public static double autoPivotSpecIntake = 0.3;
-    public static double autoWristSpecIntake = 0.55 + WRIST_OFFSET;
+    public static double autoPivotSpecIntake = 0.31;
+    public static double autoWristSpecIntake = 0.57 + WRIST_OFFSET;
 
     // Claw
     public static double clawOpen = 0.55;
