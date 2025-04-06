@@ -38,6 +38,7 @@ public class IntakeTesting extends LinearOpMode {
             telemetry.addData("Extension Power", intake.extension.getPower());
             telemetry.addData("Spin Power", intake.spin.getPower());
             telemetry.addData("Intake Current", intake.extension.getCurrent(CurrentUnit.MILLIAMPS));
+            telemetry.addData("Intake Spin Stall", intake.spin.getCurrent(CurrentUnit.MILLIAMPS));
             loopTimeMeasurement(telemetry); // Don't update telemetry again, this method already does that
         }
     }

@@ -23,6 +23,11 @@ public class TeleOp extends LinearOpMode {
         SCORE_LOW_BUCKET,
     }
 
+    enum OPERATING_MODE {
+        SPEC,
+        SAMPLE,
+    }
+
     public enum INTAKE_STATE {
         IN, // Pivot up, extension full retracted
         OUT, // Pivot horizontal, out slightly
@@ -51,15 +56,21 @@ public class TeleOp extends LinearOpMode {
     FARM_STATE farmState = FARM_STATE.TRANSFER;
     INTAKE_STATE intakeState = INTAKE_STATE.IN;
     TRANSFER_STATE transferState = TRANSFER_STATE.IDLE;
+    OPERATING_MODE operatingState = OPERATING_MODE.SAMPLE;
 
     ElapsedTime transferTimer = new ElapsedTime();
     ElapsedTime clawTimer = new ElapsedTime();
+    ElapsedTime specTimer = new ElapsedTime();
 
     double prevLoop = 0;
     @Override
     public void runOpMode() throws InterruptedException {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         Robot robot = new Robot(hardwareMap, new Pose2d(0, 0,0), LynxModule.BulkCachingMode.MANUAL);
+
+        // Shift into high gear and unlock PTO
+        robot.setGearBoxHigh();
+        robot.unlockPTO();
 
         waitForStart();
         robot.farm.setTransfer();
@@ -141,10 +152,45 @@ public class TeleOp extends LinearOpMode {
                 transferState = TRANSFER_STATE.RETURNING;
             }
 
-            if (gamepad2.dpad_down) farmState = FARM_STATE.SPEC_INTAKE;
-            if (gamepad2.dpad_left) farmState = FARM_STATE.LOW_BUCKET_SCORE;
-            if (gamepad2.dpad_up && transferState.equals(TRANSFER_STATE.IDLE)) farmState = FARM_STATE.BUCKET_SCORE;
+            if (gamepad2.dpad_down) {
+                robot.farm.grab.setPosition(FArm.specOpen);
+                farmState = FARM_STATE.SPEC_INTAKE;
+                if (clawTimer.seconds() > .5 && operatingState.equals(OPERATING_MODE.SPEC)){
+                    operatingState = OPERATING_MODE.SAMPLE;
+                    clawTimer.reset();
+                }
+                else {
+                    operatingState = OPERATING_MODE.SPEC;
+                    clawTimer.reset();
+                }
+            }
+            if (gamepad2.dpad_left) {
+                farmState = FARM_STATE.LOW_BUCKET_SCORE;
+                operatingState = OPERATING_MODE.SAMPLE;
+            }
+            if (gamepad2.dpad_up && transferState.equals(TRANSFER_STATE.IDLE)) {
+                farmState = FARM_STATE.BUCKET_SCORE;
+                operatingState = OPERATING_MODE.SAMPLE;
+
+            }
             if (gamepad2.dpad_right) farmState = FARM_STATE.SPEC_SCORE;
+
+            if (operatingState.equals(OPERATING_MODE.SPEC)) {
+               if (robot.farm.hasSpec() && robot.farm.isClawOpen()){
+                   robot.farm.close();
+                   specTimer.reset();
+               }
+
+               if (specTimer.seconds() > .2 && !robot.farm.isClawOpen()) {
+                   farmState = FARM_STATE.SPEC_SCORE;
+                }
+
+                if (specTimer.seconds() > .4 && robot.farm.isClawOpen() && farmState.equals(FARM_STATE.SPEC_SCORE))
+                    farmState = farmState.SPEC_INTAKE;
+
+
+
+            }
 
             if (gamepad2.right_bumper) {
                 robot.farm.setTransfer();
@@ -154,7 +200,13 @@ public class TeleOp extends LinearOpMode {
 
             if (gamepad2.cross && clawTimer.seconds() > 0.3) {
                 if (robot.farm.isClawOpen()) robot.farm.close();
-                else robot.farm.drop();
+                else {
+                    robot.farm.drop();
+                    if (operatingState.equals(OPERATING_MODE.SPEC)) {
+                        specTimer.reset();
+                    }
+
+                }
                 clawTimer.reset();
             }
 
@@ -271,6 +323,7 @@ public class TeleOp extends LinearOpMode {
             }
 
             robot.update();
+            telemetry.addData("Beam Brake State: " , robot.farm.hasSpec());
             telemetry.addLine("---Intake---");
             telemetry.addData("State", intakeState);
             telemetry.addLine("---FArm---");
@@ -280,6 +333,7 @@ public class TeleOp extends LinearOpMode {
             telemetry.addData("Sample Color Red", robot.colorValueRed);
             telemetry.addData("Sample Color Blue", robot.colorValueBlue);
             telemetry.addData("Sample Color Green", robot.colorValueGreen);
+            telemetry.addData("Operating State", operatingState);
             loopTimeMeasurement(telemetry); // replaces telemetry.update()
         }
     }

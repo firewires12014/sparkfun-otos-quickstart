@@ -4,8 +4,10 @@ import android.annotation.SuppressLint;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
@@ -51,8 +53,8 @@ public class Robot {
     public static double leftRackDown = .2;
     public static double rightRackUp = 0;
     public static double rightRackDown = .2;
-    public static double gearBoxHigh = .49;
-    public static double gearBoxLow = .54;
+    public static double gearBoxHigh = .54;
+    public static double gearBoxLow = .49;
 
     private RevColorSensorV3 sampleColor;
     private Rev2mDistanceSensor bucketDistance;

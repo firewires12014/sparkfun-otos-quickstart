@@ -34,29 +34,29 @@ public class FArm {
 
     // Transfer
     public static double liftTransfer = 0;
-    public static double pivotTransfer = 0.18;
+    public static double pivotTransfer = 0.19;
     public static double wristTransfer = 0.24 + WRIST_OFFSET;
 
     // Spec Score
-    public static double liftSpecScore = 500;
-    public static double pivotSpecScore = 0.27;
+    public static double liftSpecScore = 350;
+    public static double pivotSpecScore = 0.3;
     public static double wristSpecScore = 0.55 + WRIST_OFFSET;
 
     // Bucket Score
-    public static double liftBucketScore = 790;
+    public static double liftBucketScore = 825;
     public static double liftLowBucketScore = 155;
     public static double pivotBucketScore = 0.6;
     public static double wristBucketScore = 0.62 + WRIST_OFFSET;
 
     // Spec Intake
-    public static double liftSpecIntake = 224;
+    public static double liftSpecIntake = 200;
     public static double pivotSpecIntake = 0.9;
     public static double wristSpecIntake = 0.72 + WRIST_OFFSET;
 
-    // Auto Spec Intake
-    public static double autoLiftSpecIntake = 0;
-    public static double autoPivotSpecIntake = 0.9;
-    public static double autoWristSpecIntake = 0.35 + WRIST_OFFSET;
+    // Auto Spec Score
+    public static double autoLiftSpecIntake = 350;
+    public static double autoPivotSpecIntake = 0.3;
+    public static double autoWristSpecIntake = 0.55 + WRIST_OFFSET;
 
     // Claw
     public static double clawOpen = 0.55;
@@ -66,9 +66,10 @@ public class FArm {
     public PIDCoefficients coef;
     public PIDFController pid;
 
-    public static double kP = 0.009;
+    public static double kP = 0.027;
     public static double kI = 0;
-    public static double kD = 0.00006;
+    public static double kD = 0.00009;
+    public static double kF = 0.05;
 
     private double newPower = 0.0;
 
@@ -128,8 +129,8 @@ public class FArm {
 
         if (PID_ENABLED) {
             newPower = this.pid.update(lift.getCurrentPosition(), lift.getVelocity());
-            lift.setPower(newPower);
-            lift2.setPower(newPower);
+            lift.setPower(newPower + kF);
+            lift2.setPower(newPower + kF);
         }
     }
 
@@ -158,6 +159,12 @@ public class FArm {
         wrist.setPosition(wristSpecScore);
     }
 
+    public void setAutoSpecScore() {
+        targetPosition = autoLiftSpecIntake; // Does not enable pid
+        setPivot(autoPivotSpecIntake);
+        wrist.setPosition(autoWristSpecIntake);
+    }
+
     public void setTransfer() {
         targetPosition = liftTransfer; // Does not enable pid
         setPivot(pivotTransfer);
@@ -176,6 +183,7 @@ public class FArm {
         if (low) targetPosition = liftLowBucketScore;
         else targetPosition = liftBucketScore;
          // Does not enable pid
+
         setPivot(pivotBucketScore);
         wrist.setPosition(wristBucketScore);
     }

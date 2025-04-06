@@ -64,9 +64,11 @@ public class HangTesting extends LinearOpMode {
 
                 // Lock and Unlock PTO
                 if (gamepad1.triangle) {
+                    telemetry.addLine("Unlock");
                     rightPTO.setPosition(rightPtoUnlock);
                     leftPTO.setPosition(leftPtoUnlock);
                 } else if (gamepad1.x) {
+                    telemetry.addLine("Lock");
                     rightPTO.setPosition(rightPtoLock);
                     leftPTO.setPosition(leftPtoLock);
                 }

@@ -56,7 +56,7 @@ public class OffsetTuning extends LinearOpMode {
             } else telemetry.addData("IMU selected", "PINPOINT IMU");
             telemetry.addLine("If the following values are not close to zero reset the pinpoint");
             telemetry.addLine("To reset the pinpoint unplug the i2c cable wait a second then replug it");
-            telemetry.addData("Encoders", "Par: %.2f, Perp: %.2f", localizer.driver.getEncoderX(), localizer.driver.getEncoderY());
+            telemetry.addData("Encoders", "Par: %d, Perp: %d", localizer.driver.getEncoderX(), localizer.driver.getEncoderY());
             telemetry.update();
         }
 
@@ -65,7 +65,7 @@ public class OffsetTuning extends LinearOpMode {
         speedTimer.reset();
 
         while (opModeIsActive() && !isStopRequested()) {
-            while (currentPower <= endPower) {
+            while (currentPower < endPower) {
                 /**
                  *  Dead wheel locations / labels
                  *                 ^
@@ -101,6 +101,7 @@ public class OffsetTuning extends LinearOpMode {
                 perpPoints.add(perpVelo);
 
                 telemetry.addLine("Velocity Information");
+                telemetry.addData("Current Power", currentPower);
                 telemetry.addLine("NOTE: Angular Velocity MUST be positive, if not flip the sign for spinDirection in Config");
                 telemetry.addData("Par Encoder", parVelo);
                 telemetry.addData("Perp Encoder", perpVelo);
@@ -111,6 +112,7 @@ public class OffsetTuning extends LinearOpMode {
 
             telemetry.addLine("Rotation Done!");
             telemetry.addData("Regression Size", angularPoints.size());
+            telemetry.update();
 
             try (FileWriter writer = new FileWriter(AppUtil.ROOT_FOLDER.toString() + "/CustomOffsetTuner/" + fileOutputName + System.currentTimeMillis() + ".csv")) {
                 writer.write("Angular Velocity,Par Velocity,Perp Velocity\n");
@@ -121,7 +123,7 @@ public class OffsetTuning extends LinearOpMode {
                 telemetry.addLine("CSV file written successfully.");
             } catch (IOException e) {
                 // e.printStackTrace();
-                telemetry.addLine("Error writing csv file.");
+                telemetry.addData("Error writing csv file", e.getClass().getName());
             }
 
             double parYTicks = olsLinearRegression(angularPoints, parPoints);
@@ -129,6 +131,7 @@ public class OffsetTuning extends LinearOpMode {
 
             telemetry.addLine("Basic Linear Regression: Outliers are NOT removed these could be wrong");
             telemetry.addLine("Disregard the sign for these values, parYTicks: -, perpXTicks: +");
+            telemetry.addData("Regression Size", angularPoints.size());
             telemetry.addData("parYTicks", parYTicks);
             telemetry.addData("perpXTicks", perpXTicks);
             telemetry.update();

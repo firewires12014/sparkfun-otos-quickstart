@@ -78,6 +78,10 @@ public class SampleAuto extends LinearOpMode {
         // Any pre start init shi
         robot.farm.close();
         robot.intake.intakeUp();
+        // Shift into high gear and unlock PTO
+        robot.setGearBoxHigh();
+        robot.unlockPTO();
+
         waitForStart();
         resetRuntime();
         prevLoop = System.nanoTime() / 1e9;

@@ -23,7 +23,7 @@ public class Intake {
 
     public static double pivotMiddle = 0.53;
     public static double pivotIntake = 0.25;
-    public static double pivotTransfer = 0.85;
+    public static double pivotTransfer = 0.87;
 
     public static double sensorDistance = 15;
     public static double OUT_DISTANCE = 75;
@@ -117,7 +117,7 @@ public class Intake {
     }
 
     public void reverseIntake() {
-        spin.setPower(-0.75);
+        spin.setPower(-1);
     }
 
     public void setFeedforwardComponent(DoubleSupplier axialVelo, DoubleSupplier radialVelo) {
