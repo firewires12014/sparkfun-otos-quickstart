@@ -20,23 +20,17 @@ import org.firstinspires.ftc.teamcode.Subsystems.Robot;
 import org.firstinspires.ftc.teamcode.util.ActionUtil;
 import org.firstinspires.ftc.teamcode.util.AutoActionScheduler;
 
-@Config
 @Autonomous
+@Config
 //@Disabled
-public class SampleAuto extends LinearOpMode {
+public class RTPTesting extends LinearOpMode {
     Robot robot;
     AutoActionScheduler scheduler;
 
-    Pose2d start = new Pose2d(-41.5, -64, Math.toRadians(90));
+    Pose2d start = new Pose2d(0, 0, Math.toRadians(0));
 
-    Pose2d preloadBucket = new Pose2d(new Vector2d(-62.25, -58.14), Math.toRadians(54.2));
-    Pose2d sample1Bucket = new Pose2d(new Vector2d(-62.25, -58.14), Math.toRadians(54.2));
-    Pose2d sample2Bucket = new Pose2d(new Vector2d(-62.25, -58.14), Math.toRadians(54.2));
-    Pose2d sample3Bucket = new Pose2d(new Vector2d(-62.25, -58.14), Math.toRadians(54.2));
-
-    Pose2d sample1Pose = new Pose2d(new Vector2d(-56.33, -48.87), Math.toRadians(75.5));
-    Pose2d sample2Pose = new Pose2d(new Vector2d(-58.8, -47), Math.toRadians(92));
-    Pose2d sample3Pose = new Pose2d(new Vector2d(-62.15, -48.0), Math.toRadians(110));
+    // X is left to right (robot centric) Y is intake position NOT drive position, heading doesn't change
+    Pose2d cycle1Offset = new Pose2d(0, 30, Math.toRadians(0));
 
     double prevLoop = 0;
     @Override
@@ -46,34 +40,6 @@ public class SampleAuto extends LinearOpMode {
         // Hardware Class(s)
         robot = new Robot(hardwareMap, start, LynxModule.BulkCachingMode.AUTO);
         scheduler = new AutoActionScheduler(this::update);
-
-        Action toBucket = robot.drive.actionBuilder(start)
-                .strafeToLinearHeading(preloadBucket.position, preloadBucket.heading)
-                .build();
-
-        Action firstSample = robot.drive.actionBuilder(preloadBucket)
-                .strafeToLinearHeading(sample1Pose.position, sample1Pose.heading)
-                .build();
-
-        Action depositFirst = robot.drive.actionBuilder(sample1Pose)
-                .strafeToLinearHeading(sample1Bucket.position, sample1Bucket.heading)
-                .build();
-
-        Action secondSample = robot.drive.actionBuilder(sample1Bucket)
-                .strafeToLinearHeading(sample2Pose.position, sample2Pose.heading)
-                .build();
-
-        Action depositSecond = robot.drive.actionBuilder(sample2Pose)
-                .strafeToLinearHeading(sample2Bucket.position, sample2Bucket.heading)
-                .build();
-
-        Action thirdSample = robot.drive.actionBuilder(sample2Bucket)
-                .strafeToLinearHeading(sample3Pose.position, sample3Pose.heading)
-                .build();
-
-        Action depositThird = robot.drive.actionBuilder(sample3Pose)
-                .strafeToLinearHeading(sample3Bucket.position, sample3Bucket.heading)
-                .build();
 
         // Any pre start init shi
         robot.farm.close();
@@ -86,51 +52,9 @@ public class SampleAuto extends LinearOpMode {
         resetRuntime();
         prevLoop = System.nanoTime() / 1e9;
         while (opModeIsActive() && !isStopRequested()) {
-            // Insert actual code
-            scheduler.addAction(new ParallelAction(
-                    bucket(),
-                    ActionUtil.Offset(1.3, toBucket, dropFard())
-            ));
 
-            // Cycle 1
-            scheduler.addAction(new ParallelAction(
-                    ActionUtil.Delay(0.2, returnLift()),
-                    firstSample,
-//                    robot.pauseAuto(telemetry, ()-> gamepad1.touchpad, 1e9),
-                    ActionUtil.Delay(0.5, intake(1, 520))
-            ));
-            scheduler.addAction(new ParallelAction(
-                    transfer(),
-                    ActionUtil.Offset(1.7, depositFirst, dropFard())
-            ));
-
-            // Cycle 2
-            scheduler.addAction(new ParallelAction(
-                    ActionUtil.Delay(0.2, returnLift()),
-                    secondSample,
-//                    robot.pauseAuto(telemetry, ()-> gamepad1.touchpad, 1e9),
-                    ActionUtil.Delay(0.5, intake(1, 520))
-            ));
-            scheduler.addAction(new ParallelAction(
-                    transfer(),
-                    ActionUtil.Offset(1.7, depositSecond, dropFard())
-            ));
-
-            // Cycle 3
-            scheduler.addAction(new ParallelAction(
-                    ActionUtil.Delay(0.2, returnLift()),
-                    thirdSample,
-//                    robot.pauseAuto(telemetry, ()-> gamepad1.touchpad, 1e9),
-                    ActionUtil.Delay(0.5, intake(1, 520))
-            ));
-            scheduler.addAction(new ParallelAction(
-                    transfer(),
-                    ActionUtil.Offset(1.7, depositThird, dropFard())
-            ));
+            scheduler.addAction(robot.drive.driveToPoint(cycle1Offset));
             scheduler.run();
-
-            // End 4 sample
-            scheduler.addAction(ActionUtil.Delay(0.2, returnLift()));
 
             scheduler.addAction(robot.endAuto( this, telemetry, 30));
             scheduler.run();
@@ -138,21 +62,6 @@ public class SampleAuto extends LinearOpMode {
             telemetry.addLine("Telemetry Data"); // Add telemetry below this
             loopTimeMeasurement(telemetry); // Don't update telemetry again, this method already does that
         }
-    }
-
-    public Action drop(double timeout, double distance) {
-        return new SequentialAction(
-                new ActionUtil.RunnableTimedAction(timeout, ()-> robot.inRangeOfBucket()),
-                new InstantAction(robot.farm::drop)
-        );
-    }
-
-    public Action drop(double timeout) {
-        return drop(timeout, 220);
-    }
-
-    public Action drop() {
-        return drop(1, 220);
     }
 
     public Action dropFard() {
@@ -164,8 +73,8 @@ public class SampleAuto extends LinearOpMode {
 
     public Action bucket() {
         return new InstantAction(()-> {
-                    robot.farm.setBucketScore();
-                }
+            robot.farm.setBucketScore();
+        }
         );
     }
 
@@ -192,7 +101,7 @@ public class SampleAuto extends LinearOpMode {
     }
 
     public Action transfer() {
-       return  new SequentialAction(
+        return  new SequentialAction(
                 new InstantAction(()-> {
                     robot.intake.startIntake();
                     Intake.PID_ENABLED = false;
@@ -214,7 +123,7 @@ public class SampleAuto extends LinearOpMode {
                     robot.intake.stopIntake();
                 }),
                 new SleepAction(0.6),
-               new InstantAction(()-> robot.farm.setBucketScore())
+                new InstantAction(()-> robot.farm.setBucketScore())
         );
     }
 

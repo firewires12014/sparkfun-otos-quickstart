@@ -92,13 +92,13 @@ public final class MecanumDrive {
         public double lateralVelGain = 0.0;
         public double headingVelGain = 0.0; // shared with turn
 
-        public double translationalP = 0.0;
-        public double translationalD = 0.0;
-        public double translationalL = 0.0;
+        public double translationalP = 5;
+        public double translationalD = 1;
+        public double translationalL = 0.5;
 
-        public double headingP = 0.0;
-        public double headingD = 0.0;
-        public double headingL = 0.0;
+        public double headingP = 20;
+        public double headingD = 1;
+        public double headingL = 0.5;
     }
 
     public static Params PARAMS = new Params();
@@ -283,11 +283,78 @@ public final class MecanumDrive {
         rightFront.setPower(wheelVels.rightFront.get(0) / maxPowerMag);
     }
 
-    public Action driveToPoint() {
-        return new ActionUtil.RunnableAction(()-> {
+    // TODO: Current issue: wont end if it is far from the position and not within threshold
+    public class DriveToPoint implements Action {
+        private final Pose2d endPose;
+        private final double positionalDeadzone;
+        private final double angularDeadzone;
 
-            return false;
-        });
+        public DriveToPoint(Pose2d endPose, double positionalDeadzone, double angularDeadzone) {
+            this.endPose = endPose;
+            this.positionalDeadzone = positionalDeadzone;
+            this.angularDeadzone = angularDeadzone;
+
+            x.reset();
+            y.reset();
+            h.reset();
+
+            x.setDeadzone(positionalDeadzone);
+            y.setDeadzone(positionalDeadzone);
+            h.setDeadzone(angularDeadzone);
+        }
+
+        public DriveToPoint(Pose2d endPose) {
+            this.endPose = endPose;
+            this.positionalDeadzone = 0.75;
+            this.angularDeadzone = Math.toRadians(5);
+
+            x.reset();
+            y.reset();
+            h.reset();
+
+            x.setDeadzone(positionalDeadzone);
+            y.setDeadzone(positionalDeadzone);
+            h.setDeadzone(angularDeadzone);
+        }
+
+        @Override
+        public boolean run(@NonNull TelemetryPacket p) {
+            localizer.update();
+
+            Pose2d pose = localizer.getPose();
+            double voltage = voltageSensor.getVoltage();
+
+            Vector2d positionalError = endPose.component1().minus(pose.component1());
+            double headingError = AngleUnit.normalizeRadians(endPose.heading.toDouble() - pose.component2().toDouble());
+
+            double xPower = x.run(positionalError.x) / voltage;
+            double yPower = y.run(positionalError.y) / voltage;
+            double hPower = h.run(headingError) / voltage;
+
+            // Apply Drive Power
+            setDrivePowers(new PoseVelocity2d(new Vector2d(xPower, yPower), hPower));
+
+            // Draw Current and End Position
+            Canvas c = p.fieldOverlay();
+            drawPoseHistory(c);
+
+            c.setStroke("#4CAF50");
+            Drawing.drawRobot(c, endPose);
+
+            c.setStroke("#3F51B5");
+            Drawing.drawRobot(c, localizer.getPose());
+
+            if ((positionalError.x < positionalDeadzone && positionalError.y < positionalDeadzone && headingError < angularDeadzone)){ // If it short it will get stuck | Find fix?
+                setDrivePowers(new PoseVelocity2d(new Vector2d(0, 0), 0));
+
+                return true;
+            }
+            return true;
+        }
+    }
+
+    public Action driveToPoint(Pose2d endPose) {
+        return new DriveToPoint(endPose);
     }
 
     public final class FollowTrajectoryAction implements Action {

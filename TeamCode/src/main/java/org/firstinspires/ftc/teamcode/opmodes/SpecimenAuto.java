@@ -236,7 +236,7 @@ public class SpecimenAuto extends LinearOpMode {
             // Ends the auto and keeps it running for an indefinite amount of time to move the robot to check for position
             //scheduler.addAction(robot.endAuto(this, telemetry));
             //scheduler.run();
-            
+
             // Not gonna do diddly squat
             telemetry.addLine("Telemetry Data"); // Add telemetry below this
             loopTimeMeasurement(telemetry); // Don't update telemetry again, this method already does that

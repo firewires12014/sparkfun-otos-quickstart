@@ -16,6 +16,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Subsystems.Robot;
 import org.firstinspires.ftc.teamcode.util.ActionUtil;
@@ -31,6 +32,10 @@ public class CycleTestingAuto extends LinearOpMode {
     Pose2d start = new Pose2d(-41.5, -64, Math.toRadians(90));
 
     Pose2d preloadBucket = new Pose2d(new Vector2d(-62.25, -58.14), Math.toRadians(54.2));
+    Pose2d cycle = new Pose2d(new Vector2d(-24.33, -14), Math.toRadians(0));
+
+    // X is left to right (robot centric) Y is intake position NOT drive position, heading doesn't change
+    Pose2d cycle1Offset = new Pose2d(-10, 7, 0);
 
     double prevLoop = 0;
     @Override
@@ -43,6 +48,10 @@ public class CycleTestingAuto extends LinearOpMode {
 
         Action toBucket = robot.drive.actionBuilder(start)
                 .strafeToLinearHeading(preloadBucket.position, preloadBucket.heading)
+                .build();
+
+        Action toSub = robot.drive.actionBuilder(preloadBucket)
+                .splineTo(cycle.position, cycle.heading)
                 .build();
 
         // Any pre start init shi
@@ -63,7 +72,11 @@ public class CycleTestingAuto extends LinearOpMode {
             ));
 
             // End 4 sample
-            scheduler.addAction(ActionUtil.Delay(0.2, returnLift()));
+            scheduler.addAction(ActionUtil.Offset(0.2, toSub, returnLift()));
+            scheduler.addAction(robot.drive.driveToPoint(new Pose2d(
+                    robot.drive.localizer.getPose().position.x,
+                    robot.drive.localizer.getPose().position.y-cycle1Offset.position.x,
+                    robot.drive.localizer.getPose().heading.toDouble())));
 
             scheduler.addAction(robot.endAuto( this, telemetry, 30));
             scheduler.run();
