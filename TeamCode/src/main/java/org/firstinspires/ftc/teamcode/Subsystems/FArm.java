@@ -27,35 +27,36 @@ public class FArm {
     public static double targetPosition = 0;
     public static boolean PID_ENABLED = true;
     public static double joystickDeadzone = 0.05;
-    public static double tolerance = 50;
+    public static double tolerance = 75; //
 
     public static double PIVOT_OFFSET = 0.04;
+    public static double GLOBAL_PIVOT_OFFSET = 0.0125;
     public static double WRIST_OFFSET = 0.00;
 
     // Transfer
     public static double liftTransfer = 0;
-    public static double pivotTransfer = 0.18;
+    public static double pivotTransfer = 0.18 + GLOBAL_PIVOT_OFFSET;
     public static double wristTransfer = 0.24 + WRIST_OFFSET;
 
     // Spec Score
     public static double liftSpecScore = 350;
-    public static double pivotSpecScore = 0.31;
+    public static double pivotSpecScore = 0.31 + GLOBAL_PIVOT_OFFSET;
     public static double wristSpecScore = 0.57 + WRIST_OFFSET;
 
     // Bucket Score
     public static double liftBucketScore = 825;
     public static double liftLowBucketScore = 155;
-    public static double pivotBucketScore = 0.6;
-    public static double wristBucketScore = 0.62 + WRIST_OFFSET;
+    public static double pivotBucketScore = 0.6 + GLOBAL_PIVOT_OFFSET;
+    public static double wristBucketScore = 0.66 + WRIST_OFFSET; // 0.62
 
     // Spec Intake
     public static double liftSpecIntake = 200;
-    public static double pivotSpecIntake = 0.9;
+    public static double pivotSpecIntake = 0.9 + GLOBAL_PIVOT_OFFSET;
     public static double wristSpecIntake = 0.72 + WRIST_OFFSET;
 
     // Auto Spec Score
     public static double autoLiftSpecIntake = 350;
-    public static double autoPivotSpecIntake = 0.31;
+    public static double autoPivotSpecIntake = 0.31 + GLOBAL_PIVOT_OFFSET;
     public static double autoWristSpecIntake = 0.57 + WRIST_OFFSET;
 
     // Claw

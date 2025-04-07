@@ -37,6 +37,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -92,13 +93,16 @@ public final class MecanumDrive {
         public double lateralVelGain = 0.0;
         public double headingVelGain = 0.0; // shared with turn
 
-        public double translationalP = 5;
-        public double translationalD = 1;
-        public double translationalL = 0.5;
+        public double translationalP = 1;
+        public double translationalD = 0;
+        public double translationalL = 5;
 
-        public double headingP = 20;
-        public double headingD = 1;
-        public double headingL = 0.5;
+        public double headingP = 5;
+        public double headingD = 0;
+        public double headingL = 0;
+
+        public double flickOut = 1;
+        public double flickIn = 0.5;
     }
 
     public static Params PARAMS = new Params();
@@ -119,6 +123,8 @@ public final class MecanumDrive {
     public final DcMotorEx leftFront, leftBack, rightBack, rightFront;
 
     public final VoltageSensor voltageSensor;
+
+    public Servo flicker;
 
     public final LazyImu lazyImu;
 
@@ -227,6 +233,14 @@ public final class MecanumDrive {
         }
     }
 
+    public void flickOut() {
+        flicker.setPosition(PARAMS.flickOut);
+    }
+
+    public void flickIn() {
+        flicker.setPosition(PARAMS.flickIn);
+    }
+
     public MecanumDrive(HardwareMap hardwareMap, Pose2d pose) {
         LynxFirmware.throwIfModulesAreOutdated(hardwareMap);
 
@@ -266,6 +280,10 @@ public final class MecanumDrive {
         x = new PDFL(PARAMS.translationalP, PARAMS.translationalD, 0, PARAMS.translationalL);
         y = new PDFL(PARAMS.translationalP, PARAMS.translationalD, 0, PARAMS.translationalL);
         h = new PDFL(PARAMS.headingP, PARAMS.headingD, 0, PARAMS.headingL);
+
+        flicker = hardwareMap.get(Servo.class, "flicker");
+
+        flickIn();
     }
 
     public void setDrivePowers(PoseVelocity2d powers) {
@@ -284,6 +302,7 @@ public final class MecanumDrive {
     }
 
     // TODO: Current issue: wont end if it is far from the position and not within threshold
+    // TODO: it doesn't compensate for rotation so if it is rotated while moving it fucking dies and wobbles but does still get to position
     public class DriveToPoint implements Action {
         private final Pose2d endPose;
         private final double positionalDeadzone;
@@ -305,7 +324,7 @@ public final class MecanumDrive {
 
         public DriveToPoint(Pose2d endPose) {
             this.endPose = endPose;
-            this.positionalDeadzone = 0.75;
+            this.positionalDeadzone = 0.5;
             this.angularDeadzone = Math.toRadians(5);
 
             x.reset();
@@ -344,10 +363,63 @@ public final class MecanumDrive {
             c.setStroke("#3F51B5");
             Drawing.drawRobot(c, localizer.getPose());
 
-            if ((positionalError.x < positionalDeadzone && positionalError.y < positionalDeadzone && headingError < angularDeadzone)){ // If it short it will get stuck | Find fix?
+            if ((Math.abs(positionalError.x) < positionalDeadzone && Math.abs(positionalError.y) < positionalDeadzone)){ // If it short it will get stuck | Find fix?
                 setDrivePowers(new PoseVelocity2d(new Vector2d(0, 0), 0));
 
-                return true;
+                return false;
+            }
+            return true;
+        }
+    }
+
+    public class ShiftToX implements Action {
+        private final double endX;
+        private double positionalDeadzone = 0;
+        private double power = 0;
+
+        public ShiftToX(double x, double power, double positionalDeadzone) {
+            this.endX = localizer.getPose().position.y + x;
+            this.positionalDeadzone = positionalDeadzone;
+            this.power = power;
+
+            h.reset();
+        }
+
+        public ShiftToX(double x, double power) {
+            this.endX = localizer.getPose().position.y + x;
+            this.positionalDeadzone = 0.15;
+            this.power = power;
+
+            h.reset();
+        }
+
+        @Override
+        public boolean run(@NonNull TelemetryPacket p) {
+            localizer.update();
+
+            Pose2d pose = localizer.getPose();
+
+            double error = endX - localizer.getPose().position.y;
+            double headingError = AngleUnit.normalizeRadians(0 - pose.component2().toDouble());
+
+            double xPower = 0;
+            double yPower = power * Math.signum(error);
+            double hPower = h.run(headingError);
+
+            // Apply Drive Power
+            setDrivePowers(new PoseVelocity2d(new Vector2d(xPower, yPower), hPower));
+
+            // Draw Current and End Position
+            Canvas c = p.fieldOverlay();
+            drawPoseHistory(c);
+
+            c.setStroke("#3F51B5");
+            Drawing.drawRobot(c, localizer.getPose());
+
+            if (Math.abs(error) < positionalDeadzone){ // If it short it will get stuck | Find fix?
+                setDrivePowers(new PoseVelocity2d(new Vector2d(0, 0), 0));
+
+                return false;
             }
             return true;
         }
@@ -355,6 +427,10 @@ public final class MecanumDrive {
 
     public Action driveToPoint(Pose2d endPose) {
         return new DriveToPoint(endPose);
+    }
+
+    public Action shiftToX(double x, double power) {
+        return new ShiftToX(x, power);
     }
 
     public final class FollowTrajectoryAction implements Action {

@@ -5,34 +5,45 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
+import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
+import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.hardware.lynx.LynxModule;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Subsystems.Robot;
+import org.firstinspires.ftc.teamcode.Subsystems.Vision;
 import org.firstinspires.ftc.teamcode.util.ActionUtil;
 import org.firstinspires.ftc.teamcode.util.AutoActionScheduler;
 
-@Autonomous
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Objects;
+
+@TeleOp
 @Config
-@Disabled
-public class RTPTesting extends LinearOpMode {
+//@Disabled
+public class LimelightAndIntakeTesting extends LinearOpMode {
     Robot robot;
+    Vision vision;
     AutoActionScheduler scheduler;
+
+    public static double xOffset = 1;
+    public static double yOffset = 0;
 
     Pose2d start = new Pose2d(0, 0, Math.toRadians(0));
 
+    Pose2d preloadBucket = new Pose2d(new Vector2d(-62.25, -58.14), Math.toRadians(54.2));
+    Pose2d cycle = new Pose2d(new Vector2d(-24.33, -10), Math.toRadians(0));
+    Pose2d bucekt = new Pose2d(new Vector2d(-60, -56.7), Math.toRadians(45));
+
     // X is left to right (robot centric) Y is intake position NOT drive position, heading doesn't change
-    public static double x = 0;
-    public static double y = 5;
-    public static double power = 0.3;
-    Pose2d position = new Pose2d(x, y, Math.toRadians(0));
+    Pose2d cycle1Offset = new Pose2d(-10, 7, 0);
 
     double prevLoop = 0;
     @Override
@@ -41,7 +52,21 @@ public class RTPTesting extends LinearOpMode {
 
         // Hardware Class(s)
         robot = new Robot(hardwareMap, start, LynxModule.BulkCachingMode.AUTO);
+        vision = new Vision(hardwareMap);
         scheduler = new AutoActionScheduler(this::update);
+
+        Action toBucket = robot.drive.actionBuilder(start)
+                .strafeToLinearHeading(preloadBucket.position, preloadBucket.heading)
+                .build();
+
+        Action toSub = robot.drive.actionBuilder(preloadBucket)
+                .splineTo(cycle.position, cycle.heading)
+                .build();
+
+        Action toCycleBucket = robot.drive.actionBuilder(cycle)
+                .setTangent(Math.toRadians(180))
+                .splineTo(bucekt.position, Math.toRadians(-90) - bucekt.heading.toDouble())
+                .build();
 
         // Any pre start init shi
         robot.farm.close();
@@ -53,19 +78,46 @@ public class RTPTesting extends LinearOpMode {
         waitForStart();
         resetRuntime();
         prevLoop = System.nanoTime() / 1e9;
+        vision.start();
         while (opModeIsActive() && !isStopRequested()) {
-            scheduler.addAction(robot.drive.shiftToX(y, power));
+            // Insert actual code
+
+            ArrayList<Object> dection = vision.getBlock();
+
+            double[] offsets = (double[]) dection.get(0); // TODO: Poll for a time, to allow a better estimated position
+            robot.intake.intakeHorizontal();
+            telemetry.addData("Offset", Arrays.toString(offsets));
+            telemetry.addData("Color", dection.get(1));
+            telemetry.update();
+            scheduler.addAction(getReadyToIntake(-offsets[0] + xOffset, offsets[1] + yOffset));
             scheduler.run();
 
-            scheduler.addAction(robot.pauseAuto(telemetry, ()-> gamepad1.touchpad, 1e9));
+            scheduler.addAction(robot.pauseAuto(telemetry, ()->gamepad1.touchpad, 1e9));
             scheduler.run();
 
-            scheduler.addAction(robot.drive.shiftToX(-y, power));
-            scheduler.run();
-
-            scheduler.addAction(robot.pauseAuto(telemetry, ()-> gamepad1.touchpad, 1e9));
-            scheduler.run();
+            telemetry.addLine("Telemetry Data"); // Add telemetry below this
+            loopTimeMeasurement(telemetry); // Don't update telemetry again, this method already does that
         }
+    }
+
+    public Action getReadyToIntake(double x, double y) {
+        // do any augmentation to x and y here
+        double maxExtensionTicks = 576;
+        double maxExtensionIn = 18;
+        double intakeConversion = maxExtensionTicks / maxExtensionIn;
+
+        double yOffset = 1;
+
+        double intakeExtension = Math.max((y-yOffset) * intakeConversion, 150);
+
+        return new ParallelAction(
+                robot.drive.shiftToX(x, 0.3),
+                new InstantAction(()->{
+                    robot.drive.flickIn();
+                    Intake.targetPosition = intakeExtension;
+                    robot.intake.intakeHorizontal();
+                })
+        );
     }
 
     public Action dropFard() {
@@ -101,7 +153,10 @@ public class RTPTesting extends LinearOpMode {
     }
 
     public Action returnLift() {
-        return new InstantAction(robot.farm::setTransfer);
+        return new InstantAction(()->{
+            robot.farm.setTransfer();
+            robot.intake.intakeUp();
+        });
     }
 
     public Action transfer() {
@@ -132,12 +187,6 @@ public class RTPTesting extends LinearOpMode {
     }
 
     public void update() {
-        telemetry.addLine("Telemetry Data"); // Add telemetry below this
-        telemetry.addData("x error", position.position.x - robot.drive.localizer.getPose().position.x);
-        telemetry.addData("y error", position.position.y - robot.drive.localizer.getPose().position.y);
-        telemetry.addData("h error", Math.toDegrees(position.heading.toDouble() - robot.drive.localizer.getPose().heading.toDouble()));
-        loopTimeMeasurement(telemetry); // Don't update telemetry again, this method already does that
-
         robot.update();
     }
 

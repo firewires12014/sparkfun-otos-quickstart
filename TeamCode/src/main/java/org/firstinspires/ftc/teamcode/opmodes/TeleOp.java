@@ -176,7 +176,7 @@ public class TeleOp extends LinearOpMode {
             if (gamepad2.dpad_right) farmState = FARM_STATE.SPEC_SCORE;
 
             if (operatingState.equals(OPERATING_MODE.SPEC)) {
-               if (robot.farm.hasSpec() && robot.farm.isClawOpen()){
+               if (robot.farm.hasSpec() && robot.farm.isClawOpen() && gamepad2.square){
                    robot.farm.close();
                    specTimer.reset();
                }
@@ -185,10 +185,9 @@ public class TeleOp extends LinearOpMode {
                    farmState = FARM_STATE.SPEC_SCORE;
                 }
 
-                if (specTimer.seconds() > .4 && robot.farm.isClawOpen() && farmState.equals(FARM_STATE.SPEC_SCORE))
-                    farmState = farmState.SPEC_INTAKE;
-
-
+                if (specTimer.seconds() > .4 && robot.farm.isClawOpen() && farmState.equals(FARM_STATE.SPEC_SCORE)) {
+                    farmState = FARM_STATE.SPEC_INTAKE;
+                }
 
             }
 
@@ -210,7 +209,7 @@ public class TeleOp extends LinearOpMode {
                 clawTimer.reset();
             }
 
-            if (gamepad2.square && robot.inRangeOfBucket()) {
+            if (gamepad2.square && robot.inRangeOfBucket() && operatingState.equals(OPERATING_MODE.SAMPLE)) {
                 robot.farm.drop(); // auto drop
             }
 

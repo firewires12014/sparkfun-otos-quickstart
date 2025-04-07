@@ -224,8 +224,7 @@ public class SpecimenAuto extends LinearOpMode {
             ));
             scheduler.run();
 
-
-
+            stop();
 
             // Example of how to pause the auto to get a value and then resume it using a button to resume
             //pause(()-> gamepad1.touchpad, telemetry);
