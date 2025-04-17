@@ -35,8 +35,8 @@ public class FArm {
 
     // Transfer
     public static double liftTransfer = 0;
-    public static double pivotTransfer = 0.18 + GLOBAL_PIVOT_OFFSET;
-    public static double wristTransfer = 0.24 + WRIST_OFFSET;
+    public static double pivotTransfer = 0.17;
+    public static double wristTransfer = 0.26 + WRIST_OFFSET;
 
     // Spec Score
     public static double liftSpecScore = 350;
@@ -67,10 +67,11 @@ public class FArm {
     public PIDCoefficients coef;
     public PIDFController pid;
 
-    public static double kP = 0.027;
+    public static double kP = 0.00015;
     public static double kI = 0;
-    public static double kD = 0.00009;
+    public static double kD = 0.000000015;
     public static double kF = 0.05;
+    public static double kvf = 0.000001;
 
     private double newPower = 0.0;
 
@@ -81,10 +82,23 @@ public class FArm {
         LET_GO
     }
 
+    public enum HangManualControl {
+        IDLE,
+        ACTIVATED,
+        USING,
+        LET_GO
+    }
+
     public ManualControl state = ManualControl.IDLE;
+
+    public HangManualControl hangmanstate = HangManualControl.IDLE;
 
     // Lift
     public DcMotorEx lift, lift2;
+
+
+    // PTO
+    public DcMotorEx leftBack, rightBack;
 
     // Arm
     public Servo wrist, left, right, grab;
@@ -105,7 +119,7 @@ public class FArm {
         lift = hardwareMap.get(DcMotorEx.class, "lift");
         lift.setDirection(DcMotorSimple.Direction.REVERSE);
         lift2 = hardwareMap.get(DcMotorEx.class, "lift2");
-        lift2.setDirection(DcMotorSimple.Direction.FORWARD);
+        lift2.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // Hang
         leftPTO = hardwareMap.get(Servo.class,"leftPTO");
@@ -125,13 +139,20 @@ public class FArm {
         PID_ENABLED = true;
     }
 
+    double ff = 0;
+
     public void update() {
         pid.setTargetPosition(targetPosition);
 
         if (PID_ENABLED) {
             newPower = this.pid.update(lift.getCurrentPosition(), lift.getVelocity());
-            lift.setPower(newPower + kF);
-            lift2.setPower(newPower + kF);
+
+            if (lift.getVelocity() > 0) {
+                ff = Math.abs(lift.getVelocity()) * kvf;
+            }
+
+            lift.setPower(newPower + kF + ff);
+            lift2.setPower(newPower + kF + ff);
         }
     }
 
@@ -167,7 +188,7 @@ public class FArm {
     }
 
     public void setTransfer() {
-        targetPosition = liftTransfer; // Does not enable pid
+//        targetPosition = liftTransfer; // Does not enable pid
         setPivot(pivotTransfer);
         wrist.setPosition(wristTransfer);
     }
@@ -231,6 +252,33 @@ public class FArm {
                 break;
         }
     }
+//TODO: double check if the motors are going the right way
+    public void hangManualControl(double joystickInput) {
+        switch (hangmanstate) {
+            case IDLE:
+                if (Math.abs(joystickInput) > joystickDeadzone)
+                    hangmanstate = HangManualControl.ACTIVATED;
+                break;
+            case ACTIVATED:
+                PID_ENABLED = false;
+
+                hangmanstate = HangManualControl.USING;
+                break;
+            case USING:
+                lift.setPower(joystickInput);
+                lift2.setPower(joystickInput);
+                leftBack.setPower(joystickInput);
+                rightBack.setPower(joystickInput);
+                if (Math.abs(joystickInput) < joystickDeadzone) hangmanstate = HangManualControl.LET_GO;
+                break;
+            case LET_GO:
+                targetPosition = lift.getCurrentPosition();
+                PID_ENABLED = false;
+                hangmanstate = HangManualControl.IDLE;
+                break;
+        }
+    }
+    //yeah i got no clue if this shit will work i just copied and pasted the old thing and made it a new thing
 
     public void setPivot(double position) {
         left.setPosition(position);

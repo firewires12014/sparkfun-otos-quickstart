@@ -34,7 +34,7 @@ public class LimelightAndIntakeTesting extends LinearOpMode {
     AutoActionScheduler scheduler;
 
     public static double xOffset = 1;
-    public static double yOffset = 0;
+    public static double yOffset = -1;
 
     Pose2d start = new Pose2d(0, 0, Math.toRadians(0));
 
@@ -77,26 +77,45 @@ public class LimelightAndIntakeTesting extends LinearOpMode {
 
         waitForStart();
         resetRuntime();
+
+        ArrayList<Object> dection;
+        double[] offsets = new double[]{};
+
         prevLoop = System.nanoTime() / 1e9;
         vision.start();
         while (opModeIsActive() && !isStopRequested()) {
             // Insert actual code
 
-            ArrayList<Object> dection = vision.getBlock();
+            while(!gamepad1.touchpad) {
+                robot.intake.intakeUp();
+                dection = vision.getBlock(true);
 
-            double[] offsets = (double[]) dection.get(0); // TODO: Poll for a time, to allow a better estimated position
+                offsets = (double[]) dection.get(0); // TODO: Poll for a time, to allow a better estimated position
+
+                telemetry.addData("Offset", Arrays.toString(offsets));
+                telemetry.addData("Color", dection.get(1));
+                telemetry.update();
+            }
+
             robot.intake.intakeHorizontal();
-            telemetry.addData("Offset", Arrays.toString(offsets));
-            telemetry.addData("Color", dection.get(1));
-            telemetry.update();
             scheduler.addAction(getReadyToIntake(-offsets[0] + xOffset, offsets[1] + yOffset));
             scheduler.run();
 
             scheduler.addAction(robot.pauseAuto(telemetry, ()->gamepad1.touchpad, 1e9));
             scheduler.run();
 
-            telemetry.addLine("Telemetry Data"); // Add telemetry below this
-            loopTimeMeasurement(telemetry); // Don't update telemetry again, this method already does that
+            Intake.targetPosition = 0;
+            robot.intake.intakeUp();
+            dection = vision.getBlock(true);
+
+            offsets = (double[]) dection.get(0); // TODO: Poll for a time, to allow a better estimated position
+
+            telemetry.addData("Offset", Arrays.toString(offsets));
+            telemetry.addData("Color", dection.get(1));
+            telemetry.update();
+
+            scheduler.addAction(new SleepAction(1));
+            scheduler.run();
         }
     }
 

@@ -21,10 +21,10 @@ public class HangTesting extends LinearOpMode {
         public DcMotorEx leftBack, rightBack, lift1, lift2;
         public Servo leftPTO, leftRack, rightPTO, rightRack, gearBox;
 
-        public static double leftPtoLock = .5;
-        public static double leftPtoUnlock = .9;
-        public static double rightPtoLock = .5;
-        public static double rightPtoUnlock = .9;
+        public static double leftPtoLock = 0;
+        public static double leftPtoUnlock = 1;
+        public static double rightPtoLock = 1;
+        public static double rightPtoUnlock = 0;
         public static double leftRackUp = 0;
         public static double leftRackDown = .2;
         public static double rightRackUp = 0;

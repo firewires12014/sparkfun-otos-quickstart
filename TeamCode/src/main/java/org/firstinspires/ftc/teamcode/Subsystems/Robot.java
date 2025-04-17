@@ -4,11 +4,7 @@ import android.annotation.SuppressLint;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Action;
-import com.acmerobotics.roadrunner.InstantAction;
-import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.SequentialAction;
-import com.acmerobotics.roadrunner.SleepAction;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
@@ -43,12 +39,16 @@ public class Robot {
     public int colorValueGreen;
     public int colorValueBlue;
 
-    public static double yellow = .34;
+    public static double YELLOW = .34;
+    public static double RED = .279;
+    public static double BLUE = .611;
 
-    public static double leftPtoLock = .5;
-    public static double leftPtoUnlock = .9;
-    public static double rightPtoLock = .5;
-    public static double rightPtoUnlock = .9;
+    public static String selected_color = "RED";
+
+    public static double leftPtoLock = 0;
+    public static double leftPtoUnlock = 1;
+    public static double rightPtoLock = 1;
+    public static double rightPtoUnlock = 0;
     public static double leftRackUp = 0;
     public static double leftRackDown = .2;
     public static double rightRackUp = 0;
@@ -124,6 +124,16 @@ public class Robot {
         lights.setPosition(0);
     }
 
+    public void setColorRed() {
+        selected_color = "RED";
+        lights.setPosition(RED);
+    }
+
+    public void setColorBlue() {
+        selected_color = "BLUE";
+        lights.setPosition(BLUE);
+    }
+
     public boolean hasSample() {
         // Check for color
         if (sampleColor.getDistance(DistanceUnit.MM) < Intake.sensorDistance) {
@@ -131,16 +141,44 @@ public class Robot {
             colorValueBlue = sampleColor.blue();
             colorValueGreen = sampleColor.green();
             if (sampleColor.green() > 800) {
-                lights.setPosition(yellow);
+                lights.setPosition(YELLOW);
             } else if (sampleColor.red() > sampleColor.blue()) {
-                lights.setPosition(.279);
+                lights.setPosition(RED);
             } else if (sampleColor.blue() > sampleColor.red()) {
-                lights.setPosition(.611);
+                lights.setPosition(BLUE);
             }
         }
-
         return sampleColor.getDistance(DistanceUnit.MM) < Intake.sensorDistance;
     }
+
+//    public boolean hasSample() {
+//        return sampleColor.getDistance(DistanceUnit.MM) < Intake.sensorDistance;
+//    }
+    //I think this might break auto bc we might use the color function in auto so dont use this one ig just have it read for color twice
+
+    public String currentColor() {
+        colorValueRed = sampleColor.red();
+        colorValueBlue = sampleColor.blue();
+        colorValueGreen = sampleColor.green();
+        if (sampleColor.green() > 800) {
+            return "YELLOW";
+        } else if (sampleColor.red() > sampleColor.blue()) {
+            return "RED";
+        } else if (sampleColor.blue() > sampleColor.red()) {
+            return "BLUE";
+        } else return "?";
+    }
+
+    public boolean correctColor() {
+        if (currentColor().equalsIgnoreCase("YELLOW")) {
+            return true;
+        } else if (currentColor().equalsIgnoreCase("RED") || currentColor().equalsIgnoreCase("BLUE")) {
+            return selected_color.equalsIgnoreCase(currentColor());
+        } else {
+            return false;
+        }
+    }
+
 
     // Same as the one below but doesn't have a timeout
     public Action endAuto(LinearOpMode opMode, Telemetry telemetry) {
@@ -186,8 +224,8 @@ public class Robot {
             double y = pose.position.y;
             double h = pose.heading.toDouble();
 
-            telemetry.addData("Robot Pose", String.format("x:%.2f \t y:%.2f \t heading:%.2f", x, y, Math.toDegrees(h)));
-            telemetry.update();
+//            telemetry.addData("Robot Pose", String.format("x:%.2f \t y:%.2f \t heading:%.2f", x, y, Math.toDegrees(h)));
+//            telemetry.update();
 
             return !trigger.getAsBoolean();
         });
@@ -198,8 +236,24 @@ public class Robot {
         rightPTO.setPosition(rightPtoLock);
     }
 
+    public void leftLockPTO() {
+        leftPTO.setPosition(leftPtoLock);
+    }
+
+    public void rightLockPTO() {
+        rightPTO.setPosition(rightPtoLock);
+    }
+
     public void unlockPTO() {
         leftPTO.setPosition(leftPtoUnlock);
+        rightPTO.setPosition(rightPtoUnlock);
+    }
+
+    public void leftUnlockPTO() {
+        leftPTO.setPosition(leftPtoUnlock);
+    }
+
+    public void rightUnlockPTO() {
         rightPTO.setPosition(rightPtoUnlock);
     }
 
@@ -220,6 +274,15 @@ public class Robot {
     public void setGearBoxLow() {
         gearBox.setPosition(gearBoxLow);
     }
+
+    public boolean isLeftPtoLocked() {
+        return(ActionUtil.compareDouble(leftPTO.getPosition(), leftPtoLock));
+    }
+
+    public boolean isRightPtoLocked() {
+        return(ActionUtil.compareDouble(rightPTO.getPosition(), rightPtoLock));
+    }
+
 
 
 

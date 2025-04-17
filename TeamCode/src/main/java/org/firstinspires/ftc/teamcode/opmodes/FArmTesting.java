@@ -53,6 +53,8 @@ public class FArmTesting extends LinearOpMode {
 
             telemetry.addLine("Telemetry Data"); // Add telemetry below this
             telemetry.addData("Target Position", FArm.targetPosition);
+            telemetry.addData("Old Encoder Position", farm.lift2.getCurrentPosition());
+            telemetry.addData("Lift velo", farm.lift.getVelocity());
             telemetry.addData("Lift Position", farm.lift.getCurrentPosition());
             telemetry.addData("Lift1 Current", farm.lift.getCurrent(CurrentUnit.MILLIAMPS));
             telemetry.addData("Lift2 Current", farm.lift.getCurrent(CurrentUnit.MILLIAMPS));

@@ -228,6 +228,8 @@ public class SampleAuto extends LinearOpMode {
             ));
             scheduler.run();
 
+//            transferMethod(toCycleBucket, 1.9);
+
             // Sub Cycle 2
             scheduler.addAction(ActionUtil.Offset(0.2, toSub2, returnLift()));
             scheduler.run();
@@ -256,6 +258,8 @@ public class SampleAuto extends LinearOpMode {
                     ActionUtil.Offset(1.9, toCycleBucket2, dropFard())
             ));
             scheduler.run();
+
+//            transferMethod(toCycleBucket2, 1.7);
 
             // Sub Cycle 3
             scheduler.addAction(ActionUtil.Offset(0.2, toSub3, returnLift()));
@@ -288,15 +292,32 @@ public class SampleAuto extends LinearOpMode {
                     transfer(),
                     ActionUtil.Offset(1.9, toCycleBucket3, dropFard())
             ));
+//            transferMethod(toCycleBucket3, 1.7);
+
             scheduler.addAction(returnLift());
             scheduler.run();
 
 
             scheduler.addAction(robot.endAuto(this, telemetry, 30));
             scheduler.run();
-
             telemetry.addLine("Telemetry Data"); // Add telemetry below this
             loopTimeMeasurement(telemetry); // Don't update telemetry again, this method already does that
+        }
+    }
+
+    public void transferMethod(Action traj, double depoTime) {
+        if (robot.hasSample() && !robot.correctColor()) {
+            scheduler.addAction(new ParallelAction(
+                    ejectTransfer(),
+                    ActionUtil.Offset(1.7, traj, dropFard())
+            ));
+            scheduler.run();
+        } else {
+            scheduler.addAction(new ParallelAction(
+                    transfer(),
+                    ActionUtil.Offset(depoTime, traj, dropFard())
+            ));
+            scheduler.run();
         }
     }
 
@@ -417,6 +438,7 @@ public class SampleAuto extends LinearOpMode {
                     robot.intake.extension.setPower(-1);
                     robot.intake.intakeUp();
                     robot.farm.setTransfer();
+//                    returnLift(); //did i just break ts by putting an action inside an action ion know
                 }),
                 new ActionUtil.RunnableAction(()-> robot.intake.extension.getCurrentPosition() > 50),
                 new SleepAction(0.2),
@@ -433,6 +455,34 @@ public class SampleAuto extends LinearOpMode {
                 }),
                 new SleepAction(0.6),
                new InstantAction(()-> robot.farm.setBucketScore())
+        );
+    }
+
+    public Action ejectTransfer() {
+        return  new SequentialAction(
+                new InstantAction(()-> {
+                    robot.intake.reverseIntake();
+                    Intake.PID_ENABLED = false;
+                    robot.intake.extension.setPower(-1);
+                    robot.intake.intakeUp();
+                    robot.farm.setTransfer();
+//                    returnLift(); //did i just break ts by putting an action inside an action ion know
+                }),
+                new ActionUtil.RunnableAction(()-> robot.intake.extension.getCurrentPosition() > 50),
+                new SleepAction(0.2),
+                new InstantAction(()-> {
+                    Intake.targetPosition = robot.intake.extension.getCurrentPosition();
+                    Intake.PID_ENABLED = true;
+                    robot.farm.close();
+                }),
+                new SleepAction(0.2),
+                new InstantAction(()->{
+                    robot.farm.setBucketScore();
+                    robot.farm.setPivot(0.5);
+                    robot.intake.stopIntake();
+                }),
+                new SleepAction(0.6),
+                new InstantAction(()-> robot.farm.setBucketScore())
         );
     }
 

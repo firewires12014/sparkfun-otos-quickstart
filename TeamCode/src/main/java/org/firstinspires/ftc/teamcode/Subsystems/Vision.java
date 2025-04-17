@@ -16,6 +16,14 @@ public class Vision {
     public static double yTranslate = 24;
     public static double yOffset = 25;
     public static double xOffset = 2.6;
+    public static double falloffPower = 2;
+    public static double pBoxWeight = 2;
+    public static double[] distanceCenter = new double[]{0, 5};
+    public static double[] pBoxCenter = new double[]{0, 2};
+    public static double[] pBoxDim = new double[]{2, 2};
+
+    public static double xWeight = 0.06;
+    public static double yWeight = 0.14;
 
     // Color that it is NOT looking for
     public String color = "red";
@@ -63,18 +71,6 @@ public class Vision {
         if (result != null) {
             List<LLResultTypes.DetectorResult> results = result.getDetectorResults();
 
-            // Search through all samples
-//            for(LLResultTypes.DetectorResult dr : results) {
-//                double[] centroid = getCentroid(dr.getTargetCorners());
-//
-//                double[] updatedCentroid = applyHomography(H, centroid[0], centroid[1]);
-//
-//                double newX = updatedCentroid[0]/xTranslate - xOffset;
-//                double newY = yOffset - updatedCentroid[1]/yTranslate;
-//
-//                outputPosition = new double[]{newX, newY};
-//            }
-
             // sort centroids past a certain point
             List<LLResultTypes.DetectorResult> sorted = new LinkedList<>();
             for (LLResultTypes.DetectorResult r : results) {
@@ -89,18 +85,38 @@ public class Vision {
             }
 
             if (!sorted.isEmpty()) {
-//                sorted.sort(Comparator.comparingDouble(LLResultTypes.DetectorResult::getTargetArea));
-                sorted.sort((a, b) -> {
-                            double ay = transform(getCentroid(a.getTargetCorners()))[1];
-                            double by = transform(getCentroid(b.getTargetCorners()))[1];
+                sorted.sort((a, b) -> { // still doesn't deprioritize area around blue samples but it should be fine
+                    double[] axy = transform(getCentroid(a.getTargetCorners()));
+                    double[] bxy = transform(getCentroid(b.getTargetCorners()));
 
-                            return Double.compare(ay, by);
+                    // Circular Shape
+                    double aDist = Math.sqrt(Math.pow(Math.abs(axy[0] - distanceCenter[0]) * xWeight, 2) + Math.abs(axy[1] - distanceCenter[1]) * yWeight);
+                    double bDist = Math.sqrt(Math.pow(Math.abs(bxy[0] - distanceCenter[0]) * xWeight, 2) + Math.abs(bxy[1] - distanceCenter[1]) * yWeight);
+
+                    double aWeight = Math.pow(aDist, falloffPower);
+                    double bWeight = Math.pow(bDist, falloffPower);
+
+                    double left   = pBoxCenter[0] - pBoxDim[0] / 2;
+                    double right  = pBoxCenter[0] + pBoxDim[0] / 2;
+                    double top    = pBoxCenter[1] + pBoxDim[1] / 2;
+                    double bottom = pBoxCenter[1] - pBoxDim[1] / 2;
+
+                    //y > bottom and y < top and x > left and x < right
+
+                    if (axy[1] > bottom && axy[1] < top && axy[0] > left && axy[0] < right) {
+                        aWeight += pBoxWeight;
+                    }
+
+                    if (bxy[1] > bottom && bxy[1] < top && bxy[0] > left && bxy[0] < right) {
+                        bWeight += pBoxWeight;
+                    }
+
+                    // a, b (lowest to greatest), b, a (greatest to lowest)
+                    return Double.compare(aWeight, bWeight); // currently index = 0 (best selection)
                 });
 
                 // Get first element
                 int index = 0;
-                // Get last element
-//                index = sorted.size()-(index + 1);
 
                 outputPosition = transform(getCentroid(sorted.get(index).getTargetCorners()));
                 s_color = sorted.get(index).getClassName();
@@ -111,6 +127,7 @@ public class Vision {
 
         arr.add(outputPosition);
         arr.add(s_color);
+        arr.add(pBoxWeight);
 
         return arr;
     }
@@ -136,6 +153,16 @@ public class Vision {
     }
 
     public double[] getCentroid(List<List<Double>> targetCorners) {
+        double tX = targetCorners.get(0).get(0);
+        tX += targetCorners.get(2).get(0);
+
+        double tY = targetCorners.get(0).get(1);
+        tY += targetCorners.get(2).get(1);
+
+        return new double[]{tX/2, tY/2};
+    }
+
+    public double[] getBottomCentroid(List<List<Double>> targetCorners) {
         double tX = targetCorners.get(2).get(0);
         tX += targetCorners.get(3).get(0);
 
