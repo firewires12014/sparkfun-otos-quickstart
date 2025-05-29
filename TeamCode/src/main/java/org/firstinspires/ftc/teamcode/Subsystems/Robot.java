@@ -49,15 +49,15 @@ public class Robot {
     public static double leftPtoUnlock = 1;
     public static double rightPtoLock = 1;
     public static double rightPtoUnlock = 0;
-    public static double leftRackUp = 0;
-    public static double leftRackDown = .2;
-    public static double rightRackUp = 0;
-    public static double rightRackDown = .2;
+    public static double leftRackUp = 0.48;
+    public static double leftRackDown = 0.75;
+    public static double rightRackUp = 0.52;
+    public static double rightRackDown = 0.25;
     public static double gearBoxHigh = .54;
     public static double gearBoxLow = .49;
 
     private RevColorSensorV3 sampleColor;
-    private Rev2mDistanceSensor bucketDistance;
+//    private Rev2mDistanceSensor bucketDistance;
 
 //    for threading
 //    private final Object sensorLock = new Object();
@@ -77,7 +77,7 @@ public class Robot {
         drive = new MecanumDrive(hardwareMap, startPose);
 
         sampleColor = hardwareMap.get(RevColorSensorV3.class, "sampleColor");
-        bucketDistance = hardwareMap.get(Rev2mDistanceSensor.class, "bucket");
+//        bucketDistance = hardwareMap.get(Rev2mDistanceSensor.class, "bucket");
         lights = hardwareMap.get(Servo.class, "lights");
 
         leftPTO = hardwareMap.get(Servo.class,"leftPTO");
@@ -117,7 +117,8 @@ public class Robot {
     }
 
     public boolean inRangeOfBucket() {
-        return bucketDistance.getDistance(DistanceUnit.MM) < FArm.BUCKET_TOLERANCE;
+//        return bucketDistance.getDistance(DistanceUnit.MM) < FArm.BUCKET_TOLERANCE;
+        return false;
     }
 
     public void turnOffLight() {

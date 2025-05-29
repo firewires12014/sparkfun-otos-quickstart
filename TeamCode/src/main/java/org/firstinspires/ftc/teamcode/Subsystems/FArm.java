@@ -39,25 +39,25 @@ public class FArm {
     public static double wristTransfer = 0.26 + WRIST_OFFSET;
 
     // Spec Score
-    public static double liftSpecScore = 350;
+    public static double liftSpecScore = 15000;
     public static double pivotSpecScore = 0.31 + GLOBAL_PIVOT_OFFSET;
     public static double wristSpecScore = 0.57 + WRIST_OFFSET;
 
     // Bucket Score
-    public static double liftBucketScore = 825;
-    public static double liftLowBucketScore = 155;
+    public static double liftBucketScore = 45000;
+    public static double liftLowBucketScore = 12000;
     public static double pivotBucketScore = 0.6 + GLOBAL_PIVOT_OFFSET;
     public static double wristBucketScore = 0.66 + WRIST_OFFSET; // 0.62
 
     // Spec Intake
-    public static double liftSpecIntake = 200;
+    public static double liftSpecIntake = 10000;
     public static double pivotSpecIntake = 0.9 + GLOBAL_PIVOT_OFFSET;
-    public static double wristSpecIntake = 0.72 + WRIST_OFFSET;
+    public static double wristSpecIntake = 0.69 + WRIST_OFFSET;
 
     // Auto Spec Score
-    public static double autoLiftSpecIntake = 350;
-    public static double autoPivotSpecIntake = 0.31 + GLOBAL_PIVOT_OFFSET;
-    public static double autoWristSpecIntake = 0.57 + WRIST_OFFSET;
+    public static double autoLiftSpecIntake = liftSpecScore;
+    public static double autoPivotSpecIntake = pivotSpecScore;
+    public static double autoWristSpecIntake = wristSpecScore;
 
     // Claw
     public static double clawOpen = 0.55;
@@ -120,6 +120,14 @@ public class FArm {
         lift.setDirection(DcMotorSimple.Direction.REVERSE);
         lift2 = hardwareMap.get(DcMotorEx.class, "lift2");
         lift2.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        //PTO
+        leftBack = hardwareMap.get(DcMotorEx.class, "leftBack");
+        rightBack = hardwareMap.get(DcMotorEx.class, "rightBack");
+        leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightBack.setDirection(DcMotorSimple.Direction.FORWARD);
 
         // Hang
         leftPTO = hardwareMap.get(Servo.class,"leftPTO");
@@ -217,6 +225,12 @@ public class FArm {
 
     public void setSpecIntake() {
         targetPosition = liftSpecIntake; // Does not enable pid
+        setPivot(pivotSpecIntake);
+        wrist.setPosition(wristSpecIntake);
+    }
+
+    public void setSpecIntakeTeleop() {
+        targetPosition = liftSpecIntake + 100; // Does not enable pid
         setPivot(pivotSpecIntake);
         wrist.setPosition(wristSpecIntake);
     }

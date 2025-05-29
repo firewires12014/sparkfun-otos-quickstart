@@ -40,7 +40,7 @@ public class SpecimenAuto extends LinearOpMode {
     // Purely Positions to go to
     Pose2d scorePreload = new Pose2d(new Vector2d(-2, -31), Math.toRadians(90));
     Pose2d backupFromSub = new Pose2d(new Vector2d(-6, -40), Math.toRadians(90));
-    Pose2d intakeSample1 = new Pose2d(new Vector2d(36.72, -46.63), Math.toRadians(60));
+    Pose2d intakeSample1 = new Pose2d(new Vector2d(36.72, -46.63), Math.toRadians(58));
     Pose2d spitOutSample1 = new Pose2d(new Vector2d(35, -39.15), Math.toRadians(-51.95));
     Pose2d intakeSample2 = new Pose2d(new Vector2d(48.46, -44.71), Math.toRadians(68)); //62.08
     Pose2d spitOutSample2 = new Pose2d(new Vector2d(48.46, -44.72), Math.toRadians(-50));

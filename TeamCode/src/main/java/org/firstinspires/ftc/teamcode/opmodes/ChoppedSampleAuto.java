@@ -32,22 +32,22 @@ import java.util.Arrays;
 @Config
 @Autonomous
 //@Disabled
-public class SampleAuto extends LinearOpMode {
+public class ChoppedSampleAuto extends LinearOpMode {
     Robot robot;
     Vision vision;
     AutoActionScheduler scheduler;
 
     public static double xOffset = 1;
-    public static double yOffset = -1;
+    public static double yOffset = -2;
 
     Pose2d start = new Pose2d(-41.5, -64, Math.toRadians(90));
 
-    Pose2d preloadBucket = new Pose2d(new Vector2d(-62.25, -58.14), Math.toRadians(54.2));
-    Pose2d sample1Bucket = new Pose2d(new Vector2d(-62.25, -58.14), Math.toRadians(54.2));
-    Pose2d sample2Bucket = new Pose2d(new Vector2d(-62.25, -58.14), Math.toRadians(54.2));
-    Pose2d sample3Bucket = new Pose2d(new Vector2d(-62.25, -58.14), Math.toRadians(54.2));
+    Pose2d preloadBucket = new Pose2d(new Vector2d(-61.25, -57.14), Math.toRadians(54.2));
+    Pose2d sample1Bucket = new Pose2d(new Vector2d(-61.25, -57.14), Math.toRadians(54.2));
+    Pose2d sample2Bucket = new Pose2d(new Vector2d(-61.25, -57.14), Math.toRadians(54.2));
+    Pose2d sample3Bucket = new Pose2d(new Vector2d(-61.25, -57.14), Math.toRadians(54.2));
 
-    Pose2d sample1Pose = new Pose2d(new Vector2d(-56.33, -48.87), Math.toRadians(76.5));
+    Pose2d sample1Pose = new Pose2d(new Vector2d(-56.33, -47.87), Math.toRadians(76.5));
     Pose2d sample2Pose = new Pose2d(new Vector2d(-58.8, -47), Math.toRadians(93));
     Pose2d sample3Pose = new Pose2d(new Vector2d(-62.15, -48.0), Math.toRadians(110));
 
@@ -55,7 +55,11 @@ public class SampleAuto extends LinearOpMode {
     Pose2d cycle2 = new Pose2d(new Vector2d(-24.33, -8), Math.toRadians(0));
     Pose2d cycle3 = new Pose2d(new Vector2d(-24.33, -10), Math.toRadians(0));
 
-    Pose2d bucekt = new Pose2d(new Vector2d(-60, -56.7), Math.toRadians(45));
+    Pose2d cycleIntake = new Pose2d(new Vector2d(-26.33, -10), Math.toRadians(0));
+    Pose2d cycle2Intake = new Pose2d(new Vector2d(-26.33, -8), Math.toRadians(0));
+    Pose2d cycle3Intake = new Pose2d(new Vector2d(-26.33, -10), Math.toRadians(0));
+
+    Pose2d bucekt = new Pose2d(new Vector2d(-58, -54.7), Math.toRadians(45));
 
     double prevLoop = 0;
     @Override
@@ -154,7 +158,7 @@ public class SampleAuto extends LinearOpMode {
             // Insert actual code
             scheduler.addAction(new ParallelAction(
                     bucket(),
-                    ActionUtil.Offset(1.3, toBucket, dropFard())
+                    ActionUtil.Delay(0.3, ActionUtil.Offset(1.3, toBucket, dropFard()))
             ));
 
             // Cycle 1
@@ -166,7 +170,7 @@ public class SampleAuto extends LinearOpMode {
             ));
             scheduler.addAction(new ParallelAction(
                     transfer(),
-                    ActionUtil.Offset(1.7, depositFirst, dropFard())
+                    ActionUtil.Offset(2, depositFirst, dropFard())
             ));
 
             // Cycle 2
@@ -178,7 +182,7 @@ public class SampleAuto extends LinearOpMode {
             ));
             scheduler.addAction(new ParallelAction(
                     transfer(),
-                    ActionUtil.Offset(1.7, depositSecond, dropFard())
+                    ActionUtil.Offset(2, depositSecond, dropFard())
             ));
 
             // Cycle 3
@@ -190,7 +194,7 @@ public class SampleAuto extends LinearOpMode {
             ));
             scheduler.addAction(new ParallelAction(
                     transfer(),
-                    ActionUtil.Offset(1.7, depositThird, dropFard())
+                    ActionUtil.Offset(2, depositThird, dropFard())
             ));
             scheduler.run();
 
@@ -199,14 +203,14 @@ public class SampleAuto extends LinearOpMode {
             scheduler.run();
 
             scheduler.addAction(new InstantAction(robot.drive::flickOut));
-            scheduler.addAction(new SleepAction(0.5)); // wait for it to flick before detecting
+            scheduler.addAction(new SleepAction(0.5));// wait for it to flick before detecting
             scheduler.run();
 
             ArrayList<Object> dection = vision.getBlock();
             double[] offsets = (double[]) dection.get(0);
 
             searchTimer.reset();
-            while (searchTimer.seconds() < 0.25) {
+            while (searchTimer.seconds() < 0.7) {
                 dection = vision.getBlock();
                 offsets = (double[]) dection.get(0); // TODO: Poll for a time, to allow a better estimated position
                 telemetry.addData("Offset", Arrays.toString(offsets));
@@ -238,7 +242,7 @@ public class SampleAuto extends LinearOpMode {
             offsets = (double[]) dection.get(0);
 
             searchTimer.reset();
-            while (searchTimer.seconds() < 0.25) {
+            while (searchTimer.seconds() < 0.7) {
                 dection = vision.getBlock();
                 offsets = (double[]) dection.get(0); // TODO: Poll for a time, to allow a better estimated position
                 telemetry.addData("Offset", Arrays.toString(offsets));
@@ -259,40 +263,7 @@ public class SampleAuto extends LinearOpMode {
             ));
             scheduler.run();
 
-//            transferMethod(toCycleBucket2, 1.7);
-
-            // Sub Cycle 3
-            scheduler.addAction(ActionUtil.Offset(0.2, toSub3, returnLift()));
-            scheduler.run();
-
-//            scheduler.addAction(new InstantAction(robot.drive::flickOut));
-//            scheduler.addAction(new SleepAction(0.5)); // wait for it to flick before detecting
-//            scheduler.run();
-
-            dection = vision.getBlock(true);
-            offsets = (double[]) dection.get(0);
-
-            searchTimer.reset();
-            while (searchTimer.seconds() < 0.25) {
-                dection = vision.getBlock();
-                offsets = (double[]) dection.get(0); // TODO: Poll for a time, to allow a better estimated position
-                telemetry.addData("Offset", Arrays.toString(offsets));
-                telemetry.addData("Color", dection.get(1));
-                telemetry.update();
-                robot.intake.intakeHorizontal();
-            }
-
-            scheduler.addAction(getReadyToIntake(-offsets[0] + xOffset, offsets[1] + yOffset));
-            scheduler.run();
-
-            scheduler.addAction(intakeSub(1, 570));
-            scheduler.run();
-
-            scheduler.addAction(new ParallelAction(
-                    transfer(),
-                    ActionUtil.Offset(2.1, toCycleBucket3, dropFard())
-            ));
-//            transferMethod(toCycleBucket3, 1.7);
+            transferMethod(toCycleBucket2, 2.2);
 
             scheduler.addAction(returnLift());
             scheduler.run();
@@ -365,8 +336,8 @@ public class SampleAuto extends LinearOpMode {
 
     public Action bucket() {
         return new InstantAction(()-> {
-                    robot.farm.setBucketScore();
-                }
+            robot.farm.setBucketScore();
+        }
         );
     }
 
@@ -413,29 +384,39 @@ public class SampleAuto extends LinearOpMode {
                 }));
     }
 
-    public Action returnLift() {
-        return new SequentialAction(
-                new InstantAction(()-> {
-                    robot.intake.intakeUp();
-                    robot.farm.setTransfer();
-                    FArm.PID_ENABLED = false;
-                    robot.farm.lift.setPower(-1);
-                    robot.farm.lift2.setPower(-1);
-                }),
-                new ActionUtil.RunnableAction(()-> {
-                    if (robot.farm.lift.getCurrent(CurrentUnit.MILLIAMPS) > 7000 || robot.farm.lift2.getCurrent(CurrentUnit.MILLIAMPS) > 7000) {
-                        robot.farm.resetEncoder();
-                        FArm.targetPosition = 0;
-                        FArm.PID_ENABLED = true;
+//    public Action returnLift() {
+//        return new SequentialAction(
+//                new InstantAction(()-> {
+//                    robot.intake.intakeUp();
+//                    robot.farm.setTransfer();
+//                    FArm.PID_ENABLED = false;
+//                    robot.farm.lift.setPower(-1);
+//                    robot.farm.lift2.setPower(-1);
+//                }),
+//                new ActionUtil.RunnableAction(()-> {
+//                    if (robot.farm.lift.getCurrent(CurrentUnit.MILLIAMPS) > 7000 || robot.farm.lift2.getCurrent(CurrentUnit.MILLIAMPS) > 7000) {
+//                        robot.farm.resetEncoder();
+//                        FArm.targetPosition = 0;
+//                        FArm.PID_ENABLED = true;
+//
+//                        return false;
+//                    } else return true;
+//                })
+//        );
+//    }
 
-                        return false;
-                    } else return true;
-                })
-        );
+    public Action returnLift() {
+         return new SequentialAction(
+                 new InstantAction(()-> {
+                     robot.intake.intakeUp();
+                    robot.farm.setTransfer();
+                     FArm.targetPosition = 0;
+                 })
+         );
     }
 
     public Action transfer() {
-       return  new SequentialAction(
+        return  new SequentialAction(
                 new InstantAction(()-> {
                     robot.intake.startIntake();
                     Intake.PID_ENABLED = false;
@@ -458,7 +439,7 @@ public class SampleAuto extends LinearOpMode {
                     robot.intake.stopIntake();
                 }),
                 new SleepAction(0.9),
-               new InstantAction(()-> robot.farm.setBucketScore())
+                new InstantAction(()-> robot.farm.setBucketScore())
         );
     }
 

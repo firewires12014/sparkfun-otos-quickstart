@@ -64,7 +64,7 @@ public class Vision {
     public ArrayList<Object> getBlock(boolean fullRange) {
         LLResult result = limelight.getLatestResult();
 
-        double[] outputPosition = new double[]{0, 4}; // default position
+        double[] outputPosition = new double[]{-1, 2}; // default position
 
         String s_color = "?";
 
@@ -111,8 +111,12 @@ public class Vision {
                         bWeight += pBoxWeight;
                     }
 
+                    double ay = Math.abs(axy[1]);
+
+                    double by = Math.abs(bxy[1]);
+
                     // a, b (lowest to greatest), b, a (greatest to lowest)
-                    return Double.compare(aWeight, bWeight); // currently index = 0 (best selection)
+                    return Double.compare(ay, by); // currently index = 0 (best selection)
                 });
 
                 // Get first element

@@ -35,7 +35,8 @@ public class TeleOp extends LinearOpMode {
         INTAKING, // Pivot down, extension doesn't matter
         OUTTAKING, // Pivot horizontal, extension doesn't matter
         EJECT, //Pivot blah blah stfu
-        TRANSFER
+        TRANSFER,
+        IDLE
     }
 
     public enum FARM_STATE {
@@ -66,8 +67,6 @@ public class TeleOp extends LinearOpMode {
     INTAKE_STATE intakeState = INTAKE_STATE.IN;
     FARM_STATE farmState = FARM_STATE.TRANSFER;
     TRANSFER_STATE transferState = TRANSFER_STATE.IDLE;
-    PTO_STATE ptoState = PTO_STATE.UNLOCK;
-
 
     ElapsedTime transferTimer = new ElapsedTime();
     ElapsedTime clawTimer = new ElapsedTime();
@@ -94,7 +93,7 @@ public class TeleOp extends LinearOpMode {
         operatingState = OPERATING_MODE.SAMPLE;
         robot.farm.setTransfer();
         robot.setGearBoxHigh();
-//        robot.unlockPTO();
+        robot.unlockPTO();
         robot.setColorRed();
 
 
@@ -107,29 +106,33 @@ public class TeleOp extends LinearOpMode {
 
             gamepad1.setLedColor(255, 255, 0, -1);
 
-            robot.drive.setDrivePowers(new PoseVelocity2d(
-                    new Vector2d(
-                            -gamepad1.left_stick_y,
-                            -gamepad1.left_stick_x
-                    ),
-                    -gamepad1.right_stick_x
-            ));
+            if (!operatingState.equals(OPERATING_MODE.HANG)) {
+                robot.drive.setDrivePowers(new PoseVelocity2d(
+                        new Vector2d(
+                                -gamepad1.left_stick_y,
+                                -gamepad1.left_stick_x
+                        ),
+                        -gamepad1.right_stick_x
+                ));
+            }
 
             // Hang
 
             if (gamepad1.touchpad  && hangTimer.seconds() > 0.5) {
                 if (!operatingState.equals(OPERATING_MODE.HANG)) {
+                    FArm.PID_ENABLED = false;
                     farmState = FARM_STATE.SPEC_SCORE;
                     robot.lowerRack();
-                    ptoState = PTO_STATE.LOCK;
                     robot.setGearBoxLow();
                     operatingState = OPERATING_MODE.HANG;
                 } else {
+                    FArm.PID_ENABLED = true;
                     robot.liftRack();
-                    ptoState = PTO_STATE.UNLOCK;
                     robot.setGearBoxHigh();
                     operatingState = OPERATING_MODE.SAMPLE;
                 }
+
+                hangTimer.reset();
             }
             if (gamepad1.dpad_left) {
                 robot.lockPTO();
@@ -138,33 +141,19 @@ public class TeleOp extends LinearOpMode {
             if (gamepad1.dpad_right) {
                 robot.unlockPTO();
             }
-//
-//            if (gamepad1.dpad_up) {
-//                robot.farm.lift.setPower(1);
-//                robot.farm.lift2.setPower(1);
-//                robot.drive.leftBack.setPower(1);
-//                robot.drive.rightBack.setPower(1);
-//            }
-//
-//            if (gamepad1.dpad_down) {
-//                robot.farm.lift.setPower(-1);
-//                robot.farm.lift2.setPower(-1);
-//                robot.drive.leftBack.setPower(-1);
-//                robot.drive.rightBack.setPower(-1);
-//            }
 
             // Wasi
-
             // Lift
 
             //WHY THE FUCK DOES THIS SAY ITS ALWAYS TRUE IT LITERALLY ISNT I HATE PROGRAMMING THIS SHIT IS AWFUL
+            // skill issue
             if (operatingState.equals(OPERATING_MODE.HANG)) {
                 robot.farm.hangManualControl(-gamepad2.right_stick_y);
             } else {
                 robot.farm.manualControl(-gamepad2.right_stick_y);
             }
 
-            if (Math.abs(-gamepad2.right_stick_y) > robot.farm.joystickDeadzone) {
+            if (Math.abs(-gamepad2.right_stick_y) > FArm.joystickDeadzone) {
                 farmState = FARM_STATE.IDLE;
             }
             //IF I SEE ONE MORE FUCKING YELLOW SQUIGGLE LINE IM THROWING THIS LAPTOP
@@ -173,11 +162,20 @@ public class TeleOp extends LinearOpMode {
 
             robot.intake.manualControl(-gamepad2.left_stick_y);
 
+            if (operatingState.equals(OPERATING_MODE.SPEC) && intakeState.equals(INTAKE_STATE.TRANSFER)) {
+                intakeState = INTAKE_STATE.IDLE;
+                transferState = TRANSFER_STATE.IDLE;
+//                farmState = FARM_STATE.IDLE;
+                robot.intake.intakeHorizontal();
+                robot.intake.stopIntake();
+            }
+
             if (gamepad2.right_trigger > 0.1) {
                 intakeState = INTAKE_STATE.INTAKING;
             } else if (gamepad2.left_trigger > 0.1) {
                 intakeState = INTAKE_STATE.OUTTAKING;
             } else {
+                robot.intake.stopIntake();
                 if (transferState.equals(TRANSFER_STATE.IDLE)) {
                     if (robot.intake.isOuttakeOut()) intakeState = INTAKE_STATE.OUT;
                     else intakeState = INTAKE_STATE.IN;
@@ -214,7 +212,7 @@ public class TeleOp extends LinearOpMode {
                 robot.farm.grab.setPosition(FArm.specOpen);
                 farmState = FARM_STATE.SPEC_INTAKE;
                 if (clawTimer.seconds() > .5 && operatingState.equals(OPERATING_MODE.SPEC)){
-                    operatingState = OPERATING_MODE.SAMPLE;
+//                    operatingState = OPERATING_MODE.SAMPLE;
                     clawTimer.reset();
                 }
                 else {
@@ -238,7 +236,7 @@ public class TeleOp extends LinearOpMode {
             }
 
             if (operatingState.equals(OPERATING_MODE.SPEC)) {
-               if (robot.farm.hasSpec() && robot.farm.isClawOpen() && gamepad2.square){
+               if (robot.farm.hasSpec() && robot.farm.isClawOpen()) {
                    robot.farm.close();
                    specTimer.reset();
                }
@@ -255,8 +253,8 @@ public class TeleOp extends LinearOpMode {
 
             if (gamepad2.right_bumper) {
                 robot.farm.setTransfer();
-//                FArm.targetPosition = 0;
                 farmState = FARM_STATE.RETURN_LIFT;
+                operatingState = OPERATING_MODE.SAMPLE;
             }
 
             if (gamepad2.cross && clawTimer.seconds() > 0.3) {
@@ -270,10 +268,6 @@ public class TeleOp extends LinearOpMode {
                 clawTimer.reset();
             }
 
-            if (gamepad2.square && robot.inRangeOfBucket() && operatingState.equals(OPERATING_MODE.SAMPLE)) {
-                robot.farm.drop(); // auto drop
-            }
-
             if (gamepad2.triangle) {
                 robot.intake.resetEncoder();
                 robot.farm.resetEncoder();
@@ -283,7 +277,8 @@ public class TeleOp extends LinearOpMode {
                 case IDLE:
                     break;
                 case SPEC_INTAKE:
-                    robot.farm.setSpecIntake();
+                    robot.farm.setSpecIntakeTeleop();
+                    robot.farm.setSpecIntakeTeleop();
                     break;
                 case TRANSFER:
                     // Is in state
@@ -299,20 +294,23 @@ public class TeleOp extends LinearOpMode {
                     break;
                 case RETURN_LIFT:
                     robot.turnOffLight();
-                    FArm.PID_ENABLED = false;
-                    robot.farm.lift.setPower(-1);
-                    robot.farm.lift2.setPower(-1);
+//                    FArm.PID_ENABLED = false;
+//                    robot.farm.lift.setPower(-1);
+//                    robot.farm.lift2.setPower(-1);
+                    FArm.targetPosition = 0;
 
-                    if (robot.farm.lift.getCurrent(CurrentUnit.MILLIAMPS) > 7000 || robot.farm.lift2.getCurrent(CurrentUnit.MILLIAMPS) > 7000) {
-                        robot.farm.resetEncoder();
-                        FArm.targetPosition = 0;
-                        FArm.PID_ENABLED = true;
+                    if (robot.farm.lift.getCurrentPosition() < 1000) {
+//                        robot.farm.resetEncoder();
+//                        FArm.targetPosition = 0;
+//                        FArm.PID_ENABLED = true;
 
                         farmState = FARM_STATE.TRANSFER;
                     }
             }
 
             switch (intakeState) {
+                case IDLE:
+                    break;
                 case IN:
                     robot.intake.retractIntake();
                     robot.intake.intakeUp();
@@ -341,6 +339,7 @@ public class TeleOp extends LinearOpMode {
                     robot.intake.intakeHorizontal();
                     robot.intake.reverseIntake();
                     robot.intake.holdIn = false;
+                    Intake.PID_ENABLED = false;
                     break;
                     //i mightve just cooked everything with this eject state idek what im doing
                 case EJECT:
@@ -391,42 +390,42 @@ public class TeleOp extends LinearOpMode {
                     break;
             }
 
-            //this shit does not have to be an fsm but ion know what else to do
-            switch(ptoState) {
-                case UNLOCK:
-                    robot.unlockPTO();
-                    ptoState = PTO_STATE.IDLE;
-                    break;
-                case LOCK:
-                    robot.lockPTO();
-                    if (!(robot.isRightPtoLocked()) || !(robot.isLeftPtoLocked())) {
-                        ptoState = PTO_STATE.RETRY;
-                    } else {
-                        ptoState = PTO_STATE.IDLE;
-                    }
-                    break;
-                case RETRY:
-                    if (!(robot.isRightPtoLocked())) {
-                        ptoTimer.reset();
-                        robot.rightUnlockPTO();
-                        if (ptoTimer.seconds() > 0.5) {
-                            robot.rightLockPTO();
-                            ptoTimer.reset();
-                        }
-                    }
-                    if (!(robot.isLeftPtoLocked())) {
-                        ptoTimer.reset();
-                        robot.leftUnlockPTO();
-                        if (ptoTimer.seconds() > 0.5) {
-                            robot.leftLockPTO();
-                            ptoTimer.reset();
-                        }
-                    }
-                    ptoState = PTO_STATE.LOCK;
-                    break;
-                case IDLE:
-                    break;
-            }
+//            //this shit does not have to be an fsm but ion know what else to do
+//            switch(ptoState) {
+//                case UNLOCK:
+//                    robot.unlockPTO();
+//                    ptoState = PTO_STATE.IDLE;
+//                    break;
+//                case LOCK:
+//                    robot.lockPTO();
+//                    if (!(robot.isRightPtoLocked()) || !(robot.isLeftPtoLocked())) {
+//                        ptoState = PTO_STATE.RETRY;
+//                    } else {
+//                        ptoState = PTO_STATE.IDLE;
+//                    }
+//                    break;
+//                case RETRY:
+//                    if (!(robot.isRightPtoLocked())) {
+//                        ptoTimer.reset();
+//                        robot.rightUnlockPTO();
+//                        if (ptoTimer.seconds() > 0.5) {
+//                            robot.rightLockPTO();
+//                            ptoTimer.reset();
+//                        }
+//                    }
+//                    if (!(robot.isLeftPtoLocked())) {
+//                        ptoTimer.reset();
+//                        robot.leftUnlockPTO();
+//                        if (ptoTimer.seconds() > 0.5) {
+//                            robot.leftLockPTO();
+//                            ptoTimer.reset();
+//                        }
+//                    }
+//                    ptoState = PTO_STATE.LOCK;
+//                    break;
+//                case IDLE:
+//                    break;
+//            }
 
             robot.update();
             telemetry.addData("Beam Brake State: " , robot.farm.hasSpec());
@@ -434,7 +433,7 @@ public class TeleOp extends LinearOpMode {
             telemetry.addData("State", intakeState);
             telemetry.addLine("---FArm---");
             telemetry.addData("State", farmState);
-            telemetry.addData("Lift Height:", robot.farm.targetPosition);
+            telemetry.addData("Lift Height:", FArm.targetPosition);
             telemetry.addData("Lift 1 Power:", robot.farm.lift.getCurrent(CurrentUnit.AMPS));
             telemetry.addData("Lift 2 Power:", robot.farm.lift2.getCurrent(CurrentUnit.AMPS));
             telemetry.addData("Transfer State", transferState);
