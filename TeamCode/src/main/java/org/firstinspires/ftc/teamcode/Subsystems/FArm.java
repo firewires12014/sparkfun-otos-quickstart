@@ -36,27 +36,27 @@ public class FArm {
     // Transfer
     public static double liftTransfer = 0;
     public static double pivotTransfer = 0.21;
-    public static double wristTransfer = 0.3 + WRIST_OFFSET;
+    public static double wristTransfer = 0.35 + WRIST_OFFSET;
 
     // Spec Score
-    public static double liftSpecScorePreload = 12500;
+    public static double liftSpecScorePreload = 14000;
     public static double liftSpecScore = 16000; //15000
     public static double pivotSpecScore = 0.34 + GLOBAL_PIVOT_OFFSET;
-    public static double AutopivotSpecScore = 0.34 + GLOBAL_PIVOT_OFFSET;
-    public static double wristSpecScore = 0.57 + WRIST_OFFSET; //.57
+    public static double AutoPivotSpecScorePreload = 0.34 + GLOBAL_PIVOT_OFFSET;
+    public static double wristSpecScore = 0.63 + WRIST_OFFSET; //.57
 
     // Bucket Score
     public static double liftBucketScore = 42000;
     public static double liftLowBucketScore = 12000;
     public static double pivotBucketScore = 0.66 + GLOBAL_PIVOT_OFFSET;
-    public static double wristBucketScore = 0.66 + WRIST_OFFSET; // 0.62
+    public static double wristBucketScore = 0.75 + WRIST_OFFSET; // 0.62
     public static double autoPivotPreloadBucketScore = 0.59 +GLOBAL_PIVOT_OFFSET;
 
     // Spec Intake
     public static double liftSpecIntake = 10050;
     public static double liftSpecTeleopIntake = 10250;
     public static double pivotSpecIntake = 0.9575 + GLOBAL_PIVOT_OFFSET;
-    public static double wristSpecIntake = 0.65 + WRIST_OFFSET;
+    public static double wristSpecIntake = 0.7 + WRIST_OFFSET;
 
     // Auto Spec Score
     public static double autoLiftSpecIntake = liftSpecScore;
@@ -66,7 +66,7 @@ public class FArm {
 
     // Claw
     public static double clawOpen = 0.69;
-    public static double clawClose = 0.4;
+    public static double clawClose = 0.54;
     public static double specOpen = 0.7;
 
     public PIDCoefficients coef;
@@ -202,7 +202,7 @@ public class FArm {
 
     public void setAutoSpecScorePreload() {
         targetPosition = autoSpecScorePreload; // Does not enable pid
-        setPivot(autoPivotSpecIntake);
+        setPivot(AutoPivotSpecScorePreload);
         wrist.setPosition(autoWristSpecIntake);
     }
 
