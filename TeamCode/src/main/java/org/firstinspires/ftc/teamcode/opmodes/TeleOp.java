@@ -76,6 +76,8 @@ public class TeleOp extends LinearOpMode {
     ElapsedTime colorTimer = new ElapsedTime();
     ElapsedTime ptoTimer = new ElapsedTime();
 
+    boolean firstRun = true;
+
     double prevLoop = 0;
     @Override
     public void runOpMode() throws InterruptedException {
@@ -116,14 +118,34 @@ public class TeleOp extends LinearOpMode {
                 ));
             }
 
+            if (gamepad1.left_trigger > 0.1) {
+                robot.drive.setDrivePowers(new PoseVelocity2d(
+                        new Vector2d(
+                                0,
+                                gamepad1.left_trigger
+                        ),
+                        0
+                ));
+            }
+
+            if (gamepad1.right_trigger > 0.1) {
+                robot.drive.setDrivePowers(new PoseVelocity2d(
+                        new Vector2d(
+                                0,
+                                -gamepad1.right_trigger
+                        ),
+                        0
+                ));
+            }
+
             // Hang
 
             if (gamepad1.touchpad  && hangTimer.seconds() > 0.5) {
                 if (!operatingState.equals(OPERATING_MODE.HANG)) {
                     FArm.PID_ENABLED = false;
                     farmState = FARM_STATE.SPEC_SCORE;
-                    robot.lowerRack();
-                    robot.setGearBoxLow();
+//                    robot.lowerRack();
+//                    robot.setGearBoxLow();
                     operatingState = OPERATING_MODE.HANG;
                 } else {
                     FArm.PID_ENABLED = true;
@@ -199,8 +221,6 @@ public class TeleOp extends LinearOpMode {
                     farmState = FARM_STATE.TRANSFER;
                     transferState = TRANSFER_STATE.RETURNING;
             }
-            //Inshallah this works
-            //FUCKING SHIT DOES NOT WORK
 
             //Outtake
 
@@ -277,8 +297,8 @@ public class TeleOp extends LinearOpMode {
                 case IDLE:
                     break;
                 case SPEC_INTAKE:
-                    robot.farm.setSpecIntakeTeleop();
-                    robot.farm.setSpecIntakeTeleop();
+                    robot.farm.setSpecIntake();
+                    robot.farm.setSpecIntake();
                     break;
                 case TRANSFER:
                     // Is in state
@@ -301,8 +321,8 @@ public class TeleOp extends LinearOpMode {
 
                     if (robot.farm.lift.getCurrentPosition() < 1000) {
 //                        robot.farm.resetEncoder();
-//                        FArm.targetPosition = 0;
-//                        FArm.PID_ENABLED = true;
+                        FArm.targetPosition = 0;
+                        FArm.PID_ENABLED = true;
 
                         farmState = FARM_STATE.TRANSFER;
                     }
@@ -428,12 +448,20 @@ public class TeleOp extends LinearOpMode {
 //            }
 
             robot.update();
+            if (operatingState == OPERATING_MODE.SAMPLE) {
+                robot.farm.updatePID(0.00015, 0, 1.5e-8);
+            } else {
+                robot.farm.updatePID(0.00015, 0.0001, 1.5e-8);
+            }
+
             telemetry.addData("Beam Brake State: " , robot.farm.hasSpec());
             telemetry.addLine("---Intake---");
             telemetry.addData("State", intakeState);
             telemetry.addLine("---FArm---");
             telemetry.addData("State", farmState);
-            telemetry.addData("Lift Height:", FArm.targetPosition);
+            telemetry.addData("Target Position:", FArm.targetPosition);
+            telemetry.addData("Actual Position", robot.farm.lift.getCurrentPosition());
+            telemetry.addData("Lift Power", robot.farm.lift.getPower());
             telemetry.addData("Lift 1 Power:", robot.farm.lift.getCurrent(CurrentUnit.AMPS));
             telemetry.addData("Lift 2 Power:", robot.farm.lift2.getCurrent(CurrentUnit.AMPS));
             telemetry.addData("Transfer State", transferState);

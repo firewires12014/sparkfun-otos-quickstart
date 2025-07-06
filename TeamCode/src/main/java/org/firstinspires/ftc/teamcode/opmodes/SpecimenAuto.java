@@ -44,7 +44,7 @@ public class SpecimenAuto extends LinearOpMode {
     Pose2d spitOutSample1 = new Pose2d(new Vector2d(35, -39.15), Math.toRadians(-51.95));
     Pose2d intakeSample2 = new Pose2d(new Vector2d(48.46, -44.71), Math.toRadians(68)); //62.08
     Pose2d spitOutSample2 = new Pose2d(new Vector2d(48.46, -44.72), Math.toRadians(-50));
-    Pose2d intakeSample3 = new Pose2d(new Vector2d(58.61, -48.69), Math.toRadians(70));
+    Pose2d intakeSample3 = new Pose2d(new Vector2d(58.61,   -48.69), Math.toRadians(70));
     Pose2d spitOutSample3 = new Pose2d(new Vector2d(60.68, -45.95), Math.toRadians(-68.36));
     Pose2d turnToGrabSpec = new Pose2d(new Vector2d(50.13, -43.40), Math.toRadians(88.93));
     Pose2d grabSpec = new Pose2d(new Vector2d(36, -61), Math.toRadians(88.93));
@@ -142,7 +142,7 @@ public class SpecimenAuto extends LinearOpMode {
         Intake.targetPosition = 0;
 
         waitForStart();
-        robot.farm.setAutoSpecScore();
+        robot.farm.setAutoSpecScorePreload();
         //robot.intake.intakeHorizontal();
         robot.intake.holdIn = true;
         resetRuntime();
@@ -167,11 +167,11 @@ public class SpecimenAuto extends LinearOpMode {
             scheduler.addAction(
                     new SequentialAction(
                             new InstantAction(()-> {
-                                robot.intake.stopIntake();
+                               // robot.intake.stopIntake();
                                 Intake.targetPosition = 50;
                             }),
                             ActionUtil.Offset(.8, intakeSecondSample, intake(1.5, 350)),
-                            ActionUtil.Offset(0.7, spitOutSecondSample, outtake(.25, 250))
+                            ActionUtil.Offset(0.7, spitOutSecondSample, outtake(.35, 250))
                     )
             );
             scheduler.run();
@@ -179,7 +179,7 @@ public class SpecimenAuto extends LinearOpMode {
             scheduler.addAction(
                     new SequentialAction(
                             new InstantAction(()-> {
-                                robot.intake.stopIntake();
+                                //robot.intake.stopIntake();
                                 Intake.targetPosition = 50;
                             }),
                             ActionUtil.Offset(.8, intakeThirdSample, intake(1.5, 150)),
@@ -342,13 +342,19 @@ public class SpecimenAuto extends LinearOpMode {
                 new InstantAction(robot.farm::close),
                 new SleepAction(0.2), // wait for grab to finish
                 new InstantAction(()->robot.drive.setDrivePowers(new PoseVelocity2d(new Vector2d(0, 0), 0))),
-                new InstantAction(robot.farm::setAutoSpecScore) // To prevent spec from slipping you can slow down the servo movement (use a linear estimator)
+                new InstantAction(robot.farm::setAutoSpecScore)// To prevent spec from slipping you can slow down the servo movement (use a linear estimator)
+                //new SleepAction(.2)
+
 
         );
     }
 
     public void update() {
+        telemetry.addData("Target Position:", FArm.targetPosition);
+        telemetry.addData("Actual Position", robot.farm.lift.getCurrentPosition());
+        telemetry.update();
         robot.update();
+
     }
 
     public void loopTimeMeasurement(Telemetry telemetry) {

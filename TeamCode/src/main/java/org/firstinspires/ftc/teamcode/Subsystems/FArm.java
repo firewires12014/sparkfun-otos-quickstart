@@ -35,32 +35,37 @@ public class FArm {
 
     // Transfer
     public static double liftTransfer = 0;
-    public static double pivotTransfer = 0.17;
-    public static double wristTransfer = 0.26 + WRIST_OFFSET;
+    public static double pivotTransfer = 0.21;
+    public static double wristTransfer = 0.3 + WRIST_OFFSET;
 
     // Spec Score
-    public static double liftSpecScore = 15000;
-    public static double pivotSpecScore = 0.31 + GLOBAL_PIVOT_OFFSET;
-    public static double wristSpecScore = 0.57 + WRIST_OFFSET;
+    public static double liftSpecScorePreload = 12500;
+    public static double liftSpecScore = 16000; //15000
+    public static double pivotSpecScore = 0.34 + GLOBAL_PIVOT_OFFSET;
+    public static double AutopivotSpecScore = 0.34 + GLOBAL_PIVOT_OFFSET;
+    public static double wristSpecScore = 0.57 + WRIST_OFFSET; //.57
 
     // Bucket Score
-    public static double liftBucketScore = 45000;
+    public static double liftBucketScore = 42000;
     public static double liftLowBucketScore = 12000;
-    public static double pivotBucketScore = 0.6 + GLOBAL_PIVOT_OFFSET;
+    public static double pivotBucketScore = 0.66 + GLOBAL_PIVOT_OFFSET;
     public static double wristBucketScore = 0.66 + WRIST_OFFSET; // 0.62
+    public static double autoPivotPreloadBucketScore = 0.59 +GLOBAL_PIVOT_OFFSET;
 
     // Spec Intake
-    public static double liftSpecIntake = 10000;
-    public static double pivotSpecIntake = 0.9 + GLOBAL_PIVOT_OFFSET;
-    public static double wristSpecIntake = 0.69 + WRIST_OFFSET;
+    public static double liftSpecIntake = 10050;
+    public static double liftSpecTeleopIntake = 10250;
+    public static double pivotSpecIntake = 0.9575 + GLOBAL_PIVOT_OFFSET;
+    public static double wristSpecIntake = 0.65 + WRIST_OFFSET;
 
     // Auto Spec Score
     public static double autoLiftSpecIntake = liftSpecScore;
     public static double autoPivotSpecIntake = pivotSpecScore;
     public static double autoWristSpecIntake = wristSpecScore;
+    public static double autoSpecScorePreload = liftSpecScorePreload;
 
     // Claw
-    public static double clawOpen = 0.55;
+    public static double clawOpen = 0.69;
     public static double clawClose = 0.4;
     public static double specOpen = 0.7;
 
@@ -68,7 +73,7 @@ public class FArm {
     public PIDFController pid;
 
     public static double kP = 0.00015;
-    public static double kI = 0;
+    public static double kI = 0.0001;
     public static double kD = 0.000000015;
     public static double kF = 0.05;
     public static double kvf = 0.000001;
@@ -195,8 +200,14 @@ public class FArm {
         wrist.setPosition(autoWristSpecIntake);
     }
 
+    public void setAutoSpecScorePreload() {
+        targetPosition = autoSpecScorePreload; // Does not enable pid
+        setPivot(autoPivotSpecIntake);
+        wrist.setPosition(autoWristSpecIntake);
+    }
+
     public void setTransfer() {
-//        targetPosition = liftTransfer; // Does not enable pid
+       // targetPosition = liftTransfer; // Does not enable pid
         setPivot(pivotTransfer);
         wrist.setPosition(wristTransfer);
     }
@@ -207,6 +218,11 @@ public class FArm {
 
     public void setBucketScore() {  // default is high, when true it is low bucket
         setBucketScore(false);
+    }
+
+    public void setBucketPreloadScore() {
+        targetPosition = liftBucketScore;
+
     }
 
     public void setBucketScore(boolean low) {
@@ -230,7 +246,9 @@ public class FArm {
     }
 
     public void setSpecIntakeTeleop() {
-        targetPosition = liftSpecIntake + 100; // Does not enable pid
+        targetPosition = -100;
+        resetEncoder();
+        targetPosition = liftSpecTeleopIntake;
         setPivot(pivotSpecIntake);
         wrist.setPosition(wristSpecIntake);
     }

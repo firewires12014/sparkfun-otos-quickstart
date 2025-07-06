@@ -42,13 +42,13 @@ public class ChoppedSampleAuto extends LinearOpMode {
 
     Pose2d start = new Pose2d(-41.5, -64, Math.toRadians(90));
 
-    Pose2d preloadBucket = new Pose2d(new Vector2d(-61.25, -57.14), Math.toRadians(54.2));
+    Pose2d preloadBucket = new Pose2d(new Vector2d(-63, -57 ), Math.toRadians(54.2));
     Pose2d sample1Bucket = new Pose2d(new Vector2d(-61.25, -57.14), Math.toRadians(54.2));
     Pose2d sample2Bucket = new Pose2d(new Vector2d(-61.25, -57.14), Math.toRadians(54.2));
     Pose2d sample3Bucket = new Pose2d(new Vector2d(-61.25, -57.14), Math.toRadians(54.2));
 
     Pose2d sample1Pose = new Pose2d(new Vector2d(-56.33, -47.87), Math.toRadians(76.5));
-    Pose2d sample2Pose = new Pose2d(new Vector2d(-58.8, -47), Math.toRadians(93));
+    Pose2d sample2Pose = new Pose2d(new Vector2d(-58.8, -47), Math.toRadians(95));
     Pose2d sample3Pose = new Pose2d(new Vector2d(-62.15, -48.0), Math.toRadians(110));
 
     Pose2d cycle = new Pose2d(new Vector2d(-24.33, -10), Math.toRadians(0));
@@ -136,6 +136,7 @@ public class ChoppedSampleAuto extends LinearOpMode {
         // Shift into high gear and unlock PTO
         robot.setGearBoxHigh();
         robot.unlockPTO();
+        robot.farm.updatePID(0.00015, 0, 1.5e-8);
 
         while (opModeInInit() && !isStopRequested()) {
             if (gamepad2.touchpad && getRuntime() > 0.5 && vision.color.equalsIgnoreCase("blue")) {
@@ -157,8 +158,8 @@ public class ChoppedSampleAuto extends LinearOpMode {
         while (opModeIsActive() && !isStopRequested()) {
             // Insert actual code
             scheduler.addAction(new ParallelAction(
-                    bucket(),
-                    ActionUtil.Delay(0.3, ActionUtil.Offset(1.3, toBucket, dropFard()))
+                    bucketPreload(),
+                    ActionUtil.Delay(0.5 , ActionUtil.Offset(1.5, toBucket, dropFard()))
             ));
 
             // Cycle 1
@@ -166,6 +167,7 @@ public class ChoppedSampleAuto extends LinearOpMode {
                     ActionUtil.Delay(0.2, returnLift()),
                     firstSample,
 //                    robot.pauseAuto(telemetry, ()-> gamepad1.touchpad, 1e9),
+                    new InstantAction(()-> robot.intake.intakeDown()),
                     ActionUtil.Delay(0.5, intake(1, 520))
             ));
             scheduler.addAction(new ParallelAction(
@@ -178,7 +180,7 @@ public class ChoppedSampleAuto extends LinearOpMode {
                     ActionUtil.Delay(0.2, returnLift()),
                     secondSample,
 //                    robot.pauseAuto(telemetry, ()-> gamepad1.touchpad, 1e9),
-                    ActionUtil.Delay(0.6, intake(1, 520))
+                    ActionUtil.Delay(0.5, intake(1, 520))
             ));
             scheduler.addAction(new ParallelAction(
                     transfer(),
@@ -228,7 +230,7 @@ public class ChoppedSampleAuto extends LinearOpMode {
             scheduler.addAction(new ParallelAction(
                     new InstantAction(()->robot.drive.flickIn()),
                     transfer(),
-                    ActionUtil.Offset(2.1, toCycleBucket, dropFard())
+                    ActionUtil.Offset(2.4, toCycleBucket, dropFard())
             ));
             scheduler.run();
 
@@ -259,7 +261,7 @@ public class ChoppedSampleAuto extends LinearOpMode {
 
             scheduler.addAction(new ParallelAction(
                     transfer(),
-                    ActionUtil.Offset(2.1, toCycleBucket2, dropFard())
+                    ActionUtil.Offset(2.4, toCycleBucket2, dropFard())
             ));
             scheduler.run();
 
@@ -273,6 +275,8 @@ public class ChoppedSampleAuto extends LinearOpMode {
             scheduler.run();
             telemetry.addLine("Telemetry Data"); // Add telemetry below this
             loopTimeMeasurement(telemetry); // Don't update telemetry again, this method already does that
+
+            sleep(50000000);
         }
     }
 
@@ -298,7 +302,7 @@ public class ChoppedSampleAuto extends LinearOpMode {
         double maxExtensionIn = 18;
         double intakeConversion = maxExtensionTicks / maxExtensionIn;
 
-        double yOffset = 1;
+        double yOffset = -.5;
 
         double intakeExtension = Math.max((y-yOffset) * intakeConversion, 150);
 
@@ -337,7 +341,18 @@ public class ChoppedSampleAuto extends LinearOpMode {
     public Action bucket() {
         return new InstantAction(()-> {
             robot.farm.setBucketScore();
-        }
+        });
+    }
+
+    public Action bucketPreload() {
+        return new SequentialAction(
+            new InstantAction(()-> {
+                robot.farm.setBucketPreloadScore();
+            }),
+            ActionUtil.Delay(1, new InstantAction(() -> {
+                robot.farm.setPivot(0.59);
+                robot.farm.wrist.setPosition(.66);
+            }))
         );
     }
 
@@ -439,7 +454,10 @@ public class ChoppedSampleAuto extends LinearOpMode {
                     robot.intake.stopIntake();
                 }),
                 new SleepAction(0.9),
+                new InstantAction(()-> robot.intake.reverseIntake()),
+               // new SleepAction(.3),
                 new InstantAction(()-> robot.farm.setBucketScore())
+                //new InstantAction(()-> robot.intake.stopIntake())
         );
     }
 

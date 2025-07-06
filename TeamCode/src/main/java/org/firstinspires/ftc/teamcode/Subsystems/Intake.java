@@ -22,8 +22,8 @@ public class Intake {
     DoubleSupplier axialVelo, radialVelo;
 
     public static double pivotMiddle = 0.53;
-    public static double pivotIntake = 0.17;
-    public static double pivotTransfer = 0.87;
+    public static double pivotIntake = 0.25;
+    public static double pivotTransfer = 1;
 
     public static double sensorDistance = 15;
     public static double OUT_DISTANCE = 75;
