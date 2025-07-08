@@ -255,6 +255,10 @@ public class TeleOp extends LinearOpMode {
                 farmState = FARM_STATE.SPEC_SCORE;
             }
 
+            if (gamepad2.circle) {
+                FArm.wristTransfer = .35;
+            }
+
             if (operatingState.equals(OPERATING_MODE.SPEC)) {
                if (robot.farm.hasSpec() && robot.farm.isClawOpen()) {
                    robot.farm.close();
