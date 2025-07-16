@@ -21,8 +21,8 @@ public class Intake {
     public DcMotorEx spin;
     DoubleSupplier axialVelo, radialVelo;
 
-    public static double pivotMiddle = 0.53;
-    public static double pivotIntake = 0.25;
+    public static double pivotMiddle = 0.6;
+    public static double pivotIntake = 0.35;
     public static double pivotTransfer = 1;
 
     public static double sensorDistance = 15;

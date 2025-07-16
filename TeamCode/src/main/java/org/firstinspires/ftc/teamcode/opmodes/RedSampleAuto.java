@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
-import androidx.lifecycle.Lifecycle;
-
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -26,13 +24,10 @@ import org.firstinspires.ftc.teamcode.Subsystems.Vision;
 import org.firstinspires.ftc.teamcode.util.ActionUtil;
 import org.firstinspires.ftc.teamcode.util.AutoActionScheduler;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-
 @Config
 @Autonomous
 //@Disabled
-public class ChoppedSampleAuto extends LinearOpMode {
+public class RedSampleAuto extends LinearOpMode {
     Robot robot;
     Vision vision;
     AutoActionScheduler scheduler;
@@ -43,17 +38,26 @@ public class ChoppedSampleAuto extends LinearOpMode {
     Pose2d start = new Pose2d(-41.5, -64, Math.toRadians(90));
 
     Pose2d preloadBucket = new Pose2d(new Vector2d(-63, -57 ), Math.toRadians(54.2));
-    Pose2d sample1Bucket = new Pose2d(new Vector2d(-61.25, -57.14), Math.toRadians(54.2));
-    Pose2d sample2Bucket = new Pose2d(new Vector2d(-61.25, -57.14), Math.toRadians(54.2));
-    Pose2d sample3Bucket = new Pose2d(new Vector2d(-61.25, -57.14), Math.toRadians(54.2));
-
-    Pose2d sample1Pose = new Pose2d(new Vector2d(-56.33, -47.87), Math.toRadians(76.5));
+    Pose2d sample1Bucket = new Pose2d(new Vector2d(-60, -56), Math.toRadians(54.2));
+    Pose2d sample2Bucket = new Pose2d(new Vector2d(-60, -56), Math.toRadians(54.2));
+    Pose2d sample3Bucket = new Pose2d(new Vector2d(-57.36, -61.82), Math.toRadians(9.38));
+    Pose2d sample4Bucket = new Pose2d(new Vector2d(-57.36, -61.82), Math.toRadians(9.39));
+    Pose2d sample5Bucket = new Pose2d(new Vector2d(-57.36, -61.82), Math.toRadians(9.39));
+    Pose2d sample6Bucket = new Pose2d(new Vector2d(-57.36, -61.82), Math.toRadians(9.39));
+    Pose2d sample7Bucket = new Pose2d(new Vector2d(-57.36, -61.82), Math.toRadians(9.39));
+    Pose2d sample1Pose = new Pose2d(new Vector2d(-56.33, -47.87), Math.toRadians(75.5));
     Pose2d sample2Pose = new Pose2d(new Vector2d(-58.8, -47), Math.toRadians(95));
-    Pose2d sample3Pose = new Pose2d(new Vector2d(-62.15, -48.0), Math.toRadians(110));
+    Pose2d sample3Pose = new Pose2d(new Vector2d(-62.15, -48.0), Math.toRadians(111));
+    Pose2d sample4Pose = new Pose2d(new Vector2d(1.95, -62), Math.toRadians(-0.55));
+    Pose2d sample5Pose = new Pose2d(new Vector2d(1.95, -62), Math.toRadians(-0.55));
+    Pose2d sample6Pose = new Pose2d(new Vector2d(1.95, -62), Math.toRadians(-0.55));
+    Pose2d sample7Pose = new Pose2d(new Vector2d(1.95, -62), Math.toRadians(-0.55));
 
     Pose2d cycle = new Pose2d(new Vector2d(-24.33, -10), Math.toRadians(0));
     Pose2d cycle2 = new Pose2d(new Vector2d(-24.33, -8), Math.toRadians(0));
     Pose2d cycle3 = new Pose2d(new Vector2d(-24.33, -10), Math.toRadians(0));
+
+    Pose2d park = new Pose2d(new Vector2d(1.95, -62), Math.abs(0));
 
     Pose2d cycleIntake = new Pose2d(new Vector2d(-26.33, -10), Math.toRadians(0));
     Pose2d cycle2Intake = new Pose2d(new Vector2d(-26.33, -8), Math.toRadians(0));
@@ -101,6 +105,43 @@ public class ChoppedSampleAuto extends LinearOpMode {
                 .strafeToLinearHeading(sample3Bucket.position, sample3Bucket.heading)
                 .build();
 
+        Action fourthSample  = robot.drive.actionBuilder(sample3Bucket)
+                .splineTo(sample4Pose.position, sample4Pose.heading)
+                .build();
+
+        Action depositFourth = robot.drive.actionBuilder(sample4Pose)
+                .strafeToLinearHeading(sample4Bucket.position, sample4Bucket.heading)
+                .build();
+
+        Action fifthSample = robot.drive.actionBuilder(sample4Bucket)
+                .splineTo(sample5Pose.position, sample5Pose.heading)
+                .build();
+
+        Action depositFifth = robot.drive.actionBuilder(sample5Pose)
+                .strafeToLinearHeading(sample5Bucket.position, sample5Bucket.heading)
+                .build();
+
+        Action sixthSample = robot.drive.actionBuilder(sample5Bucket)
+                .splineTo(sample6Pose.position, sample6Pose.heading)
+                .build();
+
+        Action depositSixth = robot.drive.actionBuilder(sample6Pose)
+                .strafeToLinearHeading(sample6Bucket.position, sample6Bucket.heading)
+                .build();
+
+        Action seventhSample = robot.drive.actionBuilder(sample6Bucket)
+                .splineTo(sample7Pose.position, sample7Pose.heading)
+                .build();
+
+        Action depositSeventh = robot.drive.actionBuilder(sample7Pose)
+                .strafeToLinearHeading(sample7Bucket.position, sample7Bucket.heading)
+                .build();
+
+        Action parking = robot.drive.actionBuilder(sample7Bucket)
+                .splineTo(park.position, park.heading)
+                .build();
+
+
         Action toSub = robot.drive.actionBuilder(preloadBucket)
                 .splineTo(cycle.position, cycle.heading)
                 .build();
@@ -133,6 +174,7 @@ public class ChoppedSampleAuto extends LinearOpMode {
         vision.setRed();
         robot.farm.close();
         robot.intake.intakeUp();
+        robot.farm.setPivot(.27);
         // Shift into high gear and unlock PTO
         robot.setGearBoxHigh();
         robot.unlockPTO();
@@ -159,7 +201,7 @@ public class ChoppedSampleAuto extends LinearOpMode {
             // Insert actual code
             scheduler.addAction(new ParallelAction(
                     bucketPreload(),
-                    ActionUtil.Delay(0.5 , ActionUtil.Offset(1.5, toBucket, dropFard()))
+                    ActionUtil.Delay(0.1 , ActionUtil.Offset(1.3, toBucket, dropFard()))
             ));
 
             // Cycle 1
@@ -172,7 +214,7 @@ public class ChoppedSampleAuto extends LinearOpMode {
             ));
             scheduler.addAction(new ParallelAction(
                     transfer(),
-                    ActionUtil.Offset(2, depositFirst, dropFard())
+                    ActionUtil.Offset(1.9, depositFirst, dropFard())
             ));
 
             // Cycle 2
@@ -184,7 +226,7 @@ public class ChoppedSampleAuto extends LinearOpMode {
             ));
             scheduler.addAction(new ParallelAction(
                     transfer(),
-                    ActionUtil.Offset(2, depositSecond, dropFard())
+                    ActionUtil.Offset(1.9, depositSecond, dropFard())
             ));
 
             // Cycle 3
@@ -196,79 +238,133 @@ public class ChoppedSampleAuto extends LinearOpMode {
             ));
             scheduler.addAction(new ParallelAction(
                     transfer(),
-                    ActionUtil.Offset(2, depositThird, dropFard())
+                    ActionUtil.Offset(1.9, depositThird, dropFard())
+            ));
+            scheduler.run();
+
+            //cycle 4 from human player
+            scheduler.addAction(new ParallelAction(
+                    ActionUtil.Delay(.2, returnLift()),
+                    fourthSample,
+                    ActionUtil.Delay(.5, intake(3, 520))
+            ));
+            scheduler.addAction(new ParallelAction(
+                    transfer(),
+                    ActionUtil.Offset(1.9, depositFourth, dropFard())
+            ));
+            scheduler.run();
+
+            //cycle 5 from human player
+            scheduler.addAction(new ParallelAction(
+                    ActionUtil.Delay(.2, returnLift()),
+                    fifthSample,
+                    ActionUtil.Delay(.5, intake(3, 520))
+            ));
+            scheduler.addAction(new ParallelAction(
+                    transfer(),
+                    ActionUtil.Offset(1.9, depositFifth, dropFard())
+            ));
+            scheduler.run();
+
+            //cycle 6 from human player
+            scheduler.addAction(new ParallelAction(
+                    ActionUtil.Delay(.2, returnLift()),
+                    sixthSample,
+                    ActionUtil.Delay(.5, intake(3, 520))
+            ));
+            scheduler.addAction(new ParallelAction(
+                    transfer(),
+                    ActionUtil.Offset(1.9, depositSixth, dropFard())
+            ));
+            scheduler.run();
+
+            //cycle 7 from human player
+            scheduler.addAction(new ParallelAction(
+                    ActionUtil.Delay(.2, returnLift()),
+                    seventhSample,
+                    ActionUtil.Delay(.5, intake(3, 520))
+            ));
+            scheduler.addAction(new ParallelAction(
+                    transfer(),
+                    ActionUtil.Offset(1.9, depositSeventh, dropFard())
+            ));
+            scheduler.run();
+
+            scheduler.addAction(new ParallelAction(
+                    ActionUtil.Delay(.2, returnLift()),
+                    parking
             ));
             scheduler.run();
 
             // Sub Cycle 1
-            scheduler.addAction(ActionUtil.Offset(0.2, toSub, returnLift()));
-            scheduler.run();
-
-            scheduler.addAction(new InstantAction(robot.drive::flickOut));
-            scheduler.addAction(new SleepAction(0.5));// wait for it to flick before detecting
-            scheduler.run();
-
-            ArrayList<Object> dection = vision.getBlock();
-            double[] offsets = (double[]) dection.get(0);
-
-            searchTimer.reset();
-            while (searchTimer.seconds() < 0.7) {
-                dection = vision.getBlock();
-                offsets = (double[]) dection.get(0); // TODO: Poll for a time, to allow a better estimated position
-                telemetry.addData("Offset", Arrays.toString(offsets));
-                telemetry.addData("Color", dection.get(1));
-                telemetry.update();
-                robot.intake.intakeHorizontal();
-            }
-
-            scheduler.addAction(getReadyToIntake(-offsets[0] + xOffset, offsets[1] + yOffset));
-            scheduler.run();
-
-            scheduler.addAction(intakeSub(1, 570));
-            scheduler.run();
-
-            scheduler.addAction(new ParallelAction(
-                    new InstantAction(()->robot.drive.flickIn()),
-                    transfer(),
-                    ActionUtil.Offset(2.4, toCycleBucket, dropFard())
-            ));
-            scheduler.run();
-
-//            transferMethod(toCycleBucket, 1.9);
-
-            // Sub Cycle 2
-            scheduler.addAction(ActionUtil.Offset(0.2, toSub2, returnLift()));
-            scheduler.run();
-
-            dection = vision.getBlock(true);
-            offsets = (double[]) dection.get(0);
-
-            searchTimer.reset();
-            while (searchTimer.seconds() < 0.7) {
-                dection = vision.getBlock();
-                offsets = (double[]) dection.get(0); // TODO: Poll for a time, to allow a better estimated position
-                telemetry.addData("Offset", Arrays.toString(offsets));
-                telemetry.addData("Color", dection.get(1));
-                telemetry.update();
-                robot.intake.intakeHorizontal();
-            }
-
-            scheduler.addAction(getReadyToIntake(-offsets[0] + xOffset, offsets[1] + yOffset));
-            scheduler.run();
-
-            scheduler.addAction(intakeSub(1, 570));
-            scheduler.run();
-
-            scheduler.addAction(new ParallelAction(
-                    transfer(),
-                    ActionUtil.Offset(2.4, toCycleBucket2, dropFard())
-            ));
-            scheduler.run();
-
-            transferMethod(toCycleBucket2, 2.2);
-
-            scheduler.addAction(returnLift());
-            scheduler.run();
+//            scheduler.addAction(ActionUtil.Offset(0.2, toSub, returnLift()));
+//            scheduler.run();
+//
+//            scheduler.addAction(new InstantAction(robot.drive::flickOut));
+//            scheduler.addAction(new SleepAction(0.5));// wait for it to flick before detecting
+//            scheduler.run();
+//
+//            ArrayList<Object> dection = vision.getBlock();
+//            double[] offsets = (double[]) dection.get(0);
+//
+//            searchTimer.reset();
+//            while (searchTimer.seconds() < 0.7) {
+//                dection = vision.getBlock();
+//                offsets = (double[]) dection.get(0); // TODO: Poll for a time, to allow a better estimated position
+//                telemetry.addData("Offset", Arrays.toString(offsets));
+//                telemetry.addData("Color", dection.get(1));
+//                telemetry.update();
+//                robot.intake.intakeHorizontal();
+//            }
+//
+//            scheduler.addAction(getReadyToIntake(-offsets[0] + xOffset, offsets[1] + yOffset));
+//            scheduler.run();
+//
+//            scheduler.addAction(intakeSub(1, 570));
+//            scheduler.run();
+//
+//            scheduler.addAction(new ParallelAction(
+//                    new InstantAction(()->robot.drive.flickIn()),
+//                    transfer(),
+//                    ActionUtil.Offset(2.4, toCycleBucket, dropFard())
+//            ));
+//            scheduler.run();
+//
+////            transferMethod(toCycleBucket, 1.9);
+//
+//            // Sub Cycle 2
+//            scheduler.addAction(ActionUtil.Offset(0.2, toSub2, returnLift()));
+//            scheduler.run();
+//
+//            dection = vision.getBlock(true);
+//            offsets = (double[]) dection.get(0);
+//
+//            searchTimer.reset();
+//            while (searchTimer.seconds() < 0.7) {
+//                dection = vision.getBlock();
+//                offsets = (double[]) dection.get(0); // TODO: Poll for a time, to allow a better estimated position
+//                telemetry.addData("Offset", Arrays.toString(offsets));
+//                telemetry.addData("Color", dection.get(1));
+//                telemetry.update();
+//                robot.intake.intakeHorizontal();
+//            }
+//
+//            scheduler.addAction(getReadyToIntake(-offsets[0] + xOffset, offsets[1] + yOffset));
+//            scheduler.run();
+//
+//            scheduler.addAction(intakeSub(1, 570));
+//            scheduler.run();
+//
+//            scheduler.addAction(new ParallelAction(
+//                    transfer(),
+//                    ActionUtil.Offset(2.4, toCycleBucket2, dropFard())
+//            ));
+//            scheduler.run();
+//
+//            transferMethod(toCycleBucket2, 2.2);
+//
+//            scheduler.addAction(returnLift());
+//            scheduler.run();
 
 
             scheduler.addAction(robot.endAuto(this, telemetry, 30));
@@ -349,9 +445,8 @@ public class ChoppedSampleAuto extends LinearOpMode {
             new InstantAction(()-> {
                 robot.farm.setBucketPreloadScore();
             }),
-            ActionUtil.Delay(1, new InstantAction(() -> {
-                robot.farm.setPivot(0.59);
-                robot.farm.wrist.setPosition(.66);
+            ActionUtil.Delay(1.2, new InstantAction(() -> {
+                robot.farm.setBucketScore();
             }))
         );
     }
@@ -383,10 +478,13 @@ public class ChoppedSampleAuto extends LinearOpMode {
 
     public Action intake(double timeout, double distance) {
         return new SequentialAction(
+                new InstantAction(()-> robot.intake.extension.setPower(1)),
                 new ActionUtil.RunnableTimedAction(timeout, ()-> {
                     robot.intake.startIntake();
                     Intake.PID_ENABLED = false;
-                    robot.intake.extension.setPower(1);
+                    if (robot.intake.extension.getCurrent(CurrentUnit.MILLIAMPS) > 7000) {
+                        robot.intake.extension.setPower(0);
+                    }
                     robot.intake.intakeDown();
 
                     if(robot.hasSample()) return false;
@@ -456,6 +554,37 @@ public class ChoppedSampleAuto extends LinearOpMode {
                 new SleepAction(0.9),
                 new InstantAction(()-> robot.intake.reverseIntake()),
                // new SleepAction(.3),
+                new InstantAction(()-> robot.farm.setBucketScore())
+                //new InstantAction(()-> robot.intake.stopIntake())
+        );
+    }
+
+    public Action humanPlayerTransfer() {
+        return  new SequentialAction(
+                new InstantAction(()-> {
+                    robot.intake.startIntake();
+                    Intake.PID_ENABLED = false;
+                    robot.intake.extension.setPower(-1);
+                    robot.intake.intakeUp();
+                    robot.farm.setTransfer();
+//                    returnLift(); //did i just break ts by putting an action inside an action ion know
+                }),
+                new ActionUtil.RunnableAction(()-> robot.intake.extension.getCurrentPosition() > 50),
+                new SleepAction(0.2),
+                new InstantAction(()-> {
+                    Intake.targetPosition = robot.intake.extension.getCurrentPosition();
+                    Intake.PID_ENABLED = true;
+                    robot.farm.close();
+                }),
+                new SleepAction(0.2),
+                new InstantAction(()->{
+                    //robot.farm.setBucketScore();
+                    robot.farm.setPivot(0.5);
+                    robot.intake.stopIntake();
+                }),
+                new SleepAction(0.7),
+                new InstantAction(()-> robot.intake.reverseIntake()),
+                // new SleepAction(.3),
                 new InstantAction(()-> robot.farm.setBucketScore())
                 //new InstantAction(()-> robot.intake.stopIntake())
         );

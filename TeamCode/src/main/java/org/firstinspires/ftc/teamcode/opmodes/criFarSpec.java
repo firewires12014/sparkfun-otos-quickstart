@@ -36,7 +36,14 @@ public class criFarSpec extends LinearOpMode {
     // Purely Positions to go to
     Pose2d scorePreload = new Pose2d(new Vector2d(58, 0), Math.toRadians(160));
     Pose2d moveAwayFromSub = new Pose2d(new Vector2d(54, -32), Math.toRadians(90));
-    Pose2d grabSpec = new Pose2d(new Vector2d(-6, -60), Math.toRadians(90));
+    Pose2d grabSpec1 = new Pose2d(new Vector2d(-6, -60), Math.toRadians(90));
+    Pose2d moveAwayFromWall = new Pose2d(new Vector2d(54, -32), Math.toRadians(90));
+    Pose2d scoreSpec1 = new Pose2d(new Vector2d(58, -2), Math.toRadians(160));
+    Pose2d grabSpec2 = new Pose2d(new Vector2d(-6, -60), Math.toRadians(90));
+    Pose2d scoreSpec2 = new Pose2d(new Vector2d(58, -4), Math.toRadians(160));
+    Pose2d grabSpec3 = new Pose2d(new Vector2d(-6, -60), Math.toRadians(90));
+    Pose2d scoreSpec3 = new Pose2d(new Vector2d(58, -6), Math.toRadians(160));
+
 
 
 
@@ -55,15 +62,61 @@ public class criFarSpec extends LinearOpMode {
                 .splineToLinearHeading(scorePreload, Math.toRadians(160))
                 .build();
 
-        Action awayFromSub = robot.drive.actionBuilder(scorePreload)
-                .setTangent(Math.toRadians(90))
-                .splineToLinearHeading(moveAwayFromSub, Math.toRadians(90))
+        Action awayFromSub1 = robot.drive.actionBuilder(scorePreload)
+                //.setTangent(Math.toRadians(110))
+                .splineToLinearHeading(moveAwayFromSub, Math.toRadians(140))
                 .build();
 
-        Action grabSpeciman = robot.drive.actionBuilder(moveAwayFromSub)
+        Action grabFirstSpecimen = robot.drive.actionBuilder(moveAwayFromSub)
                 .setTangent(90)
-                .strafeToLinearHeading(grabSpec.position, grabSpec.heading)
+                .strafeToLinearHeading(grabSpec1.position, grabSpec1.heading)
                 .build();
+
+        Action awayFromWall1 = robot.drive.actionBuilder(grabSpec1)
+                .strafeToLinearHeading(moveAwayFromWall.position, moveAwayFromWall.heading)
+                .build();
+
+        Action scoreFirstSpecimen = robot.drive.actionBuilder(moveAwayFromWall)
+                .splineToLinearHeading(scoreSpec1, Math.toRadians(160))
+                .build();
+
+        Action awayFromSub2 = robot.drive.actionBuilder(scoreSpec1)
+                .splineToLinearHeading(moveAwayFromSub, Math.toRadians(140))
+                .build();
+
+        Action grabSecondSpecimen = robot.drive.actionBuilder(moveAwayFromSub)
+                .setTangent(90)
+                .strafeToLinearHeading(grabSpec2.position, grabSpec2.heading)
+                .build();
+
+        Action awayFromWall2 = robot.drive.actionBuilder(grabSpec2)
+                .strafeToLinearHeading(moveAwayFromWall.position, moveAwayFromWall.heading)
+                .build();
+
+        Action scoreSecondSpecimen = robot.drive.actionBuilder(moveAwayFromWall)
+                .splineToLinearHeading(scoreSpec2, Math.toRadians(160))
+                .build();
+
+
+        Action awayFromSub3 = robot.drive.actionBuilder(scoreSpec2)
+                .splineToLinearHeading(moveAwayFromSub, Math.toRadians(140))
+                .build();
+
+        Action grabThirdSpecimen = robot.drive.actionBuilder(moveAwayFromSub)
+                .setTangent(90)
+                .strafeToLinearHeading(grabSpec3.position, grabSpec2.heading)
+                .build();
+
+        Action awayFromWall3 = robot.drive.actionBuilder(grabSpec3)
+                .strafeToLinearHeading(moveAwayFromWall.position, moveAwayFromWall.heading)
+                .build();
+
+        Action scoreThirdSpecimen = robot.drive.actionBuilder(moveAwayFromWall)
+                .splineToLinearHeading(scoreSpec3, Math.toRadians(160))
+                .build();
+
+
+
 
 
         // Any pre start init shi
@@ -97,11 +150,54 @@ public class criFarSpec extends LinearOpMode {
 
             scheduler.addAction(
                     new SequentialAction(
-                            awayFromSub,
-                            grabSpeciman,
+                            awayFromSub1,
+                            grabFirstSpecimen,
                             intakeSpecimen()
                     )
             );
+            scheduler.run();
+
+            scheduler.addAction(
+                    new SequentialAction(
+                            awayFromWall1,
+                            ActionUtil.Offset(2, scoreFirstSpecimen, dropSpecimen())
+                    )
+            );
+            scheduler.run();
+
+            scheduler.addAction(
+                    new SequentialAction(
+                            awayFromSub2,
+                            grabSecondSpecimen,
+                            intakeSpecimen()
+                    )
+            );
+            scheduler.run();
+
+            scheduler.addAction(
+                    new SequentialAction(
+                            awayFromWall2,
+                            ActionUtil.Offset(2, scoreSecondSpecimen, dropSpecimen())
+                    )
+            );
+            scheduler.run();
+
+            scheduler.addAction(
+                    new SequentialAction(
+                            awayFromSub3,
+                            grabThirdSpecimen,
+                            intakeSpecimen()
+                    )
+            );
+            scheduler.run();
+
+            scheduler.addAction(
+                    new SequentialAction(
+                            awayFromWall3,
+                            ActionUtil.Offset(2, scoreThirdSpecimen, dropSpecimen())
+                    )
+            );
+            scheduler.run();
 
             stop();
 

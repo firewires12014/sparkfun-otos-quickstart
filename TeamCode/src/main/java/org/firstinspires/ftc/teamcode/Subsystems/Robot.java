@@ -11,6 +11,8 @@ import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ServoImpl;
+import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -128,6 +130,13 @@ public class Robot {
     public void setColorRed() {
         selected_color = "RED";
         lights.setPosition(RED);
+    }
+
+    public void endOpmode() {
+        ServoImplEx left = (ServoImplEx) farm.left;
+        ServoImplEx right = (ServoImplEx) farm.right;
+        left.setPwmDisable();
+        right.setPwmDisable();
     }
 
     public void setColorBlue() {

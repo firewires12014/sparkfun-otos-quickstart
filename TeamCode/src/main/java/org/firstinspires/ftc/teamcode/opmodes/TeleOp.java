@@ -18,6 +18,8 @@ import org.firstinspires.ftc.teamcode.util.ActionUtil;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends LinearOpMode {
+    //private TRANSFER_STATE = ;
+
     enum ROBOT_STATE {
         SCORE_HIGH_BUCKET,
         SCORE_LOW_BUCKET,
@@ -45,6 +47,8 @@ public class TeleOp extends LinearOpMode {
         LOW_BUCKET_SCORE,
         TRANSFER,
         SPEC_SCORE,
+
+        SPEC_SCORE_LOW,
         BUCKET_SCORE,
         RETURN_LIFT
     }
@@ -241,6 +245,11 @@ public class TeleOp extends LinearOpMode {
                 }
             }
 
+            if (gamepad2.square) {
+                farmState = FARM_STATE.SPEC_SCORE_LOW;
+                operatingState = OPERATING_MODE.SAMPLE;
+            }
+
             if (gamepad2.dpad_up && transferState.equals(TRANSFER_STATE.IDLE)) {
                 farmState = FARM_STATE.BUCKET_SCORE;
                 operatingState = OPERATING_MODE.SAMPLE;
@@ -309,6 +318,9 @@ public class TeleOp extends LinearOpMode {
                     break;
                 case SPEC_SCORE:
                     robot.farm.setSpecScore();
+                    break;
+                case SPEC_SCORE_LOW:
+                    robot.farm.setSpecScoreLow();
                     break;
                 case BUCKET_SCORE:
                     robot.farm.setBucketScore();
@@ -473,9 +485,12 @@ public class TeleOp extends LinearOpMode {
             telemetry.addData("Sample Color Blue", robot.colorValueBlue);
             telemetry.addData("Sample Color Green", robot.colorValueGreen);
             telemetry.addData("Operating State", operatingState);
+            telemetry.addData("intakeCurrent",robot.intake.extension.getCurrent(CurrentUnit.MILLIAMPS));
             loopTimeMeasurement(telemetry); // replaces telemetry.update()
         }
+        robot.endOpmode();
     }
+
 
     public void loopTimeMeasurement(Telemetry telemetry) {
         double currTime = System.nanoTime() / 1e9;

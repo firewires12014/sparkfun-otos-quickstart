@@ -1,11 +1,6 @@
 package org.firstinspires.ftc.teamcode.Subsystems;
 
-import androidx.annotation.NonNull;
-
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.acmerobotics.roadrunner.Action;
-import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -13,9 +8,6 @@ import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.opmodes.TeleOp;
 import org.firstinspires.ftc.teamcode.util.ActionUtil;
 import org.firstinspires.ftc.teamcode.util.PIDCoefficients;
 import org.firstinspires.ftc.teamcode.util.PIDFController;
@@ -33,41 +25,44 @@ public class FArm {
     public static double GLOBAL_PIVOT_OFFSET = 0.0125;
     public static double WRIST_OFFSET = 0.00;
 
+
     // Transfer
     public static double liftTransfer = 0;
-    public static double pivotTransfer = 0.21;
-    public static double wristTransfer = 0.38 + WRIST_OFFSET;
+    public static double pivotTransfer = 0.23;
+    public static double wristTransfer = 0.3 + WRIST_OFFSET;
 
     // Spec Score
     public static double liftSpecScorePreload = 14000;
-    public static double liftSpecScore = 16000; //15000
-    public static double pivotSpecScore = 0.34 + GLOBAL_PIVOT_OFFSET;
+    public static double liftSpecScoreHigh = 16000; //15000
+    public static double liftSpecScoreLow = 0;
+    public static double pivotSpecScoreHigh = 0.36 + GLOBAL_PIVOT_OFFSET;
+    public static double pivotSpecScorelow = .3 + GLOBAL_PIVOT_OFFSET;
     public static double AutoPivotSpecScorePreload = 0.34 + GLOBAL_PIVOT_OFFSET;
-    public static double wristSpecScore = 0.63 + WRIST_OFFSET; //.57
+    public static double wristSpecScore = 0.65 + WRIST_OFFSET; //.57
 
     // Bucket Score
     public static double liftBucketScore = 42000;
     public static double liftLowBucketScore = 12000;
     public static double pivotBucketScore = 0.66 + GLOBAL_PIVOT_OFFSET;
-    public static double wristBucketScore = 0.75 + WRIST_OFFSET; // 0.62
+    public static double wristBucketScore = 0.67 + WRIST_OFFSET; // 0.62
     public static double autoPivotPreloadBucketScore = 0.59 +GLOBAL_PIVOT_OFFSET;
 
     // Spec Intake
     public static double liftSpecIntake = 10050;
     public static double liftSpecTeleopIntake = 10250;
-    public static double pivotSpecIntake = 0.9575 + GLOBAL_PIVOT_OFFSET;
+    public static double pivotSpecIntake = 0.96 + GLOBAL_PIVOT_OFFSET;
     public static double wristSpecIntake = 0.7 + WRIST_OFFSET;
 
     // Auto Spec Score
-    public static double autoLiftSpecIntake = liftSpecScore;
-    public static double autoPivotSpecIntake = pivotSpecScore;
+    public static double autoLiftSpecIntake = liftSpecScoreHigh;
+    public static double autoPivotSpecIntake = pivotSpecScoreHigh;
     public static double autoWristSpecIntake = wristSpecScore;
     public static double autoSpecScorePreload = liftSpecScorePreload;
 
     // Claw
-    public static double clawOpen = 0.69;
-    public static double clawClose = 0.54;
-    public static double specOpen = 0.7;
+    public static double clawOpen = 0.02;
+    public static double clawClose = 0.2;
+    public static double specOpen = 0.02;
 
     public PIDCoefficients coef;
     public PIDFController pid;
@@ -189,8 +184,14 @@ public class FArm {
     }
 
     public void setSpecScore() {
-        targetPosition = liftSpecScore; // Does not enable pid
-        setPivot(pivotSpecScore);
+        targetPosition = liftSpecScoreHigh; // Does not enable pid
+        setPivot(pivotSpecScoreHigh);
+        wrist.setPosition(wristSpecScore);
+    }
+
+    public void setSpecScoreLow() {
+        targetPosition = liftSpecScoreLow;
+        setPivot(pivotSpecScorelow);
         wrist.setPosition(wristSpecScore);
     }
 
