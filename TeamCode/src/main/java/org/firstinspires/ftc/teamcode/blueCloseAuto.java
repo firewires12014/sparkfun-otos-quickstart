@@ -38,8 +38,15 @@ public final class blueCloseAuto extends LinearOpMode {
                         .strafeToLinearHeading(new Vector2d(-23, -22.5), Math.toRadians(214))
                         .build();
         Action toGate = drive.actionBuilder(new Pose2d(-23, -22.5, Math.toRadians(214)))
-                        .strafeToLinearHeading(new Vector2d(0, -60 + yOffset), Math.toRadians(256))
+                        //.setReversed(true)
+                        .setTangent(Math.toRadians(45))
+                        .splineToLinearHeading(new Pose2d(8, -30, Math.toRadians(-124)), Math.toRadians(-53))
                         .build();
+        Action openGate = drive.actionBuilder(new Pose2d(8,-30, Math.toRadians(-124)))
+                        .setTangent(-53)
+                                .splineToLinearHeading(new Pose2d(8, -72, Math.toRadians(-124)), Math.toRadians(-53))
+                                        .build();
+
 
 
         waitForStart();
@@ -50,7 +57,8 @@ public final class blueCloseAuto extends LinearOpMode {
                 intakeRow2,
                 backupFromRow2,
                 shoot,
-                toGate
+                toGate,
+                openGate
         ));
     }
 }
