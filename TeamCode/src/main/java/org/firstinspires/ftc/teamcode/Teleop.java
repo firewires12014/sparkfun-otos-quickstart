@@ -83,8 +83,7 @@ public class Teleop extends LinearOpMode {
             }
 
             // Enable shooter
-//            robot.shoot = gamepad2.left_trigger > 0;
-            robot.shoot = true;
+            robot.shoot = gamepad2.left_trigger > 0;
 
             if (gamepad2.left_bumper) {
                 robot.turret.setPower(1);

@@ -34,7 +34,7 @@ public class Hardware {
     public static double kP = 0.5;
     public static double kD = 0.0;
     public static double kV = 0.0004;
-    private PIDFController.PIDCoefficients pidCoef = new PIDFController.PIDCoefficients();
+    private final PIDFController.PIDCoefficients pidCoef = new PIDFController.PIDCoefficients();
     public PIDFController shooterPID;
 
     public static boolean tuneShooter = false;
@@ -60,6 +60,7 @@ public class Hardware {
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
 
         shooter = hardwareMap.get(DcMotorEx.class, "shooter");
+        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         transfer1 = hardwareMap.get(CRServo.class, "transfer1");
         transfer2 = hardwareMap.get(CRServo.class, "transfer2");
@@ -80,10 +81,21 @@ public class Hardware {
             shooterPID = new PIDFController(pidCoef);
         }
 
-        shooterPID.targetPosition = targetVelocity;
-        double power = shooterPID.update(shooter.getVelocity()) + targetVelocity * kV;
+        // Treat PID as velocity error controller
+        double currentVel = shooter.getVelocity(); // ticks/sec
+        shooterPID.targetPosition = targetVelocity; // target velocity in ticks/sec
 
-        if (shoot) shooter.setPower(power);
+        double pidOut = shooterPID.update(currentVel); // uses (target - current)
+        double ffOut = targetVelocity * kV; // kV in power per ticks/sec
+
+        double power = pidOut + ffOut;
+        power = Math.max(-1.0, Math.min(1.0, power)); // clamp
+
+        if (shoot) {
+            shooter.setPower(power);
+        } else {
+            shooter.setPower(0.0);
+        }
     }
 }
 
