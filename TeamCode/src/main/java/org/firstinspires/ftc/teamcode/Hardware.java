@@ -23,6 +23,7 @@ public class Hardware {
     public DcMotorEx frontRight;
     public DcMotorEx backRight;
     public DcMotorEx intake;
+    public DcMotorEx turretEncoder; // reuse intake motor for turret encoder reading
     public DcMotorEx shooter;
     public DcMotorEx liftEH;
     public DcMotorEx liftCH;
@@ -66,6 +67,7 @@ public class Hardware {
         transfer2 = hardwareMap.get(CRServo.class, "transfer2");
 
         turret = hardwareMap.get(CRServo.class, "turret");
+        turretEncoder = intake;; // reuse intake motor for turret encoder reading
         hood = hardwareMap.get(Servo.class, "hood");
 
         pidCoef.kP = kP;
