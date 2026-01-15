@@ -184,6 +184,7 @@ public class TeleopRoadrunner extends LinearOpMode {
                     // if autoTurret disabled and stick released, hold current position by zeroing desired reference
                     initialTurretAngle = curAngle;
                     initialHeading = heading;
+                    robot.turret.setPower(0);
                 }
             }
 
