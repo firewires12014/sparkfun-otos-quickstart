@@ -16,11 +16,11 @@ public class Teleop extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
-    public static int velocity = 1800;
-    public static int hoodUpperLimit = 1;
-    public static int hoodLowerLimit = 0;
-    public static Double lift1Power = -1.0;
-    public static Double lift2Power = 1.0;
+    public static int velocity = 1900;
+    // ramp rate in RPM per second (tunable via dashboard)
+    public static double velocityRampRate = 1500.0;
+    public static float hoodUpperLimit = .7f;
+    public static float hoodLowerLimit = 0;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -31,14 +31,20 @@ public class Teleop extends LinearOpMode {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        robot.liftCH.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.liftCH.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
         waitForStart();
         runtime.reset();
 
+        // target velocity that will be ramped
+        double targetVel = 0.0;
+        // timer to compute loop delta time for smooth ramping
+        ElapsedTime loopTimer = new ElapsedTime();
+        loopTimer.reset();
+
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+            double dt = loopTimer.seconds();
+            loopTimer.reset();
+
             double max;
 
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
@@ -72,18 +78,39 @@ public class Teleop extends LinearOpMode {
             robot.backLeft.setPower(backLeftPower);
             robot.backRight.setPower(backRightPower);
 
-            if (gamepad2.right_trigger > 0) {
+            if (gamepad2.cross) {
                 robot.intake.setPower(1);
-                robot.transfer1.setPower(1);
-                robot.transfer2.setPower(1);
+                robot.transfer.setPower(1);
+            } else if (gamepad2.circle) {
+                robot.intake.setPower(-1);
+                robot.transfer.setPower(-1);
+                robot.shooter.setPower(-.5);
+            } else if (gamepad2.right_trigger > 0) {
+                robot.intake.setPower(1);
             } else {
+                robot.transfer.setPower(-.25);
                 robot.intake.setPower(0);
-                robot.transfer1.setPower(0);
-                robot.transfer2.setPower(0);
             }
 
+
+
             // Enable shooter
-            robot.shoot = gamepad2.left_trigger > 0;
+//            robot.shoot = gamepad2.left_trigger > 0;
+
+            // Smooth ramp for shooter velocity:
+            double triggerVal = gamepad2.left_trigger; // 0.0 .. 1.0
+            if (triggerVal > 0.001) {
+                // increase target velocity; scale ramp by how far trigger is pressed
+                targetVel += velocityRampRate * dt * triggerVal;
+                if (targetVel > velocity) targetVel = velocity;
+            } else {
+                // decay toward zero when trigger released
+                targetVel -= velocityRampRate * dt;
+                if (targetVel < 0) targetVel = 0;
+            }
+
+            // apply target velocity to shooter
+            robot.shooter.setVelocity(targetVel);
 
             if (gamepad2.left_bumper) {
                 robot.turret.setPower(1);
@@ -91,17 +118,6 @@ public class Teleop extends LinearOpMode {
                 robot.turret.setPower(-1);
             } else {
                 robot.turret.setPower(0);
-            }
-
-            if (gamepad1.dpad_down) {
-                robot.liftCH.setPower(lift1Power);
-                robot.liftEH.setPower(lift2Power);
-            } else if (gamepad1.dpad_up) {
-                robot.liftCH.setPower(-lift1Power);
-                robot.liftEH.setPower(-lift2Power);
-            } else {
-                robot.liftCH.setPower(0);
-                robot.liftEH.setPower(0);
             }
 
             if (gamepad2.dpad_up) {
@@ -117,11 +133,9 @@ public class Teleop extends LinearOpMode {
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Velocity", robot.shooter.getVelocity());
-            telemetry.addData("Target Velo", targetVelocity);
-            telemetry.addData("Turret Encoder: ", robot.liftEH.getCurrentPosition());
+            telemetry.addData("Target Velo", targetVel);
             telemetry.addData("Zero", 0);
             telemetry.update();
         }
     }
 }
-

@@ -10,7 +10,6 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @Config
@@ -120,10 +119,10 @@ public class TeleopRoadrunner extends LinearOpMode {
 
             // Shooter: right bumper to spin up, left bumper to stop
             if (gamepad1.right_bumper) {
-                Hardware.targetVelocity = velocity;
-                Hardware.shoot = true;
+                robot.targetVel = velocity;
+                robot.shoot = true;
             } else if (gamepad1.left_bumper) {
-                Hardware.shoot = false;
+                robot.shoot = false;
             }
 
             // transfer rollers (gamepad2 right trigger)
@@ -208,8 +207,8 @@ public class TeleopRoadrunner extends LinearOpMode {
             telemetry.addData("TurretAuto", autoTurret);
             telemetry.addData("TurretAngleDeg", String.format("%.1f", Math.toDegrees(curAngle)));
             telemetry.addData("Intake", intakeOn);
-            telemetry.addData("Shooting", Hardware.shoot);
-            telemetry.addData("TargetVel", Hardware.targetVelocity);
+            telemetry.addData("Shooting", robot.shoot);
+            telemetry.addData("TargetVel", robot.targetVel);
             telemetry.update();
 
             idle();
