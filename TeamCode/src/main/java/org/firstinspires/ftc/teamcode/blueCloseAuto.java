@@ -8,17 +8,14 @@ import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.teamcode.MecanumDrive;
-import org.firstinspires.ftc.teamcode.TankDrive;
-
 @Autonomous
-
 public final class blueCloseAuto extends LinearOpMode {
-    public static int xOffset = 12;
-    public static int yOffset = -14;
 
     @Override
     public void runOpMode() throws InterruptedException {
+        int xOffset = Constants.BLUE_CLOSE_X_OFFSET;
+        int yOffset = Constants.BLUE_CLOSE_Y_OFFSET;
+
         Pose2d startPose = new Pose2d(-53, -50, Math.toRadians(214));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
@@ -26,28 +23,25 @@ public final class blueCloseAuto extends LinearOpMode {
                 .strafeToLinearHeading(new Vector2d(-23, -22.5), Math.toRadians(214))
                 .build();
         Action lineUpWithRow2 = drive.actionBuilder(new Pose2d(-23, -22.5, Math.toRadians(214)))
-                        .strafeToLinearHeading(new Vector2d(5 + xOffset, -26 + yOffset), Math.toRadians(256))
-                        .build();
+                .strafeToLinearHeading(new Vector2d(5 + xOffset, -26 + yOffset), Math.toRadians(256))
+                .build();
         Action intakeRow2 = drive.actionBuilder(new Pose2d(5 + xOffset, -26 + yOffset, Math.toRadians(256)))
-                        .strafeToLinearHeading(new Vector2d(5, -72 + yOffset), Math.toRadians(256))
-                        .build();
+                .strafeToLinearHeading(new Vector2d(5, -72 + yOffset), Math.toRadians(256))
+                .build();
         Action backupFromRow2 = drive.actionBuilder(new Pose2d(5, -72 + yOffset, Math.toRadians(256)))
-                        .strafeToLinearHeading(new Vector2d(5 + xOffset, -26 + yOffset), Math.toRadians(214))
-                        .build();
-        Action shoot = drive.actionBuilder(new Pose2d(5+xOffset, -26+yOffset, Math.toRadians(214)))
-                        .strafeToLinearHeading(new Vector2d(-23, -22.5), Math.toRadians(214))
-                        .build();
+                .strafeToLinearHeading(new Vector2d(5 + xOffset, -26 + yOffset), Math.toRadians(214))
+                .build();
+        Action shoot = drive.actionBuilder(new Pose2d(5 + xOffset, -26 + yOffset, Math.toRadians(214)))
+                .strafeToLinearHeading(new Vector2d(-23, -22.5), Math.toRadians(214))
+                .build();
         Action toGate = drive.actionBuilder(new Pose2d(-23, -22.5, Math.toRadians(214)))
-                        //.setReversed(true)
-                        .setTangent(Math.toRadians(45))
-                        .splineToLinearHeading(new Pose2d(8, -30, Math.toRadians(-124)), Math.toRadians(-53))
-                        .build();
-        Action openGate = drive.actionBuilder(new Pose2d(8,-30, Math.toRadians(-124)))
-                        .setTangent(-53)
-                                .splineToLinearHeading(new Pose2d(8, -72, Math.toRadians(-124)), Math.toRadians(-53))
-                                        .build();
-
-
+                .setTangent(Math.toRadians(45))
+                .splineToLinearHeading(new Pose2d(8, -30, Math.toRadians(-124)), Math.toRadians(-53))
+                .build();
+        Action openGate = drive.actionBuilder(new Pose2d(8, -30, Math.toRadians(-124)))
+                .setTangent(-53)
+                .splineToLinearHeading(new Pose2d(8, -72, Math.toRadians(-124)), Math.toRadians(-53))
+                .build();
 
         waitForStart();
 
@@ -62,4 +56,3 @@ public final class blueCloseAuto extends LinearOpMode {
         ));
     }
 }
-

@@ -29,16 +29,10 @@ public class Hardware {
     public CRServo transfer2; // farther from intake
     public Servo hood;
 
-    public static double kP = 0.5;
-    public static double kD = 0.0;
-    public static double kV = 0.0004;
     private final PIDFController.PIDCoefficients pidCoef = new PIDFController.PIDCoefficients();
     public PIDFController shooterPID;
 
-    public static boolean tuneShooter = false;
     public boolean shoot = false;
-
-    public static double targetVel = 0;
 
     public Hardware(HardwareMap hardwareMap) {
         frontLeft = hardwareMap.get(DcMotorEx.class, "frontLeft");
@@ -64,8 +58,8 @@ public class Hardware {
         turretEncoder = intake;; // reuse intake motor for turret encoder reading
         hood = hardwareMap.get(Servo.class, "hood");
 
-        pidCoef.kP = kP;
-        pidCoef.kD = kD;
+        pidCoef.kP = Constants.SHOOTER_KP;
+        pidCoef.kD = Constants.SHOOTER_KD;
 
         shooterPID = new PIDFController(pidCoef);
     }
@@ -94,4 +88,3 @@ public class Hardware {
 //        }
     }
 }
-
