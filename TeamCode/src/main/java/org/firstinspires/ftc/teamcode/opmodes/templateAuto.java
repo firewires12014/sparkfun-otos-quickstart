@@ -12,6 +12,8 @@ import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.Hardware;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.subsystems.Hood;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 
 @Autonomous(name = "templateAuto", group = "Templates")
 public final class templateAuto extends LinearOpMode {
@@ -21,6 +23,8 @@ public final class templateAuto extends LinearOpMode {
         // Non-RoadRunner hardware (intake/shooter/servos/etc)
         Hardware robot = new Hardware(hardwareMap);
         Hood hood = new Hood(hardwareMap);
+        Shooter shoot = new Shooter(hardwareMap);
+        Intake in = new Intake(hardwareMap);
 
         // Road Runner drive
         Pose2d startPose = new Pose2d(0, 0, 0);

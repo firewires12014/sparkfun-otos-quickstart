@@ -30,6 +30,7 @@ public class Teleop extends LinearOpMode {
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
+        transfer.triggerClose();
 
         waitForStart();
         runtime.reset();
@@ -51,29 +52,44 @@ public class Teleop extends LinearOpMode {
             // Smooth ramp for shooter velocity:
             double triggerVal = gamepad2.left_trigger;
             if (triggerVal > 0.001) {
-                targetVel += Constants.SHOOTER_VELOCITY_RAMP_RATE * dt * triggerVal;
-                if (targetVel > Constants.SHOOTER_VELOCITY) targetVel = Constants.SHOOTER_VELOCITY;
+                targetVel = Constants.SHOOTER_VELOCITY;
+                transfer.triggerOpen();
+                if (drive.shooter.getVelocity() >= Constants.SHOOTER_VELOCITY) {
+                    intake.in();
+                    transfer.run();
+                }
             } else {
-                targetVel -= Constants.SHOOTER_VELOCITY_RAMP_RATE * dt;
-                if (targetVel < 0) targetVel = 0;
+                transfer.triggerClose();
+                targetVel = 0;
             }
 
             drive.shooter.setVelocity(targetVel);
 
-            if (gamepad2.cross) {
-                intake.input();
+//            if (gamepad1.circle) {
+//                transfer.triggerClose();
+//                telemetry.addLine("Trigger closed");
+//            }
+
+            if (gamepad2.cross && triggerVal == 0) {
+                intake.in();
                 transfer.run();
-            } else if (gamepad2.circle) {
-                intake.output();
+            } else if (gamepad2.circle && triggerVal == 0) {
+                intake.out();
                 transfer.reverse();
                 drive.shooter.setPower(-.5);
-            } else if (gamepad2.right_trigger > 0) {
-                intake.input();
+            } else if (gamepad2.right_trigger > 0  && triggerVal == 0) {
+                intake.in();
                 transfer.stop();
-            } else {
+                transfer.triggerClose();
+                telemetry.addLine("Trigger closed");
+            }  else if (gamepad2.right_trigger == 0  && triggerVal == 0) {
                 intake.stop();
-                transfer.slow();
+                transfer.stop();
             }
+//            else  {
+//                intake.stop();
+//                transfer.stop();
+//            }
 
             // Transfer runs only when shooting
             if (triggerVal > 0.001) {
@@ -95,6 +111,8 @@ public class Teleop extends LinearOpMode {
             if (gamepad2.dpad_down) {
                 hood.down();
             }
+
+
 
             drive.update();
 

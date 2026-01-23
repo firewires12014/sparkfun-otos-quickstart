@@ -28,6 +28,7 @@ public class Hardware {
     public CRServo transfer1; // closest to intake
     public CRServo transfer2; // farther from intake
     public Servo hood;
+    public Servo trigger;
 
     private final PIDFController.PIDCoefficients pidCoef = new PIDFController.PIDCoefficients();
     public PIDFController shooterPID;
@@ -57,6 +58,9 @@ public class Hardware {
         turret = hardwareMap.get(CRServo.class, "turret");
         turretEncoder = intake;; // reuse intake motor for turret encoder reading
         hood = hardwareMap.get(Servo.class, "hood");
+
+        trigger = hardwareMap.get(Servo.class, "trigger");
+
 
         pidCoef.kP = Constants.SHOOTER_KP;
         pidCoef.kD = Constants.SHOOTER_KD;
