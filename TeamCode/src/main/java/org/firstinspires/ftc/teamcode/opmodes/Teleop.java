@@ -21,8 +21,10 @@ public class Teleop extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+        // Initialize Telemetry
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
+        // Initialize Subsystems
         Drive drive = new Drive(hardwareMap);
         Intake intake = new Intake(hardwareMap);
         Transfer transfer = new Transfer(hardwareMap);
@@ -32,6 +34,8 @@ public class Teleop extends LinearOpMode {
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
+
+        // Ensure subsystems are in starting state
         transfer.triggerClose();
 
         waitForStart();
@@ -44,42 +48,60 @@ public class Teleop extends LinearOpMode {
             double dt = loopTimer.seconds();
             loopTimer.reset();
 
+            // =========================================================================
+            // GAMEPAD 1 CONTROLS
+            // =========================================================================
+
+            // --- DRIVE CONTROL ---
             double axial = -gamepad1.left_stick_y;
             double lateral = gamepad1.left_stick_x;
             double yaw = gamepad1.right_stick_x;
 
             drive.drive(axial, lateral, yaw);
 
-            // Smooth ramp for shooter velocity:
+            // =========================================================================
+            // GAMEPAD 2 CONTROLS
+            // =========================================================================
+
+            // --- SHOOTER & INTAKE CONTROL ---
+
+            // Shooter Trigger Logic
             double triggerVal = gamepad2.left_trigger;
-            shooter.update(triggerVal > 0.001);
+            boolean isShooting = triggerVal > 0.001;
 
             if (gamepad2.cross && triggerVal == 0) {
+                // Intake Logic: Intake Only
                 intake.in();
                 transfer.run();
+                shooter.update(isShooting);
             } else if (gamepad2.circle && triggerVal == 0) {
+                // Reverse Logic: Outtake and Reverse Systems
                 intake.out();
                 transfer.reverse();
-                drive.shooter.setPower(-.5);
+                shooter.reverse();
             } else if (gamepad2.right_trigger > 0 && triggerVal == 0) {
+                // Intake Only (Right Trigger)
                 intake.in();
                 transfer.stop();
                 transfer.triggerClose();
                 telemetry.addLine("Trigger closed");
+                shooter.update(isShooting);
             } else if (gamepad2.right_trigger == 0 && triggerVal == 0) {
+                // Idle State
                 intake.stop();
                 transfer.stop();
+                shooter.update(isShooting);
+            } else {
+                // Default: Update shooter state
+                shooter.update(isShooting);
             }
-            // else {
-            // intake.stop();
-            // transfer.stop();
-            // }
 
-            // Transfer runs only when shooting
+            // Transfer Logic: Run transfer when shooting
             if (triggerVal > 0.001) {
                 transfer.run();
             }
 
+            // --- TURRET CONTROL (Bumpers) ---
             if (gamepad2.left_bumper) {
                 turret.rotateLeft();
             } else if (gamepad2.right_bumper) {
@@ -88,19 +110,24 @@ public class Teleop extends LinearOpMode {
                 turret.stop();
             }
 
-            if (gamepad2.dpad_up) {
-                hood.up();
-            }
-
-            if (gamepad2.dpad_down) {
-                hood.down();
+            // --- HOOD CONTROL (D-Pad) ---
+            if (gamepad2.dpad_right) {
+                hood.up(); // Preset Up
+            } else if (gamepad2.dpad_left) {
+                hood.down(); // Preset Down
+            } else if (gamepad2.dpad_up) {
+                hood.moveHood(0.005); // Fine Adjustment Up
+            } else if (gamepad2.dpad_down) {
+                hood.moveHood(-0.005); // Fine Adjustment Down
             }
 
             drive.update();
 
+            // --- TELEMETRY ---
             telemetry.addData("Status", "Run Time: " + runtime);
             telemetry.addData("Velocity", drive.shooter.getVelocity());
             telemetry.addData("Target Velo", (triggerVal > 0.001) ? Constants.SHOOTER_VELOCITY : 0.0);
+            telemetry.addData("Hood Pos", hood.getPosition());
             telemetry.update();
         }
     }

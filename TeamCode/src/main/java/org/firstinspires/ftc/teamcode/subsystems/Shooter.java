@@ -4,6 +4,12 @@ import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.har
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.InstantAction;
+import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
+
+import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.Hardware;
 
 public class Shooter extends Hardware {
@@ -18,16 +24,36 @@ public class Shooter extends Hardware {
 
     public void update(boolean shoot) {
         if (shoot) {
-            shooter.setVelocity(org.firstinspires.ftc.teamcode.Constants.SHOOTER_VELOCITY);
-            trigger.setPosition(org.firstinspires.ftc.teamcode.Constants.TRIGGER_OPEN);
+            shooter.setVelocity(Constants.SHOOTER_VELOCITY);
+            trigger.setPosition(Constants.TRIGGER_OPEN);
 
-            if (shooter.getVelocity() >= org.firstinspires.ftc.teamcode.Constants.SHOOTER_VELOCITY) {
+            if (shooter.getVelocity() >= Constants.SHOOTER_VELOCITY) {
                 intake.setPower(1);
-                transfer.setPower(org.firstinspires.ftc.teamcode.Constants.TRANSFER_SPEED);
+                transfer.setPower(Constants.TRANSFER_SPEED);
             }
         } else {
-            shooter.setVelocity(0);
-            trigger.setPosition(org.firstinspires.ftc.teamcode.Constants.TRIGGER_CLOSE);
+            stop();
         }
+    }
+
+    public void reverse() {
+        shooter.setPower(-0.5);
+        trigger.setPosition(Constants.TRIGGER_CLOSE);
+    }
+
+    public void stop() {
+        shooter.setVelocity(0);
+        trigger.setPosition(Constants.TRIGGER_CLOSE);
+    }
+
+    public Action shootAction() {
+        return new SequentialAction(
+                new InstantAction(() -> shoot(Constants.SHOOTER_VELOCITY)),
+                new InstantAction(() -> trigger.setPosition(Constants.TRIGGER_OPEN)),
+                new SleepAction(2),
+                new InstantAction(() -> transfer.setPower(Constants.TRANSFER_SPEED)),
+                new SleepAction(2),
+                new InstantAction(() -> shoot(0)),
+                new InstantAction(() -> trigger.setPosition(Constants.TRIGGER_CLOSE)));
     }
 }

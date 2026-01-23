@@ -1,0 +1,53 @@
+{
+  "version": "1.0",
+  "pathLabel": "startPose",
+  "startX": -53,
+  "startY": -48,
+  "startHeading": 214,
+  "robotLength": 18,
+  "robotWidth": 18,
+  "segments": [
+    {
+      "type": "line",
+      "label": "preload",
+      "endX": -23,
+      "endY": -22.5,
+      "endHeading": 214
+    },
+    {
+      "type": "line",
+      "label": "lineUpWithRow2",
+      "endX": 5,
+      "endY": -26,
+      "endHeading": 256
+    },
+    {
+      "type": "line",
+      "label": "intakeRow2",
+      "endX": 5,
+      "endY": -72,
+      "endHeading": null
+    },
+    {
+      "type": "line",
+      "label": "backupFromRow2",
+      "endX": 5,
+      "endY": -26,
+      "endHeading": 214
+    },
+    {
+      "type": "line",
+      "label": "shootPosition",
+      "endX": -26,
+      "endY": -22.5,
+      "endHeading": null
+    },
+    {
+      "type": "line",
+      "label": "toGate",
+      "endX": -15,
+      "endY": -25,
+      "endHeading": 256
+    }
+  ]
+}
