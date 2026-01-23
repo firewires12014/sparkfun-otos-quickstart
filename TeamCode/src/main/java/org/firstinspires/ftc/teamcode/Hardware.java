@@ -48,7 +48,7 @@ public class Hardware {
 
         intake = hardwareMap.get(DcMotorEx.class, "intake");
         transfer = hardwareMap.get(DcMotorEx.class, "transfer");
-        transfer.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);;
+        transfer.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -56,11 +56,10 @@ public class Hardware {
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         turret = hardwareMap.get(CRServo.class, "turret");
-        turretEncoder = intake;; // reuse intake motor for turret encoder reading
+        turretEncoder = intake; // reuse intake motor for turret encoder reading
         hood = hardwareMap.get(Servo.class, "hood");
 
         trigger = hardwareMap.get(Servo.class, "trigger");
-
 
         pidCoef.kP = Constants.SHOOTER_KP;
         pidCoef.kD = Constants.SHOOTER_KD;
@@ -69,26 +68,26 @@ public class Hardware {
     }
 
     public void update() {
-//        if (tuneShooter) {
-//            pidCoef.kP = kP;
-//            pidCoef.kD = kD;
-//            shooterPID = new PIDFController(pidCoef);
-//        }
+        // if (tuneShooter) {
+        // pidCoef.kP = kP;
+        // pidCoef.kD = kD;
+        // shooterPID = new PIDFController(pidCoef);
+        // }
 
         // Treat PID as velocity error controller
-//        double currentVel = shooter.getVelocity(); // ticks/sec
-//        shooterPID.targetPosition = targetVel; // target velocity in ticks/sec
-//
-//        double pidOut = shooterPID.update(currentVel); // uses (target - current)
-//        double ffOut = targetVel * kV; // kV in power per ticks/sec
-//
-//        double power = pidOut + ffOut;
-//        power = Math.max(-1.0, Math.min(1.0, power)); // clamp
-//
-//        if (shoot) {
-//            shooter.setPower(power);
-//        } else {
-//            shooter.setPower(0.0);
-//        }
+        // double currentVel = shooter.getVelocity(); // ticks/sec
+        // shooterPID.targetPosition = targetVel; // target velocity in ticks/sec
+        //
+        // double pidOut = shooterPID.update(currentVel); // uses (target - current)
+        // double ffOut = targetVel * kV; // kV in power per ticks/sec
+        //
+        // double power = pidOut + ffOut;
+        // power = Math.max(-1.0, Math.min(1.0, power)); // clamp
+        //
+        // if (shoot) {
+        // shooter.setPower(power);
+        // } else {
+        // shooter.setPower(0.0);
+        // }
     }
 }
