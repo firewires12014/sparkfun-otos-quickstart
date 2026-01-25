@@ -32,29 +32,38 @@ public final class redCloseAuto extends LinearOpMode {
         int yOffset = Constants.RED_CLOSE_Y_OFFSET;
 
         // Start Pose: Y flipped, Heading negated (-214 is same as 146 deg)
-        Pose2d startPose = new Pose2d(-53, 50, Math.toRadians(-214));
+        Pose2d startPose = new Pose2d(-50.1, 50, Math.toRadians(125));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
-        Action preload = drive.actionBuilder(new Pose2d(-53, 48, Math.toRadians(-214)))
-                .strafeToLinearHeading(new Vector2d(-20, 10), Math.toRadians(-250))
+        Action preload = drive.actionBuilder(new Pose2d(-50.1, 50, Math.toRadians(125)))
+                .strafeToLinearHeading(new Vector2d(-23.5, 10), Math.toRadians(125))
                 .build();
-        Action lineUpWithRow2 = drive.actionBuilder(new Pose2d(-23, 22.5, Math.toRadians(-214)))
-                .strafeToLinearHeading(new Vector2d(5 + xOffset, 26 + yOffset), Math.toRadians(-256))
+        Action lineUpWithRow2 = drive.actionBuilder(new Pose2d(-20, 10, Math.toRadians(125)))
+                .strafeToLinearHeading(new Vector2d(13, 26), Math.toRadians(80))
                 .build();
-        Action intakeRow2 = drive.actionBuilder(new Pose2d(5 + xOffset, 26 + yOffset, Math.toRadians(-256)))
-                .strafeToLinearHeading(new Vector2d(5, 72 + yOffset), Math.toRadians(-256))
+        Action intakeRow2 = drive.actionBuilder(new Pose2d(13, 26, Math.toRadians(83)))
+                .strafeToLinearHeading(new Vector2d(13, 72), Math.toRadians(83))
                 .build();
-        Action backupFromRow2 = drive.actionBuilder(new Pose2d(5, 72 + yOffset, Math.toRadians(-256)))
-                .strafeToLinearHeading(new Vector2d(5 + xOffset, 26 + yOffset), Math.toRadians(-214))
+        Action backupFromRow2 = drive.actionBuilder(new Pose2d(14, 60, Math.toRadians(83)))
+                .strafeToLinearHeading(new Vector2d(13, 26), Math.toRadians(125))
                 .build();
-        Action shootPosition = drive.actionBuilder(new Pose2d(5 + xOffset, 26 + yOffset, Math.toRadians(-214)))
-                .strafeToLinearHeading(new Vector2d(-23, 22.5), Math.toRadians(-214))
+        Action shootPosition = drive.actionBuilder(new Pose2d(13, 26, Math.toRadians(125)))
+                .strafeToLinearHeading(new Vector2d(-23.5, 10), Math.toRadians(125))
                 .build();
-        Action toGate = drive.actionBuilder(new Pose2d(-23, 22.5, Math.toRadians(-214)))
-                .strafeToLinearHeading(new Vector2d(-15, 25), Math.toRadians(-256))
+        Action toRow1 = drive.actionBuilder(new Pose2d(-23.5, 10, Math.toRadians(125)))
+                .strafeToLinearHeading(new Vector2d(-12, 25), Math.toRadians(83))
                 .build();
+        Action intakeRow1 = drive.actionBuilder(new Pose2d(-12, 25, Math.toRadians(83)))
+                        .strafeToLinearHeading(new Vector2d(-12, 60), Math.toRadians(83))
+                                .build();
+        Action shoot1position = drive.actionBuilder(new Pose2d(-14, 60, Math.toRadians(83)))
+                        .strafeToLinearHeading(new Vector2d( -23.5, 10), Math.toRadians(125))
+                                .build();
+        Action park = drive.actionBuilder(new Pose2d(-23.5, 10, Math.toRadians(125)))
+                        .strafeToLinearHeading(new Vector2d(-15, 29), Math.toRadians(125))
+                                .build();
 
-        hood.setPosition(Constants.HOOD_MIDDLE_LIMIT);
+        hood.setPosition(Constants.HOOD_UPPER_LIMIT);
 
         waitForStart();
 
@@ -62,14 +71,24 @@ public final class redCloseAuto extends LinearOpMode {
                 preload,
                 shooter.shootAction(), // Shoot preload
                 lineUpWithRow2,
+                new InstantAction(()-> intake.in()),
                 intakeRow2,
+                new InstantAction(()-> intake.stop()),
                 backupFromRow2,
                 shootPosition,
                 shooter.shootAction(), // Shoot 4-6
-                toGate,
+                toRow1,
+                new InstantAction(()-> intake.in()),
+                intakeRow1,
+                new InstantAction(()-> intake.stop()),
+                shoot1position,
+                shooter.shootAction(),
+                park
 
-                shootPosition,
-                shooter.shootAction() // Shoot 7-9
+
+//
+//                shootPosition,
+//                shooter.shootAction() // Shoot 7-9
         ));
 
     }

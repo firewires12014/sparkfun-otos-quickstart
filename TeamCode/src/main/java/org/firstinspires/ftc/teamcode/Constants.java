@@ -22,6 +22,7 @@ public final class Constants {
     public static float HOOD_UPPER_LIMIT = 0.35f;
     public static float HOOD_MIDDLE_LIMIT = 0.3f;
     public static float HOOD_LOWER_LIMIT = 0.0f;
+    public static float HOOD_RED_AUTO = 0.38f;
 
     // Vision/auto offsets
     public static int BLUE_CLOSE_X_OFFSET = 12;
