@@ -36,7 +36,7 @@ public final class redCloseAuto extends LinearOpMode {
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
         Action preload = drive.actionBuilder(new Pose2d(-53, 48, Math.toRadians(-214)))
-                .strafeToLinearHeading(new Vector2d(-23, 22.5), Math.toRadians(-214))
+                .strafeToLinearHeading(new Vector2d(-20, 10), Math.toRadians(-250))
                 .build();
         Action lineUpWithRow2 = drive.actionBuilder(new Pose2d(-23, 22.5, Math.toRadians(-214)))
                 .strafeToLinearHeading(new Vector2d(5 + xOffset, 26 + yOffset), Math.toRadians(-256))
@@ -54,6 +54,8 @@ public final class redCloseAuto extends LinearOpMode {
                 .strafeToLinearHeading(new Vector2d(-15, 25), Math.toRadians(-256))
                 .build();
 
+        hood.setPosition(Constants.HOOD_MIDDLE_LIMIT);
+
         waitForStart();
 
         Actions.runBlocking(new SequentialAction(
@@ -65,7 +67,7 @@ public final class redCloseAuto extends LinearOpMode {
                 shootPosition,
                 shooter.shootAction(), // Shoot 4-6
                 toGate,
-                intake.intakeGateAction(),
+
                 shootPosition,
                 shooter.shootAction() // Shoot 7-9
         ));

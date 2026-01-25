@@ -36,6 +36,6 @@ public final class Constants {
     public static double TRANSFER_SPEED = 1;
 
     // Intake
-    public static double AUTO_INTAKE_TIME = 1;
+    public static double AUTO_INTAKE_TIME = 4;
 
 }

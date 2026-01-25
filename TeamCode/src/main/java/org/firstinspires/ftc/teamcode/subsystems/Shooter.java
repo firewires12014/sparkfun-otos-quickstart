@@ -1,13 +1,14 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
-
 import com.qualcomm.robotcore.hardware.HardwareMap;
+
+import androidx.annotation.NonNull;
 
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.Hardware;
@@ -52,13 +53,15 @@ public class Shooter extends Hardware {
                 new InstantAction(() -> trigger.setPosition(Constants.TRIGGER_OPEN)),
                 new Action() {
                     @Override
-                    public boolean run(com.acmerobotics.roadrunner.ftc.TelemetryPacket packet) {
+                    public boolean run(@NonNull TelemetryPacket packet) {
                         return shooter.getVelocity() < Constants.SHOOTER_VELOCITY;
                     }
                 },
                 new InstantAction(() -> transfer.setPower(Constants.TRANSFER_SPEED)),
+                new InstantAction(()-> intake.setPower(1)),
                 new SleepAction(2),
                 new InstantAction(() -> shoot(0)),
+                new InstantAction(()-> intake.setPower(0)),
                 new InstantAction(() -> trigger.setPosition(Constants.TRIGGER_CLOSE)));
     }
 }

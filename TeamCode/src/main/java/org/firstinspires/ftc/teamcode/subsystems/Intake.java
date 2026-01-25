@@ -28,10 +28,10 @@ public class Intake extends Hardware {
         intake.setPower(0);
     }
 
-    public Action intakeGateAction() {
-        return new SequentialAction(
-                new InstantAction(() -> in()),
-                new SleepAction(Constants.AUTO_INTAKE_TIME),
-                new InstantAction(() -> stop()));
-    }
+//    public Action intakeGateAction() {
+//        return new SequentialAction(
+//                new InstantAction(() -> in()),
+//                new SleepAction(Constants.AUTO_INTAKE_TIME),
+//                new InstantAction(() -> stop()));
+//    }
 }
