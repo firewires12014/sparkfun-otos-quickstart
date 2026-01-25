@@ -99,6 +99,9 @@ public class Teleop extends LinearOpMode {
             // Transfer Logic: Run transfer when shooting
             if (triggerVal > 0.001) {
                 transfer.run();
+                intake.in();
+            } else if (!gamepad2.cross && !gamepad2.circle && gamepad2.right_trigger == 0) {
+                intake.stop();
             }
 
             // --- TURRET CONTROL (Bumpers) ---

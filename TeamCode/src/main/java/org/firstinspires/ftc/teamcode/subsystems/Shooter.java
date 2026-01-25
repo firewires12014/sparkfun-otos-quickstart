@@ -50,7 +50,12 @@ public class Shooter extends Hardware {
         return new SequentialAction(
                 new InstantAction(() -> shoot(Constants.SHOOTER_VELOCITY)),
                 new InstantAction(() -> trigger.setPosition(Constants.TRIGGER_OPEN)),
-                new SleepAction(2),
+                new Action() {
+                    @Override
+                    public boolean run(com.acmerobotics.roadrunner.ftc.TelemetryPacket packet) {
+                        return shooter.getVelocity() < Constants.SHOOTER_VELOCITY;
+                    }
+                },
                 new InstantAction(() -> transfer.setPower(Constants.TRANSFER_SPEED)),
                 new SleepAction(2),
                 new InstantAction(() -> shoot(0)),
