@@ -66,27 +66,28 @@ public class Teleop extends LinearOpMode {
             // --- SHOOTER & INTAKE CONTROL ---
 
             // Shooter Trigger Logic
-            double triggerVal = gamepad2.left_trigger;
-            boolean isShooting = triggerVal > 0.001;
+            double leftTriggerVal = gamepad2.left_trigger;
+            double rightTriggerVal = gamepad2.left_trigger;
+            boolean isShooting = leftTriggerVal > 0.001;
 
-            if (gamepad2.cross && triggerVal == 0) {
+            if (gamepad2.cross && leftTriggerVal == 0) {
                 // Intake Logic: Intake Only
                 intake.in();
                 transfer.run();
                 shooter.update(isShooting);
-            } else if (gamepad2.circle && triggerVal == 0) {
+            } else if (gamepad2.circle && leftTriggerVal == 0) {
                 // Reverse Logic: Outtake and Reverse Systems
                 intake.out();
                 transfer.reverse();
                 shooter.reverse();
-            } else if (gamepad2.right_trigger > 0 && triggerVal == 0) {
+            } else if (rightTriggerVal > 0 && leftTriggerVal == 0) {
                 // Intake Only (Right Trigger)
                 intake.in();
                 transfer.stop();
                 transfer.triggerClose();
                 telemetry.addLine("Trigger closed");
                 shooter.update(isShooting);
-            } else if (gamepad2.right_trigger == 0 && triggerVal == 0) {
+            } else if (rightTriggerVal == 0 && leftTriggerVal == 0) {
                 // Idle State
                 intake.stop();
                 transfer.stop();
@@ -97,10 +98,10 @@ public class Teleop extends LinearOpMode {
             }
 
             // Transfer Logic: Run transfer when shooting
-            if (triggerVal > 0.001) {
+            if (leftTriggerVal > 0.001) {
                 transfer.run();
                 intake.in();
-            } else if (!gamepad2.cross && !gamepad2.circle && gamepad2.right_trigger == 0) {
+            } else if (!gamepad2.cross && !gamepad2.circle && rightTriggerVal == 0) {
                 intake.stop();
             }
 
@@ -129,7 +130,7 @@ public class Teleop extends LinearOpMode {
             // --- TELEMETRY ---
             telemetry.addData("Status", "Run Time: " + runtime);
             telemetry.addData("Velocity", drive.shooter.getVelocity());
-            telemetry.addData("Target Velo", (triggerVal > 0.001) ? Constants.SHOOTER_VELOCITY : 0.0);
+            telemetry.addData("Target Velo", (leftTriggerVal > 0.001) ? Constants.SHOOTER_VELOCITY : 0.0);
             telemetry.addData("Hood Pos", hood.getPosition());
             telemetry.update();
         }
