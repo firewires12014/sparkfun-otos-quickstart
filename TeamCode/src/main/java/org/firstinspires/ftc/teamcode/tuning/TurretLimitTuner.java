@@ -1,71 +1,41 @@
 package org.firstinspires.ftc.teamcode.tuning;
 
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
-import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.subsystems.Turret;
+import org.firstinspires.ftc.teamcode.Constants;
+import org.firstinspires.ftc.teamcode.Hardware;
 
-@TeleOp(name = "Turret Limit Tuner", group = "Calibration")
+@TeleOp(name = "Turret Limit Tuner", group = "Tuning")
 public class TurretLimitTuner extends LinearOpMode {
-
     @Override
-    public void runOpMode() {
-        Telemetry telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+    public void runOpMode() throws InterruptedException {
+        Hardware robot = new Hardware(hardwareMap);
 
-        Turret turret = new Turret(hardwareMap, telemetry);
+        // Ensure turret servo is stopped so we can move it by hand
+        robot.turret.setPower(0);
+
+        // If the encoder is connected to a motor port that supports it, we might want
+        // to reset it
+        // robot.turretEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        // robot.turretEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         telemetry.addLine("Turret Limit Tuner");
-        telemetry.addLine("- Point turret straight forward, then press (A) to zero.");
-        telemetry.addLine("- Use left stick X to move turret.");
-        telemetry.addLine("- Move to LEFT hard stop and press (X) to save left limit.");
-        telemetry.addLine("- Move to RIGHT hard stop and press (B) to save right limit.");
-        telemetry.addLine("- Limits are saved as degrees relative to forward.");
+        telemetry.addLine("Move turret by hand to read values");
         telemetry.update();
 
         waitForStart();
 
-        double savedLeftDeg = Turret.LIMIT_LEFT_DEG;
-        double savedRightDeg = Turret.LIMIT_RIGHT_DEG;
-
         while (opModeIsActive()) {
-            // Manual jog
-            double cmd = -gamepad1.left_stick_x; // stick right => negative => rotate right
-            turret.setManualPower(cmd);
+            int currentPos = robot.turretEncoder.getCurrentPosition();
+            double currentRad = currentPos * Constants.TICKS_TO_RADIANS;
+            double currentDeg = Math.toDegrees(currentRad);
 
-            // Zero forward
-            if (gamepad1.a) {
-                turret.zeroForward();
-            }
-
-            // Save left limit (+deg)
-            if (gamepad1.x) {
-                savedLeftDeg = Math.max(0.0, turret.getRobotRelativeDeg());
-                turret.setLimitsDeg(savedLeftDeg, savedRightDeg);
-            }
-
-            // Save right limit (-deg)
-            if (gamepad1.b) {
-                savedRightDeg = Math.max(0.0, -turret.getRobotRelativeDeg());
-                turret.setLimitsDeg(savedLeftDeg, savedRightDeg);
-            }
-
-            // Output
-            telemetry.addData("Turret/deg", turret.getRobotRelativeDeg());
-            telemetry.addData("Turret/encoderTicks", turret.turretEncoder.getCurrentPosition());
-            telemetry.addData("Turret/zeroTicks", turret.getZeroTicks());
-            telemetry.addData("Tuned/leftLimitDeg", savedLeftDeg);
-            telemetry.addData("Tuned/rightLimitDeg", savedRightDeg);
-            telemetry.addLine("Copy these into Turret.LIMIT_LEFT_DEG and Turret.LIMIT_RIGHT_DEG");
+            telemetry.addData("Encoder Ticks", currentPos);
+            telemetry.addData("Degrees", currentDeg);
+            telemetry.addData("Radians", currentRad);
             telemetry.update();
-
-            // keep update signature satisfied (pose not needed here)
-            turret.update(new Pose2d(0, 0, 0));
         }
-
-        turret.stop();
     }
 }

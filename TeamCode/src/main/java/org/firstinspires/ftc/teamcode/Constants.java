@@ -28,6 +28,9 @@ public final class Constants {
     public static double MAX_RAD = Math.toRadians(90);
     public static  double MIN_RAD = Math.toRadians(-90);
     public static double BUFFER = Math.toRadians(5); // Slow down 5 degrees before the stop
+    public static double TICKS_PER_REVOLUTION = 145.1; // Example for 5203 Series motor
+    public static double TURRET_GEAR_RATIO = 1.0;     // Ratio between motor and turret
+    public static double TICKS_TO_RADIANS = (2 * Math.PI) / (TICKS_PER_REVOLUTION * TURRET_GEAR_RATIO);
 
     // Vision/auto offsets
     public static int BLUE_CLOSE_X_OFFSET = 12;
