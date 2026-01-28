@@ -24,6 +24,11 @@ public final class Constants {
     public static float HOOD_LOWER_LIMIT = 0.0f;
     public static float HOOD_RED_AUTO = 0.38f;
 
+    // Define your range (180 degrees total = -90 to +90)
+    public static double MAX_RAD = Math.toRadians(90);
+    public static  double MIN_RAD = Math.toRadians(-90);
+    public static double BUFFER = Math.toRadians(5); // Slow down 5 degrees before the stop
+
     // Vision/auto offsets
     public static int BLUE_CLOSE_X_OFFSET = 12;
     public static int BLUE_CLOSE_Y_OFFSET = -14;

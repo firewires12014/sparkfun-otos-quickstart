@@ -2,106 +2,70 @@ package org.firstinspires.ftc.teamcode.tuning;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
 
-/**
- * Turret limit tuning opmode.
- *
- * Usage:
- * 1) Start with the turret aimed straight forward.
- * 2) Press A: zero (set forward reference).
- * 3) Hold LB to drive left, hold RB to drive right.
- * 4) When at the mechanical/wire-safe left stop, press X to capture left limit.
- * 5) When at the mechanical/wire-safe right stop, press B to capture right limit.
- *
- * The captured limits are reported in degrees (relative to forward) so you can copy
- * them into Turret.LIMIT_LEFT_DEG and Turret.LIMIT_RIGHT_DEG.
- */
-@TeleOp(name = "Tune Turret Limits", group = "Tuning")
+@TeleOp(name = "Turret Limit Tuner", group = "Calibration")
 public class TurretLimitTuner extends LinearOpMode {
-
-    // Manual tuning power (CRServo power). Keep low-ish for safety.
-    private static final double TUNE_POWER = 0.35;
 
     @Override
     public void runOpMode() {
-        Turret turret = new Turret(hardwareMap);
+        Telemetry telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        Telemetry multiTelemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+        Turret turret = new Turret(hardwareMap, telemetry);
 
-        Double capturedLeftDeg = null;
-        Double capturedRightDeg = null;
-
-        boolean lastA = false, lastB = false, lastX = false;
-
-        multiTelemetry.addLine("Turret Limit Tuner");
-        multiTelemetry.addLine("Start with turret pointing FORWARD.");
-        multiTelemetry.addLine("A: zero-forward");
-        multiTelemetry.addLine("Hold LB: rotate left, Hold RB: rotate right");
-        multiTelemetry.addLine("X: capture LEFT limit, B: capture RIGHT limit");
-        multiTelemetry.update();
+        telemetry.addLine("Turret Limit Tuner");
+        telemetry.addLine("- Point turret straight forward, then press (A) to zero.");
+        telemetry.addLine("- Use left stick X to move turret.");
+        telemetry.addLine("- Move to LEFT hard stop and press (X) to save left limit.");
+        telemetry.addLine("- Move to RIGHT hard stop and press (B) to save right limit.");
+        telemetry.addLine("- Limits are saved as degrees relative to forward.");
+        telemetry.update();
 
         waitForStart();
 
+        double savedLeftDeg = Turret.LIMIT_LEFT_DEG;
+        double savedRightDeg = Turret.LIMIT_RIGHT_DEG;
+
         while (opModeIsActive()) {
-            // Edge-detect buttons
-            boolean a = gamepad1.a;
-            boolean b = gamepad1.b;
-            boolean x = gamepad1.x;
-
-            boolean aPressed = a && !lastA;
-            boolean bPressed = b && !lastB;
-            boolean xPressed = x && !lastX;
-
-            lastA = a;
-            lastB = b;
-            lastX = x;
+            // Manual jog
+            double cmd = -gamepad1.left_stick_x; // stick right => negative => rotate right
+            turret.setManualPower(cmd);
 
             // Zero forward
-            if (aPressed) {
+            if (gamepad1.a) {
                 turret.zeroForward();
-                capturedLeftDeg = null;
-                capturedRightDeg = null;
             }
 
-            // Manual drive (bypasses auto-point). Uses power limiting to avoid going past currently-set software limits.
-            // For tuning, you may want limits wide open first or temporarily set Turret.LIMIT_* big (e.g., 180).
-            if (gamepad1.left_bumper && !gamepad1.right_bumper) {
-                turret.setPowerLimited(Math.abs(TUNE_POWER));
-            } else if (gamepad1.right_bumper && !gamepad1.left_bumper) {
-                turret.setPowerLimited(-Math.abs(TUNE_POWER));
-            } else {
-                turret.stop();
+            // Save left limit (+deg)
+            if (gamepad1.x) {
+                savedLeftDeg = Math.max(0.0, turret.getRobotRelativeDeg());
+                turret.setLimitsDeg(savedLeftDeg, savedRightDeg);
             }
 
-            // Capture limits
-            if (xPressed) {
-                capturedLeftDeg = turret.getAngleDeg();
-            }
-            if (bPressed) {
-                capturedRightDeg = turret.getAngleDeg();
+            // Save right limit (-deg)
+            if (gamepad1.b) {
+                savedRightDeg = Math.max(0.0, -turret.getRobotRelativeDeg());
+                turret.setLimitsDeg(savedLeftDeg, savedRightDeg);
             }
 
-            // Telemetry
-            turret.addTelemetry(multiTelemetry);
+            // Output
+            telemetry.addData("Turret/deg", turret.getRobotRelativeDeg());
+            telemetry.addData("Turret/encoderTicks", turret.turretEncoder.getCurrentPosition());
+            telemetry.addData("Turret/zeroTicks", turret.getZeroTicks());
+            telemetry.addData("Tuned/leftLimitDeg", savedLeftDeg);
+            telemetry.addData("Tuned/rightLimitDeg", savedRightDeg);
+            telemetry.addLine("Copy these into Turret.LIMIT_LEFT_DEG and Turret.LIMIT_RIGHT_DEG");
+            telemetry.update();
 
-            multiTelemetry.addData("CapturedLeftLimitDeg", capturedLeftDeg == null ? "(press X)" : String.format("%.1f", capturedLeftDeg));
-            multiTelemetry.addData("CapturedRightLimitDeg", capturedRightDeg == null ? "(press B)" : String.format("%.1f", capturedRightDeg));
-
-            if (capturedLeftDeg != null && capturedRightDeg != null) {
-                multiTelemetry.addLine();
-                multiTelemetry.addLine("Copy these into Turret.java:");
-                multiTelemetry.addData("LIMIT_LEFT_DEG", String.format("%.1f", Math.abs(capturedLeftDeg)));
-                multiTelemetry.addData("LIMIT_RIGHT_DEG", String.format("%.1f", Math.abs(capturedRightDeg)));
-            }
-
-            multiTelemetry.update();
-            idle();
+            // keep update signature satisfied (pose not needed here)
+            turret.update(new Pose2d(0, 0, 0));
         }
+
+        turret.stop();
     }
 }
-
