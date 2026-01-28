@@ -67,7 +67,7 @@ public class Teleop extends LinearOpMode {
 
             // Shooter Trigger Logic
             double leftTriggerVal = gamepad2.left_trigger;
-            double rightTriggerVal = gamepad2.left_trigger;
+            double rightTriggerVal = gamepad2.right_trigger;
             boolean isShooting = leftTriggerVal > 0.001;
 
             if (gamepad2.cross && leftTriggerVal == 0) {
@@ -99,8 +99,8 @@ public class Teleop extends LinearOpMode {
 
             // Transfer Logic: Run transfer when shooting
             if (leftTriggerVal > 0.001) {
-                transfer.run();
-                intake.in();
+//                transfer.run();
+//                intake.in();
             } else if (!gamepad2.cross && !gamepad2.circle && rightTriggerVal == 0) {
                 intake.stop();
             }
