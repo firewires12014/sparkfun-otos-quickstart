@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -56,7 +57,7 @@ public class Hardware {
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         turret = hardwareMap.get(CRServo.class, "turret");
-        turretEncoder = intake; // reuse intake motor for turret encoder reading
+        turretEncoder = transfer; // reuse intake motor for turret encoder reading
         hood = hardwareMap.get(Servo.class, "hood");
 
         trigger = hardwareMap.get(Servo.class, "trigger");
@@ -67,7 +68,7 @@ public class Hardware {
         shooterPID = new PIDFController(pidCoef);
     }
 
-    public void update() {
+    public void update(Pose2d pose) {
         // if (tuneShooter) {
         // pidCoef.kP = kP;
         // pidCoef.kD = kD;

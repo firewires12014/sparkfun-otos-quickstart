@@ -12,9 +12,11 @@ public class TurretLimitTuner extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         Hardware robot = new Hardware(hardwareMap);
+        robot.turretEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.turretEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         // Ensure turret servo is stopped so we can move it by hand
-        robot.turret.setPower(0);
+//        robot.turret.setPower(0);
 
         // If the encoder is connected to a motor port that supports it, we might want
         // to reset it

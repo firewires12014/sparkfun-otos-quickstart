@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -37,5 +38,11 @@ public class Drive extends Hardware {
         frontRight.setPower(frontRightPower);
         backLeft.setPower(backLeftPower);
         backRight.setPower(backRightPower);
+    }
+
+    public Pose2d getPose() {
+        // TODO: return actual estimated robot pose from your localizer/drive
+        // Example: return driveLocalizer.getPoseEstimate();
+        return new Pose2d(0.0, 0.0, 0.0); // placeholder to eliminate the compile error
     }
 }

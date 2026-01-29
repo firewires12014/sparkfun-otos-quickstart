@@ -105,13 +105,20 @@ public class Teleop extends LinearOpMode {
                 intake.stop();
             }
 
-            // --- TURRET CONTROL (Bumpers) ---
-            if (gamepad2.left_bumper) {
-                turret.rotateLeft();
-            } else if (gamepad2.right_bumper) {
-                turret.rotateRight();
+            // --- TURRET CONTROL ---
+            if (gamepad2.triangle) {
+                telemetry.addLine("Targeting");
+                turret.update(drive.getPose());
             } else {
-                turret.stop();
+                double stick = gamepad2.left_stick_x;
+                double deadzone = 0.05;
+                if (stick < -deadzone) {
+                    turret.rotateLeft();
+                } else if (stick > deadzone) {
+                    turret.rotateRight();
+                } else {
+                    turret.stop();
+                }
             }
 
             // --- HOOD CONTROL (D-Pad) ---
@@ -125,7 +132,7 @@ public class Teleop extends LinearOpMode {
                 hood.moveHood(-0.005); // Fine Adjustment Down
             }
 
-            drive.update();
+            drive.update(drive.getPose());
 
             // --- TELEMETRY ---
             telemetry.addData("Status", "Run Time: " + runtime);

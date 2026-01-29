@@ -25,8 +25,8 @@ public final class Constants {
     public static float HOOD_RED_AUTO = 0.38f;
 
     // Define your range (180 degrees total = -90 to +90)
-    public static double MAX_RAD = Math.toRadians(90);
-    public static  double MIN_RAD = Math.toRadians(-90);
+    public static double MAX_RAD = Math.toRadians(721.67);
+    public static  double MIN_RAD = Math.toRadians(-695);
     public static double BUFFER = Math.toRadians(5); // Slow down 5 degrees before the stop
     public static double TICKS_PER_REVOLUTION = 145.1; // Example for 5203 Series motor
     public static double TURRET_GEAR_RATIO = 1.0;     // Ratio between motor and turret
