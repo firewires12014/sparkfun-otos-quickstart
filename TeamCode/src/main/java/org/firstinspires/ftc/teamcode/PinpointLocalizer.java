@@ -48,6 +48,27 @@ public final class PinpointLocalizer implements Localizer {
         txWorldPinpoint = initialPose;
     }
 
+    // Debug helpers to expose raw pin-point driver state for telemetry
+    public GoBildaPinpointDriver.DeviceStatus getDeviceStatus() {
+        return driver.getDeviceStatus();
+    }
+
+    public double getRawPosXInches() {
+        return driver.getPosX(DistanceUnit.INCH);
+    }
+
+    public double getRawPosYInches() {
+        return driver.getPosY(DistanceUnit.INCH);
+    }
+
+    public double getRawHeadingRadians() {
+        return driver.getHeading(UnnormalizedAngleUnit.RADIANS);
+    }
+
+    public double getRawHeadingVelocityRadians() {
+        return driver.getHeadingVelocity(UnnormalizedAngleUnit.RADIANS);
+    }
+
     @Override
     public void setPose(Pose2d pose) {
         txWorldPinpoint = pose.times(txPinpointRobot.inverse());

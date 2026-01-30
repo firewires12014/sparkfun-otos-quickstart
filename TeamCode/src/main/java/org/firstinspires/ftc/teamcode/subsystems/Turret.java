@@ -14,10 +14,19 @@ import org.firstinspires.ftc.teamcode.Hardware;
 public class Turret extends Hardware {
     private static final String TAG = "Turret";
 
+    // Minimum continuous-rotation servo power to reliably move the turret (tunable)
+    public static double MIN_MOVE_POWER = 0.5;
+
     private int zeroTicks = 0;
     private double lastError = 0;
     private boolean manual = false;
     private double manualPower = 0.0;
+    // If manualUntilMs > now, manual mode is active only until that timestamp (ms). This
+    // allows a short initial kick to overcome stiction then return to closed-loop control.
+    private long manualUntilMs = 0;
+
+    // track the turret's world angle (radians). When NaN it will be initialized on first update
+    private double worldTurretAngle = Double.NaN;
 
     // Debug / exported values
     private double robotHeadingDeg = 0.0;
@@ -30,7 +39,11 @@ public class Turret extends Hardware {
 
     public Turret(HardwareMap hardwareMap) {
         super(hardwareMap);
-        zeroForward();
+        // Do not auto-zero the encoder at construction. If the robot isn't physically
+        // aligned to robot-forward at startup, auto-zeroing will make the controller
+        // assume the turret is already forward and prevent initial movement. Leave
+        // zeroTicks at 0 so the first update initializes worldTurretAngle correctly.
+        zeroTicks = 0;
     }
 
     public void zeroForward() {
@@ -72,46 +85,137 @@ public class Turret extends Hardware {
 
     // Pass in the robot pose from TeleOp to avoid drive dependency
     public void update(Pose2d robotPose, Vector2d target) {
+        // If we're in manual mode due to a timed kick, maintain manual power until the
+        // timeout expires; otherwise fall through into closed-loop control.
+        if (manual) {
+            long now = System.currentTimeMillis();
+            if (now < manualUntilMs) {
+                turret.setPower(manualPower);
+                // still in timed manual window
+                return;
+            } else {
+                // timed manual window expired; return to closed-loop
+                manual = false;
+            }
+        }
+
         if (manual) return;
 
-        double targetAngle = 0.0;
-        if (target != null && robotPose != null) {
-            double dx = target.x - robotPose.position.x;
-            double dy = target.y - robotPose.position.y;
+        double targetAngleRobotRel = 0.0; // desired turret angle relative to robot
+        if (robotPose != null) {
             double headingRad = robotPose.heading.toDouble(); // Rotation2d -> radians
             // store exported heading in degrees
             robotHeadingDeg = Math.toDegrees(headingRad);
-            targetAngle = AngleUnit.normalizeRadians(Math.atan2(dy, dx) - headingRad);
-            lastTargetAngle = targetAngle;
-        } else {
-            // If pose is null reset exported heading to NaN for visibility
-            robotHeadingDeg = robotPose != null ? robotHeadingDeg : Double.NaN;
-            lastTargetAngle = Double.NaN;
+
+            // current turret robot-relative position
+            double currentPos = (turretEncoder.getCurrentPosition() - zeroTicks) * Constants.TICKS_TO_RADIANS;
+
+            // initialize worldTurretAngle on first valid pose update to the turret's current world-facing angle
+            if (Double.isNaN(worldTurretAngle)) {
+                worldTurretAngle = AngleUnit.normalizeRadians(currentPos + headingRad);
+            }
+
+            if (target != null) {
+                double dx = target.x - robotPose.position.x;
+                double dy = target.y - robotPose.position.y;
+                // desired world-facing angle toward the target
+                double desiredWorldAngle = AngleUnit.normalizeRadians(Math.atan2(dy, dx));
+                // update stored world-facing target so we continue to hold it if target later becomes null
+                worldTurretAngle = desiredWorldAngle;
+            }
+
+            // compute desired turret angle relative to robot so that turret faces worldTurretAngle
+            targetAngleRobotRel = AngleUnit.normalizeRadians(worldTurretAngle - headingRad);
+            lastTargetAngle = targetAngleRobotRel;
+
+            // proceed with the rest of the controller using targetAngleRobotRel below
+
+            double clampedTarget = Range.clip(targetAngleRobotRel, Constants.MIN_RAD, Constants.MAX_RAD);
+
+            double error = AngleUnit.normalizeRadians(clampedTarget - currentPos);
+            double derivative = error - lastError;
+            double power = (error * 1.5) + (derivative * 5.0);
+            lastError = error;
+
+            if (currentPos > (Constants.MAX_RAD - Constants.BUFFER) && power > 0.1) power = 0.1;
+            if (currentPos < (Constants.MIN_RAD + Constants.BUFFER) && power < -0.1) power = -0.1;
+
+            double clippedPower = Range.clip(power, -1.0, 1.0);
+
+            // If controller output is too small to move the continuous-rotation servo
+            // but the angular error is meaningful, enforce a minimum move power to
+            // overcome static friction. This helps when lastPower is tiny (eg 0.0001)
+            // which isn't enough to move the turret.
+            double absErr = Math.abs(error);
+            if (absErr > Math.toRadians(0.5) && Math.abs(clippedPower) < MIN_MOVE_POWER) {
+                double useSign = (Math.abs(power) > 1e-6) ? Math.signum(power) : Math.signum(error);
+                clippedPower = Range.clip(useSign * MIN_MOVE_POWER, -1.0, 1.0);
+                Log.d(TAG, "Enforcing min move power: " + clippedPower + " errorDeg=" + Math.toDegrees(error));
+            }
+
+            turret.setPower(clippedPower);
+
+            // store debug values
+            lastClampedTarget = clampedTarget;
+            lastCurrentPos = currentPos;
+            lastErrorVal = error;
+            lastDerivative = derivative;
+            lastPower = clippedPower;
+
+            // Log debug info so it appears in logcat (device logs)
+            Log.d(TAG, getDebugString());
+            return;
         }
 
-        double clampedTarget = Range.clip(targetAngle, Constants.MIN_RAD, Constants.MAX_RAD);
-        double currentPos = (turretEncoder.getCurrentPosition() - zeroTicks) * Constants.TICKS_TO_RADIANS;
+        // If robotPose is null, keep previous behavior: reset exported heading to NaN for visibility
+        robotHeadingDeg = Double.NaN;
+        lastTargetAngle = Double.NaN;
+        lastClampedTarget = Double.NaN;
+        lastCurrentPos = Double.NaN;
+        lastErrorVal = Double.NaN;
+        lastDerivative = Double.NaN;
+        lastPower = 0.0;
+    }
 
-        double error = AngleUnit.normalizeRadians(clampedTarget - currentPos);
-        double derivative = error - lastError;
-        double power = (error * 1.5) + (derivative * 5.0);
-        lastError = error;
+    // Convenience overload to preserve existing callers that pass only the robot pose.
+    public void update(Pose2d robotPose) {
+        update(robotPose, null);
+    }
 
-        if (currentPos > (Constants.MAX_RAD - Constants.BUFFER) && power > 0.1) power = 0.1;
-        if (currentPos < (Constants.MIN_RAD + Constants.BUFFER) && power < -0.1) power = -0.1;
+    // Capture the current robot heading as the world-locked turret target. This causes the turret
+    // to move to robot-forward (robot-relative angle 0) and then hold that world heading as the
+    // robot rotates.
+    public void captureWorldHeadingAsRobotForward(Pose2d robotPose) {
+        if (robotPose == null) return;
+        double headingRad = robotPose.heading.toDouble();
+        // Set the desired world-facing angle equal to the robot's heading. That makes the
+        // desired robot-relative turret angle zero (forward) immediately, and the turret will
+        // compensate for future robot rotation to keep that world-facing direction.
+        worldTurretAngle = AngleUnit.normalizeRadians(headingRad);
 
-        double clippedPower = Range.clip(power, -1.0, 1.0);
-        turret.setPower(clippedPower);
+        // Ensure we're not stuck in manual mode and run an immediate controller update so the
+        // turret begins moving toward robot-forward right away.
+        manual = false;
+        try {
+            update(robotPose, null);
+        } catch (Exception e) {
+            Log.w(TAG, "captureWorldHeadingAsRobotForward: update threw", e);
+        }
 
-        // store debug values
-        lastClampedTarget = clampedTarget;
-        lastCurrentPos = currentPos;
-        lastErrorVal = error;
-        lastDerivative = derivative;
-        lastPower = clippedPower;
+        // If closed-loop decided to output essentially zero power but there is a
+        // significant position error, the turret might be stuck due to static
+        // friction or an encoder mismatch. In that case, apply a short manual 'kick'
+        // to get it moving, then return control to closed-loop.
+        if (Math.abs(lastPower) < 1e-3 && Math.abs(lastErrorVal) > Math.toRadians(1.0)) {
+            double kick = Math.signum(lastErrorVal) * 0.35; // directional kick magnitude
+            manual = true;
+            manualPower = Range.clip(kick, -1.0, 1.0);
+            manualUntilMs = System.currentTimeMillis() + 150; // ms
+            turret.setPower(manualPower);
+            Log.d(TAG, "Applied manual kick to turret: power=" + manualPower + " errorDeg=" + Math.toDegrees(lastErrorVal));
+        }
 
-        // Log debug info so it appears in logcat (device logs)
-        Log.d(TAG, getDebugString());
+        Log.d(TAG, "captureWorldHeadingAsRobotForward: worldTurretAngle=" + worldTurretAngle + " lastErrorDeg=" + Math.toDegrees(lastErrorVal) + " lastPower=" + lastPower);
     }
 
     public void rotateLeft() {

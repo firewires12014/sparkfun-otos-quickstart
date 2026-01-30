@@ -8,6 +8,10 @@ public final class Constants {
     private Constants() {
     }
 
+    public static double LIFT1_UP = 1;
+    public static double LIFT1_DOWN = 0;
+    public static double LIFT2_UP = 1;
+    public static double LIFT2_DOWN = 0;
     // Shooter PID/FF
     public static double SHOOTER_KP = 0.5;
     public static double SHOOTER_KD = 0.0;
@@ -19,8 +23,8 @@ public final class Constants {
     public static double SHOOTER_VELOCITY_RAMP_RATE = 1500.0;
 
     // Hood limits
-    public static float HOOD_UPPER_LIMIT = 0.35f;
-    public static float HOOD_MIDDLE_LIMIT = 0.3f;
+    public static float HOOD_UPPER_LIMIT = 0.87f;
+    public static float HOOD_MIDDLE_LIMIT = 0.25f;
     public static float HOOD_LOWER_LIMIT = 0.0f;
     public static float HOOD_RED_AUTO = 0.38f;
 

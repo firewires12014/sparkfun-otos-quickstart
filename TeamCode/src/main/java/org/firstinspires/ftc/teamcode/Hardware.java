@@ -30,6 +30,8 @@ public class Hardware {
     public CRServo transfer2; // farther from intake
     public Servo hood;
     public Servo trigger;
+    public Servo lift1;
+    public Servo lift2;
 
     private final PIDFController.PIDCoefficients pidCoef = new PIDFController.PIDCoefficients();
     public PIDFController shooterPID;
@@ -57,10 +59,13 @@ public class Hardware {
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         turret = hardwareMap.get(CRServo.class, "turret");
-        turretEncoder = transfer; // reuse intake motor for turret encoder reading
+        turretEncoder = intake; // reuse intake motor for turret encoder reading
         hood = hardwareMap.get(Servo.class, "hood");
 
         trigger = hardwareMap.get(Servo.class, "trigger");
+
+        lift1 = hardwareMap.get(Servo.class, "lift1");
+        lift2 = hardwareMap.get(Servo.class, "lift2");
 
         pidCoef.kP = Constants.SHOOTER_KP;
         pidCoef.kD = Constants.SHOOTER_KD;
