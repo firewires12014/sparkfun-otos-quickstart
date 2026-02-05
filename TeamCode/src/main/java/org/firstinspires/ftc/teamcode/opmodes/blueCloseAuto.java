@@ -10,6 +10,7 @@ import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.teamcode.opmodes.AutoTelopSaveState;
 import org.firstinspires.ftc.teamcode.subsystems.Hood;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
@@ -32,7 +33,7 @@ public final class blueCloseAuto extends LinearOpMode {
                 Pose2d startPose = new Pose2d(-53, -50, Math.toRadians(214));
                 MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
-                Action preload = drive.actionBuilder(new Pose2d(-53, -48, Math.toRadians(205)))
+                Action preload = drive.actionBuilder(new Pose2d(-53, -48, Math.toRadians(214)))
                                 .strafeToLinearHeading(new Vector2d(-19, -27), Math.toRadians(214))
                                 .build();
                 Action lineUpWithRow2 = drive.actionBuilder(new Pose2d(-23, -22.5, Math.toRadians(214)))
@@ -75,27 +76,28 @@ public final class blueCloseAuto extends LinearOpMode {
 
                 Actions.runBlocking(new SequentialAction(
                                 preload,
-                                shooter.shootAction(), // Shoot preload
+                                shooter.shootAction2(), // Shoot preload
                                 lineUpWithRow2,
                                 new InstantAction(()-> intake.in()),
                                 intakeRow2,
                                 new InstantAction(()-> intake.stop()),
                                 backupFromRow2,
                                 row2ShootPosition,
-                                shooter.shootAction(),// Shoot 4-6
+                                shooter.shootAction2(),// Shoot 4-6
                                 row2LineUp,
                                 new InstantAction(()-> intake.in()),
                                 intakeRow1,
                                 new InstantAction(()-> intake.stop()),
                                 row1ShootPosition,
-                                shooter.shootAction(),
-                                park
+                                shooter.shootAction2(),
+                                park,
+                                new InstantAction(()->  AutoTelopSaveState.END_AUTO_STATE = new Pose2d(0, -45, 208)
 
 
 //                                shooter.shootAction() // Shoot 7-9
 
-                ));
+                )));
 
-
+            // double check if this works
         }
 }

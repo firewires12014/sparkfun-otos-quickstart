@@ -21,7 +21,7 @@ public final class Constants {
     public static int SHOOTER_VELOCITY = 1800;
 
     // Hood limits
-    public static float HOOD_UPPER_LIMIT = 0.87f;
+    public static float HOOD_UPPER_LIMIT = 0.75f;
     public static float HOOD_MIDDLE_LIMIT = 0.25f;
     public static float HOOD_LOWER_LIMIT = 0.0f;
 

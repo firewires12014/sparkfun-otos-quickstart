@@ -25,7 +25,7 @@ public class Hardware {
     public DcMotorEx transfer;
     public DcMotorEx liftEH;
     public DcMotorEx liftCH;
-    public CRServo turret;
+    public Servo turret;
     public CRServo transfer1; // closest to intake
     public CRServo transfer2; // farther from intake
     public Servo hood;
@@ -58,7 +58,7 @@ public class Hardware {
         shooter = hardwareMap.get(DcMotorEx.class, "shooter");
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        turret = hardwareMap.get(CRServo.class, "turret");
+        turret = hardwareMap.get(Servo.class, "turret");
         turretEncoder = intake; // reuse intake motor for turret encoder reading
         hood = hardwareMap.get(Servo.class, "hood");
 

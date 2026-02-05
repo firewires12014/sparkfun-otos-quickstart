@@ -1,13 +1,8 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import android.util.Log;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.util.Range;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.Vector2d;
-import org.firstinspires.ftc.teamcode.Constants;
+
 import org.firstinspires.ftc.teamcode.Hardware;
 
 @Config
@@ -16,17 +11,46 @@ public class Turret extends Hardware {
         super(hardwareMap);
     }
 
-    public void stop() {
-        turret.setPower(0.0);
+    public double angle = 0;
+    public static double joystickReductionFactor = 0.9;
+
+    public static double hardLeft = 0; //-45
+    public static double hardRight = 1; //47
+    public static double middle = .47; // 0
+
+    public double lerp (double inputAngle) {
+        return 0.0108726 * inputAngle + .482752;
+    }
+
+    public void setAngle (double angle) {
+        this.angle = angle;
+        turret.setPosition(lerp(angle));
+    }
+
+    public void increment(double joystick) {
+        this.angle += joystick * joystickReductionFactor;
+
+        if (angle < -45) {
+            this.angle = -45;
+        } else if (angle > 47) {
+            this.angle = 47;
+        }
+
+        turret.setPosition(lerp(this.angle));
     }
 
 
-    public void rotateLeft() {
-        turret.setPower(-.25);
-    }
-
-    public void rotateRight() {
-        turret.setPower(.25);
-    }
-
+//    public void middle() {
+//        turret.setPosition(0.0);
+//    }
+//
+//
+//    public void rotateLeft() {
+//        turret.setPosition(-.25);
+//    }
+//
+//    public void rotateRight() {
+//        turret.setPosition(.25);
+//    }
+//
 }

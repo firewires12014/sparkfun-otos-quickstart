@@ -19,6 +19,13 @@ public class Hood extends Hardware {
         hood.setPosition(targetPosition);
     }
 
+    public double lerp (double distance) {
+        double hoodPosition = -.000578233 * Math.pow(distance,2) + 0.0724618 * distance -2.03481;
+        if (hoodPosition < 0) hoodPosition = 0;
+        else if (hoodPosition > Constants.HOOD_UPPER_LIMIT) hoodPosition = Constants.HOOD_UPPER_LIMIT;
+        return hoodPosition;
+    }
+
     /** Move hood to the configured upper limit. */
     public void up() {
         setPosition(Constants.HOOD_MIDDLE_LIMIT);

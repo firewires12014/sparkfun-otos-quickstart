@@ -32,57 +32,57 @@ public final class redCloseAuto extends LinearOpMode {
         int yOffset = Constants.RED_CLOSE_Y_OFFSET;
 
         // Start Pose: Y flipped, Heading negated (-214 is same as 146 deg)
-        Pose2d startPose = new Pose2d(-50.1, 50, Math.toRadians(125));
+        Pose2d startPose = new Pose2d(-50.1, 50, Math.toRadians(130));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
-        Action preload = drive.actionBuilder(new Pose2d(-50.1, 50, Math.toRadians(125)))
-                .strafeToLinearHeading(new Vector2d(-23.5, 10), Math.toRadians(125))
+        Action preload = drive.actionBuilder(new Pose2d(-50.1, 50, Math.toRadians(130)))
+                .strafeToLinearHeading(new Vector2d(-21, 10), Math.toRadians(130))
                 .build();
-        Action lineUpWithRow2 = drive.actionBuilder(new Pose2d(-20, 10, Math.toRadians(125)))
-                .strafeToLinearHeading(new Vector2d(13, 26), Math.toRadians(80))
+        Action lineUpWithRow2 = drive.actionBuilder(new Pose2d(-20, 10, Math.toRadians(130)))
+                .strafeToLinearHeading(new Vector2d(13, 26), Math.toRadians(83))
                 .build();
         Action intakeRow2 = drive.actionBuilder(new Pose2d(13, 26, Math.toRadians(83)))
                 .strafeToLinearHeading(new Vector2d(13, 72), Math.toRadians(83))
                 .build();
         Action backupFromRow2 = drive.actionBuilder(new Pose2d(14, 60, Math.toRadians(83)))
-                .strafeToLinearHeading(new Vector2d(13, 26), Math.toRadians(125))
+                .strafeToLinearHeading(new Vector2d(13, 26), Math.toRadians(130))
                 .build();
         Action shootPosition = drive.actionBuilder(new Pose2d(13, 26, Math.toRadians(125)))
-                .strafeToLinearHeading(new Vector2d(-23.5, 10), Math.toRadians(125))
+                .strafeToLinearHeading(new Vector2d(-21, 10), Math.toRadians(130))
                 .build();
-        Action toRow1 = drive.actionBuilder(new Pose2d(-23.5, 10, Math.toRadians(125)))
+        Action toRow1 = drive.actionBuilder(new Pose2d(-23.5, 10, Math.toRadians(130)))
                 .strafeToLinearHeading(new Vector2d(-12, 25), Math.toRadians(83))
                 .build();
         Action intakeRow1 = drive.actionBuilder(new Pose2d(-12, 25, Math.toRadians(83)))
                         .strafeToLinearHeading(new Vector2d(-12, 60), Math.toRadians(83))
                                 .build();
         Action shoot1position = drive.actionBuilder(new Pose2d(-14, 60, Math.toRadians(83)))
-                        .strafeToLinearHeading(new Vector2d( -23.5, 10), Math.toRadians(125))
+                        .strafeToLinearHeading(new Vector2d( -21, 10), Math.toRadians(130))
                                 .build();
         Action park = drive.actionBuilder(new Pose2d(-23.5, 10, Math.toRadians(125)))
-                        .strafeToLinearHeading(new Vector2d(-15, 29), Math.toRadians(125))
+                        .strafeToLinearHeading(new Vector2d(-7, 29), Math.toRadians(125))
                                 .build();
 
-        hood.setPosition(Constants.HOOD_UPPER_LIMIT);
+        hood.setPosition(Constants.HOOD_MIDDLE_LIMIT);
 
         waitForStart();
 
         Actions.runBlocking(new SequentialAction(
                 preload,
-                shooter.shootAction(), // Shoot preload
+                shooter.shootAction2(), // Shoot preload
                 lineUpWithRow2,
                 new InstantAction(()-> intake.in()),
                 intakeRow2,
                 new InstantAction(()-> intake.stop()),
                 backupFromRow2,
                 shootPosition,
-                shooter.shootAction(), // Shoot 4-6
+                shooter.shootAction2(), // Shoot 4-6
                 toRow1,
                 new InstantAction(()-> intake.in()),
                 intakeRow1,
                 new InstantAction(()-> intake.stop()),
                 shoot1position,
-                shooter.shootAction(),
+                shooter.shootAction2(),
                 park
 
 
@@ -90,6 +90,6 @@ public final class redCloseAuto extends LinearOpMode {
 //                shootPosition,
 //                shooter.shootAction() // Shoot 7-9
         ));
-
+        AutoTelopSaveState.END_AUTO_STATE = new Pose2d(29, -15, 125); // double check if this works
     }
 }

@@ -1,0 +1,26 @@
+package org.firstinspires.ftc.teamcode.tuning;
+
+import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+import org.firstinspires.ftc.teamcode.subsystems.Turret;
+
+@TeleOp
+@Config
+public class turretTesting extends LinearOpMode {
+    public static double turretPosition = 1;
+
+    @Override
+    public void runOpMode() throws InterruptedException {
+
+        Turret turret = new Turret(hardwareMap);
+
+        waitForStart();
+
+        while (opModeIsActive()) {
+            turret.turret.setPosition(turretPosition);
+        }
+
+    }
+}

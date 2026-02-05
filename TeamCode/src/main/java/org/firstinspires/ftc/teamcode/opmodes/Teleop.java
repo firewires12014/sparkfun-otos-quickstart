@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -17,10 +18,19 @@ import org.firstinspires.ftc.teamcode.subsystems.Turret;
 import org.firstinspires.ftc.teamcode.subsystems.Lift;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 
+@Config
 @TeleOp(name = "Teleop", group = "Linear OpMode")
 public class Teleop extends LinearOpMode {
 
     private final ElapsedTime runtime = new ElapsedTime();
+
+    public static double targetX = -67;
+    public static double targetY = 67;
+    public static boolean isBlue = true;
+    public static double hoodPosition = 0;
+
+
+    public static boolean autoTurret = true;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -51,6 +61,9 @@ public class Teleop extends LinearOpMode {
         while (opModeIsActive()) {
             double dt = loopTimer.seconds();
             loopTimer.reset();
+
+            drive.update();
+            Pose2d pose = drive.getPose();
 
             // =========================================================================
             // GAMEPAD 1 CONTROLS
@@ -108,28 +121,47 @@ public class Teleop extends LinearOpMode {
                 intake.stop();
             }
 
+            if (gamepad2.triangle) autoTurret = false;
+            if (gamepad2.square) autoTurret = true;
+
             // --- TURRET CONTROL ---
-            double stick = gamepad2.left_stick_x;
-            double deadzone = 0.05;
-            if (stick < -deadzone) {
-                turret.rotateLeft();
-            } else if (stick > deadzone) {
-                turret.rotateRight();
+            double targetAnlge = findTargetAngle(new Pose2d(targetX, targetY, 0), pose);
+            if (!autoTurret) {
+                double stick = gamepad2.left_stick_x;
+                double deadzone = 0.05;
+                if (stick < -deadzone) {
+                    turret.increment(gamepad2.left_stick_x);
+                } else if (stick > deadzone) {
+                    turret.increment(gamepad2.left_stick_x);
+                }
+
             } else {
-                turret.stop();
+                double adjustment = 0;
+                if (isBlue)
+                    adjustment = 0;
+                else adjustment = 0;
+                turret.setAngle(-targetAnlge + adjustment);
             }
 
             // --- HOOD CONTROL (D-Pad) ---
-            if (gamepad2.dpad_up) {
-                hood.setPosition(Constants.HOOD_UPPER_LIMIT);
-            }
+            double distance = Math.sqrt(Math.pow(targetX - pose.position.x, 2)+Math.pow(targetY - pose.position.y, 2));
+            if (!autoTurret) {
+                if (gamepad2.dpad_up) {
+                    hood.setPosition(Constants.HOOD_UPPER_LIMIT);
+                }
 
-            if (gamepad2.dpad_right) {
-                hood.setPosition(Constants.HOOD_MIDDLE_LIMIT);
-            }
+                if (gamepad2.dpad_right) {
+                    hood.setPosition(Constants.HOOD_MIDDLE_LIMIT);
+                }
 
-            if (gamepad2.dpad_down) {
-                hood.setPosition(Constants.HOOD_LOWER_LIMIT);
+                if (gamepad2.dpad_down) {
+                    hood.setPosition(Constants.HOOD_LOWER_LIMIT);
+                }
+
+            }
+            else {
+
+                hood.setPosition(hood.lerp(distance));
             }
 
             if (gamepad2.left_bumper) {
@@ -140,12 +172,46 @@ public class Teleop extends LinearOpMode {
                 lift.down();
             }
 
+            if (gamepad1.triangle) {
+                if (isBlue) {
+                    gamepad1.setLedColor(0, 0, 255, -1);
+                    drive.setPose(new Pose2d(0, 63, Math.toRadians(90)));
+                    targetX = -67;
+                }
+                else {
+                    gamepad1.setLedColor(255, 0, 0, -1);
+                    drive.setPose(new Pose2d(0, 63, Math.toRadians(90)));
+                    targetX = 67;
+                }
+
+            }
+
+            if (gamepad1.circle) {
+                gamepad1.setLedColor(255, 0, 0, -1);
+                isBlue = false;
+            }
+
+            if (gamepad1.cross) {
+                gamepad1.setLedColor(0, 0, 255, -1);
+                isBlue = true;
+            }
+
+
+
             // --- TELEMETRY ---
             telemetry.addData("Status", "Run Time: " + runtime);
+            telemetry.addData("Robot Pose", "Pose: "+pose.position + "\tHeading: "+Math.toDegrees(pose.heading.toDouble()));
+            telemetry.addData("targetAngle", targetAnlge);
             telemetry.addData("Velocity", drive.shooter.getVelocity());
             telemetry.addData("Target Velo", (leftTriggerVal > 0.001) ? Constants.SHOOTER_VELOCITY : 0.0);
             telemetry.addData("Hood Pos", hood.getPosition());
+            telemetry.addData("isBlue", isBlue);
+            telemetry.addData("hoodDistance", distance);
             telemetry.update();
         }
+    }
+    public double findTargetAngle (Pose2d target, Pose2d current) {
+        Pose2d delta = Pose2d.exp(target.minus(current));
+        return Math.toDegrees(Math.atan2(delta.position.y, delta.position.x));
     }
 }
