@@ -1,14 +1,18 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import static com.acmerobotics.roadrunner.Math.clamp;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Constants;
+import org.firstinspires.ftc.teamcode.Hardware;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.subsystems.Drive;
 import org.firstinspires.ftc.teamcode.subsystems.Hood;
@@ -28,9 +32,16 @@ public class Teleop extends LinearOpMode {
     public static double targetY = 67;
     public static boolean isBlue = true;
     public static double hoodPosition = 0;
-
+    public static double shooterRPM = 0;
 
     public static boolean autoTurret = true;
+
+    public static Vector2d RED_GOAL = new Vector2d(53, 54);
+    public static Vector2d BLUE_GOAL = new Vector2d(-40, 59);
+
+    public enum Alliance {
+        RED, BLUE
+    }
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -45,6 +56,7 @@ public class Teleop extends LinearOpMode {
         Turret turret = new Turret(hardwareMap);
         Hood hood = new Hood(hardwareMap);
         Shooter shooter = new Shooter(hardwareMap);
+        Hardware robot = new Hardware(hardwareMap);
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -90,7 +102,7 @@ public class Teleop extends LinearOpMode {
                 // Intake Logic: Intake Only
                 intake.in();
                 transfer.run();
-                shooter.update(isShooting);
+                shooter.update(isShooting, (int) shooterRPM);
             } else if (gamepad2.circle && leftTriggerVal == 0) {
                 // Reverse Logic: Outtake and Reverse Systems
                 intake.out();
@@ -102,15 +114,15 @@ public class Teleop extends LinearOpMode {
                 transfer.stop();
                 transfer.triggerClose();
                 telemetry.addLine("Trigger closed");
-                shooter.update(isShooting);
+                shooter.update(isShooting, (int) shooterRPM);
             } else if (rightTriggerVal == 0 && leftTriggerVal == 0) {
                 // Idle State
                 intake.stop();
                 transfer.stop();
-                shooter.update(isShooting);
+                shooter.update(isShooting, 0);
             } else {
                 // Default: Update shooter state
-                shooter.update(isShooting);
+                shooter.update(isShooting, (int) shooterRPM);
             }
 
             // Transfer Logic: Run transfer when shooting
@@ -134,14 +146,20 @@ public class Teleop extends LinearOpMode {
                 } else if (stick > deadzone) {
                     turret.increment(gamepad2.left_stick_x);
                 }
-
+                shooterRPM = 1400;
             } else {
                 double adjustment = 0;
                 if (isBlue)
                     adjustment = 0;
                 else adjustment = 0;
+
                 turret.setAngle(-targetAnlge + adjustment);
+
+                shooterRPM = getShooterRPM(pose, (isBlue) ? Alliance.BLUE : Alliance.RED);
+                hoodPosition = getHoodPosition(pose, (isBlue) ? Alliance.BLUE : Alliance.RED);
+
             }
+
 
             // --- HOOD CONTROL (D-Pad) ---
             double distance = Math.sqrt(Math.pow(targetX - pose.position.x, 2)+Math.pow(targetY - pose.position.y, 2));
@@ -160,16 +178,17 @@ public class Teleop extends LinearOpMode {
 
             }
             else {
-
-                hood.setPosition(hood.lerp(distance));
+//                hood.setPosition(hood.lerp(distance));
+                 hood.setPosition(hoodPosition);
             }
 
             if (gamepad2.left_bumper) {
-                lift.up();
+                robot.lift1.setPosition(Constants.LIFT1_UP);
+                robot.lift2.setPosition(Constants.LIFT2_UP);
             }
-
             if (gamepad2.right_bumper) {
-                lift.down();
+                robot.lift1.setPosition(Constants.LIFT1_DOWN);
+                robot.lift2.setPosition(Constants.LIFT2_DOWN);
             }
 
             if (gamepad1.triangle) {
@@ -198,20 +217,65 @@ public class Teleop extends LinearOpMode {
 
 
 
+
+
             // --- TELEMETRY ---
             telemetry.addData("Status", "Run Time: " + runtime);
             telemetry.addData("Robot Pose", "Pose: "+pose.position + "\tHeading: "+Math.toDegrees(pose.heading.toDouble()));
             telemetry.addData("targetAngle", targetAnlge);
             telemetry.addData("Velocity", drive.shooter.getVelocity());
-            telemetry.addData("Target Velo", (leftTriggerVal > 0.001) ? Constants.SHOOTER_VELOCITY : 0.0);
+            telemetry.addData("Target Velo", (leftTriggerVal > 0.001) ? shooterRPM : 0.0);
             telemetry.addData("Hood Pos", hood.getPosition());
             telemetry.addData("isBlue", isBlue);
             telemetry.addData("hoodDistance", distance);
+            telemetry.addData("Distance from Blue Goal", calculateGoalDistance(pose, Alliance.BLUE));
+            telemetry.addData("Distance from Red Goal", calculateGoalDistance(pose, Alliance.RED));
+
             telemetry.update();
         }
     }
     public double findTargetAngle (Pose2d target, Pose2d current) {
         Pose2d delta = Pose2d.exp(target.minus(current));
         return Math.toDegrees(Math.atan2(delta.position.y, delta.position.x));
+    }
+
+    // java
+    public static double calculateGoalDistance(Pose2d currentPose, Alliance alliance) {
+        Vector2d goalPos = (alliance == Alliance.RED) ? RED_GOAL : BLUE_GOAL;
+        double dx = currentPose.position.x - goalPos.x;
+        double dy = currentPose.position.y - goalPos.y;
+        return Math.hypot(dx, dy);
+    }
+
+    /**
+     * Get shooter RPM based on current position and alliance
+     */
+    public static double getShooterRPM(Pose2d currentPose, Alliance alliance) {
+        double dist = calculateGoalDistance(currentPose, alliance);
+        return clamp(
+                -0.0000157674 * Math.pow(dist, 4)
+                        + 0.0055938887 * Math.pow(dist, 3)
+                        - 0.6430763463 * Math.pow(dist, 2)
+                        + 31.7028994 * dist
+                        + 626.17196,
+                Constants.MIN_RPM,
+                Constants.MAX_RPM
+        );
+    }
+
+    /**
+     * Get hood position based on current position and alliance
+     */
+    public static double getHoodPosition(Pose2d currentPose, Alliance alliance) {
+        double dist = calculateGoalDistance(currentPose, alliance);
+        return clamp(
+                -0.0000000095 * Math.pow(dist, 4)
+                        + 0.0000032078 * Math.pow(dist, 3)
+                        - 0.0003702100 * Math.pow(dist, 2)
+                        + 0.0172479 * dist
+                        - 0.14375,
+                Constants.MIN_HOOD,
+                Constants.MAX_HOOD
+        );
     }
 }

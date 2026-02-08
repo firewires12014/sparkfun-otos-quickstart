@@ -22,6 +22,7 @@ public class Hardware {
     public DcMotorEx intake;
     public DcMotorEx turretEncoder; // reuse intake motor for turret encoder reading
     public DcMotorEx shooter;
+    public DcMotorEx shooter2;
     public DcMotorEx transfer;
     public DcMotorEx liftEH;
     public DcMotorEx liftCH;
@@ -57,6 +58,10 @@ public class Hardware {
 
         shooter = hardwareMap.get(DcMotorEx.class, "shooter");
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
+        shooter2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooter.setDirection(DcMotorSimple.Direction.REVERSE);
+        shooter2.setDirection(DcMotorSimple.Direction.FORWARD);
 
         turret = hardwareMap.get(Servo.class, "turret");
         turretEncoder = intake; // reuse intake motor for turret encoder reading

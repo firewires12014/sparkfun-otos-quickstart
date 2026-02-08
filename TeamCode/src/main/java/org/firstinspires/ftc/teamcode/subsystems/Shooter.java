@@ -22,16 +22,26 @@ public class Shooter extends Hardware {
 
     public void shoot(double velocity) {
         shooter.setVelocity(velocity);
+        shooter2.setVelocity(velocity);
     }
 
-    public void update(boolean shoot) {
+    public void update(boolean shoot, int velocity) {
         if (shoot) {
-            shooter.setVelocity(Constants.SHOOTER_VELOCITY);
+            shooter.setVelocity(velocity);
+            shooter2.setVelocity(velocity);
             trigger.setPosition(Constants.TRIGGER_OPEN);
 
-            if (shooter.getVelocity() >= Constants.SHOOTER_VELOCITY) {
-                intake.setPower(1);
+            // Fixing misplaced trigger that Zach won;t admit
+//            intake.setPower(-1);
+//            new SleepAction(1);
+//            intake.setPower(0);
+
+            if (shooter.getVelocity() >= velocity) {
+
+                shooter.setPower(1);
+                shooter2.setPower(1);
                 transfer.setPower(Constants.TRANSFER_SPEED);
+                intake.setPower(1);
             }
         } else {
             stop();
@@ -45,6 +55,7 @@ public class Shooter extends Hardware {
 
     public void stop() {
         shooter.setVelocity(0);
+        shooter2.setVelocity(0);
         trigger.setPosition(Constants.TRIGGER_CLOSE);
     }
 

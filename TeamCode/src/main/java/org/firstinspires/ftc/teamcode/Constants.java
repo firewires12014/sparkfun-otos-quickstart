@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.roadrunner.Vector2d;
 
 /** Central place for tunable/static constants. */
 @Config
@@ -8,21 +9,24 @@ public final class Constants {
     private Constants() {
     }
 
-    public static double LIFT1_UP = 1;
-    public static double LIFT1_DOWN = 0;
-    public static double LIFT2_UP = 1;
+
+
+    public static double LIFT1_UP = .2;
+    public static double LIFT2_UP = .76;
+    public static double LIFT1_DOWN = 1;
     public static double LIFT2_DOWN = 0;
     // Shooter PID/FF
     public static double SHOOTER_KP = 0.5;
     public static double SHOOTER_KD = 0.0;
     public static double SHOOTER_KV = 0.0004;
 
+
     // Shooter control
     public static int SHOOTER_VELOCITY = 1800;
 
     // Hood limits
-    public static float HOOD_UPPER_LIMIT = 0.75f;
-    public static float HOOD_MIDDLE_LIMIT = 0.25f;
+    public static float HOOD_UPPER_LIMIT = 0.15f;
+    public static float HOOD_MIDDLE_LIMIT = 0.05f;
     public static float HOOD_LOWER_LIMIT = 0.0f;
 
     // Define your range (180 degrees total = -90 to +90)
@@ -42,5 +46,11 @@ public final class Constants {
     public static double TRIGGER_OPEN = 0.06;
     public static double TRIGGER_CLOSE = .45;
 
-    public static double TRANSFER_SPEED = 1;
+    public static double TRANSFER_SPEED = .7;
+
+    // Shooter limits
+    public static final double MIN_RPM = 900;
+    public static final double MAX_RPM = 1765;
+    public static final double MIN_HOOD = 0.000;
+    public static final double MAX_HOOD = 0.170;
 }

@@ -10,6 +10,7 @@ import com.acmerobotics.roadrunner.SleepAction;
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.Hardware;
 
+
 public class Intake extends Hardware {
 
     public Intake(HardwareMap hardwareMap) {
@@ -17,7 +18,7 @@ public class Intake extends Hardware {
     }
 
     public void in() {
-        intake.setPower(1);
+        intake.setPower(.75);
     }
 
     public void out() {
