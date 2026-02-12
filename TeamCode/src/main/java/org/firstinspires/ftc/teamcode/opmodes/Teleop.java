@@ -26,7 +26,12 @@ import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 @Config
 @TeleOp(name = "Teleop", group = "Linear OpMode")
 public class Teleop extends LinearOpMode {
-
+    private boolean wasShooting = false; // track previous shooting state
+    private double lastBeamTime = -1.0;
+    public static final double BEAM_DEBOUNCE = 0.25; // seconds
+    public static final double BEAM_THRESHOLD_INCH = 4.0; // tune as needed
+    private boolean prevBeamBroken = false; // rising-edge state
+    public int ballCount = 3;
     private final ElapsedTime runtime = new ElapsedTime();
 
     public static double targetX = -67;
@@ -39,12 +44,6 @@ public class Teleop extends LinearOpMode {
 
     public static Vector2d RED_GOAL = new Vector2d(53, 54);
     public static Vector2d BLUE_GOAL = new Vector2d(-40, 59);
-
-    public int ballCount = 3;
-
-    // Debounce timer for beam sensor (prevents multiple triggers within 0.25s)
-    private double lastBeamTime = -1.0;
-    private static final double BEAM_DEBOUNCE = 0.25; // seconds
 
     public enum Alliance {
         RED, BLUE
@@ -81,22 +80,18 @@ public class Teleop extends LinearOpMode {
         loopTimer.reset();
 
         while (opModeIsActive()) {
-            boolean beamBroken = (robot.distanceSensor.getDistance(DistanceUnit.INCH) < 4);
-            telemetry.addData("Distance Sensor", robot.distanceSensor.getDistance(DistanceUnit.INCH));
+            double sensorInches = robot.distanceSensor.getDistance(DistanceUnit.INCH);
+            boolean beamBroken = sensorInches > 0 && sensorInches < BEAM_THRESHOLD_INCH;
 
-            // Debounced beam logic: only register a beam break if more than BEAM_DEBOUNCE
-            // seconds have passed since the last registered break.
-            if (beamBroken && (runtime.seconds() - lastBeamTime) > BEAM_DEBOUNCE) {
+            // Rising-edge + debounce: triggers once when beam goes from clear -> broken
+            if (beamBroken && !prevBeamBroken && (runtime.seconds() - lastBeamTime) > BEAM_DEBOUNCE) {
                 lastBeamTime = runtime.seconds();
-
                 if (ballCount > 0) {
                     ballCount -= 1;
-                    // Turn off the appropriate LED(s) to reflect the new ball count
                     updateLeds(robot, ballCount, isBlue);
                 }
             }
-
-            double dt = loopTimer.seconds();
+            prevBeamBroken = beamBroken;
             loopTimer.reset();
 
             drive.update();
@@ -127,7 +122,7 @@ public class Teleop extends LinearOpMode {
                 // Intake Logic: Intake Only
                 intake.in();
                 transfer.run();
-                updateShooterAndLeds(shooter, isShooting, (int) shooterRPM, robot);
+                shooter.update(isShooting, shooterRPM);
             } else if (gamepad2.circle && leftTriggerVal == 0) {
                 // Reverse Logic: Outtake and Reverse Systems
                 intake.out();
@@ -139,17 +134,22 @@ public class Teleop extends LinearOpMode {
                 transfer.stop();
                 transfer.triggerClose();
                 telemetry.addLine("Trigger closed");
-                updateShooterAndLeds(shooter, isShooting, (int) shooterRPM, robot);
+                shooter.update(isShooting, shooterRPM);
             } else if (rightTriggerVal == 0 && leftTriggerVal == 0) {
                 // Idle State
                 intake.stop();
                 transfer.stop();
                 shooterRPM  = 0;
-                updateShooterAndLeds(shooter, isShooting, 0, robot);
+                shooter.update(isShooting, shooterRPM);
             } else {
-                // Default: Update shooter state
-                updateShooterAndLeds(shooter, isShooting, (int) shooterRPM, robot);
+                shooter.update(isShooting, shooterRPM);
             }
+
+            if (!isShooting && wasShooting) {
+                setAllLedsOn(robot, isBlue);
+            }
+            wasShooting = isShooting;
+
 
             // Transfer Logic: Run transfer when shooting
             if (leftTriggerVal > 0.001) {
@@ -163,14 +163,14 @@ public class Teleop extends LinearOpMode {
             if (gamepad2.square) autoTurret = true;
 
             // --- TURRET CONTROL ---
-            double targetAnlge = findTargetAngle(new Pose2d(targetX, targetY, 0), pose);
+            double targetAngle = findTargetAngle(new Pose2d(targetX, targetY, 0), pose);
             if (!autoTurret) {
                 if (leftTriggerVal > 0.1) {
                     shooterRPM = Constants.SHOOTER_VELOCITY;
-                    updateShooterAndLeds(shooter, true, (int) Constants.SHOOTER_VELOCITY, robot);
+                    shooter.update(isShooting, shooterRPM);
                 } else {
                     if (shooterRPM != 0) {
-                        updateShooterAndLeds(shooter, true, 0, robot);
+                        shooter.update(isShooting, shooterRPM);
                     } else {
                         shooterRPM = 0;
                     }
@@ -188,7 +188,7 @@ public class Teleop extends LinearOpMode {
                     adjustment = 0;
                 else adjustment = 0;
 
-                turret.setAngle(-targetAnlge + adjustment);
+                turret.setAngle(-targetAngle + adjustment);
 
                 shooterRPM = getShooterRPM(pose, (isBlue) ? Alliance.BLUE : Alliance.RED);
                 hoodPosition = getHoodPosition(pose, (isBlue) ? Alliance.BLUE : Alliance.RED);
@@ -265,18 +265,15 @@ public class Teleop extends LinearOpMode {
 
             // --- TELEMETRY ---
             telemetry.addData("Status", "Run Time: " + runtime);
-            telemetry.addData("Robot Pose", "Pose: "+pose.position + "\tHeading: "+Math.toDegrees(pose.heading.toDouble()));
-            telemetry.addData("targetAngle", targetAnlge);
-            telemetry.addData("Velocity", drive.shooter.getVelocity());
+            telemetry.addData("Velocity", shooter.getVelocity());
             telemetry.addData("Target Velo", (leftTriggerVal > 0.001) ? shooterRPM : 0.0);
             telemetry.addData("Hood Pos", hood.getPosition());
-            telemetry.addData("Turret Position", robot.turret.getPosition());
-            telemetry.addData("isBlue", isBlue);
-            telemetry.addData("hoodDistance", distance);
-            telemetry.addData("Distance from Blue Goal", calculateGoalDistance(pose, Alliance.BLUE));
-            telemetry.addData("Distance from Red Goal", calculateGoalDistance(pose, Alliance.RED));
-
+            telemetry.addData("Turret Position", turret.getPosition());
+            telemetry.addData("Distance Sensor (in)", sensorInches);
+            telemetry.addData("Beam Broken", beamBroken);
+            telemetry.addData("Ball Count", ballCount);
             telemetry.update();
+
         }
     }
     public double findTargetAngle (Pose2d target, Pose2d current) {
@@ -305,7 +302,11 @@ public class Teleop extends LinearOpMode {
      */
     public static double getHoodPosition(Pose2d currentPose, Alliance alliance) {
         double dist = calculateGoalDistance(currentPose, alliance);
-        return clamp(-0.0000275920 * Math.pow(dist, 2) + 0.0054981 * dist - 0.02812, Constants.MIN_HOOD, Constants.MAX_HOOD);
+        if (dist < 20) {
+            return Constants.MIN_HOOD; // Minimum hood position for close shots
+        } else {
+            return clamp(-0.0000275920 * Math.pow(dist, 2) + 0.0054981 * dist - 0.02812, Constants.MIN_HOOD, Constants.MAX_HOOD);
+        }
     }
 
     // Helper to update LEDs based on ball count and alliance color.
@@ -325,11 +326,5 @@ public class Teleop extends LinearOpMode {
         robot.led1.setPosition(onPos);
         robot.led2.setPosition(onPos);
         robot.led3.setPosition(onPos);
-    }
-
-    // Wrapper that updates the shooter and then turns all LEDs back on.
-    private void updateShooterAndLeds(Shooter shooter, boolean isShooting, int rpm, Hardware robot) {
-        shooter.update(isShooting, rpm);
-        setAllLedsOn(robot, isBlue);
     }
  }
