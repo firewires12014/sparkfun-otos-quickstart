@@ -32,9 +32,9 @@ public class Shooter extends Hardware {
             trigger.setPosition(Constants.TRIGGER_OPEN);
 
             // Fixing misplaced trigger that Zach won;t admit
-//            intake.setPower(-1);
-//            new SleepAction(1);
-//            intake.setPower(0);
+            intake.setPower(-1);
+            new SleepAction(1);
+            intake.setPower(0);
 
             if (shooter.getVelocity() >= velocity) {
 
@@ -78,13 +78,14 @@ public class Shooter extends Hardware {
     }
     public Action shootAction2() {
         return new SequentialAction(
-                new InstantAction(()-> hood.setPosition(.36)),
+                new InstantAction(()-> hood.setPosition(.08)),
                 new InstantAction(() -> shoot(Constants.SHOOTER_VELOCITY)),
                 new InstantAction(() -> trigger.setPosition(Constants.TRIGGER_OPEN)),
                 new Action() {
                     @Override
                     public boolean run(@NonNull TelemetryPacket packet) {
-                        return shooter.getVelocity() < Constants.SHOOTER_VELOCITY;
+                        return (shooter.getVelocity() < Constants.SHOOTER_VELOCITY &&
+                               shooter2.getVelocity() < Constants.SHOOTER_VELOCITY);
                     }
                 },
                 new ParallelAction(new SequentialAction(
@@ -93,11 +94,12 @@ public class Shooter extends Hardware {
                         new SleepAction(2),
                         new InstantAction(() -> shoot(0)),
                         new InstantAction(()-> intake.setPower(0)),
+                        new InstantAction(()-> transfer.setPower(0)),
                         new InstantAction(() -> trigger.setPosition(Constants.TRIGGER_CLOSE))),
 
                 new SequentialAction(
                         new SleepAction(.2),
-                        new InstantAction(()-> hood.setPosition(Constants.HOOD_MIDDLE_LIMIT))
+                        new InstantAction(()-> hood.setPosition(.08))
                 )));
     }
 }

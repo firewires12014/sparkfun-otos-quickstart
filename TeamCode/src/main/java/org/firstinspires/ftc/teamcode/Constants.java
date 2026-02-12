@@ -22,11 +22,11 @@ public final class Constants {
 
 
     // Shooter control
-    public static int SHOOTER_VELOCITY = 1800;
+    public static int SHOOTER_VELOCITY = 1150;
 
     // Hood limits
-    public static float HOOD_UPPER_LIMIT = 0.15f;
-    public static float HOOD_MIDDLE_LIMIT = 0.05f;
+    public static float HOOD_UPPER_LIMIT = 0.24f;
+    public static float HOOD_MIDDLE_LIMIT = 0.12f;
     public static float HOOD_LOWER_LIMIT = 0.0f;
 
     // Define your range (180 degrees total = -90 to +90)
@@ -46,11 +46,11 @@ public final class Constants {
     public static double TRIGGER_OPEN = 0.06;
     public static double TRIGGER_CLOSE = .45;
 
-    public static double TRANSFER_SPEED = .7;
+    public static double TRANSFER_SPEED = 1;
 
     // Shooter limits
     public static final double MIN_RPM = 900;
     public static final double MAX_RPM = 1765;
     public static final double MIN_HOOD = 0.000;
-    public static final double MAX_HOOD = 0.170;
+    public static final double MAX_HOOD = 0.24;
 }

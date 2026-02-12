@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "exportDate": "2026-02-11T23:40:34.483Z",
+  "regressionType": "quadratic",
+  "dataPoints": [
+    {
+      "distance": 11,
+      "rpm": 900,
+      "hoodPosition": 0
+    },
+    {
+      "distance": 24,
+      "rpm": 1100,
+      "hoodPosition": 0.11
+    },
+    {
+      "distance": 36,
+      "rpm": 1165,
+      "hoodPosition": 0.13
+    },
+    {
+      "distance": 55,
+      "rpm": 1200,
+      "hoodPosition": 0.12
+    },
+    {
+      "distance": 88,
+      "rpm": 1325,
+      "hoodPosition": 0.135
+    },
+    {
+      "distance": 108,
+      "rpm": 1425,
+      "hoodPosition": 0.15
+    },
+    {
+      "distance": 124.5,
+      "rpm": 1625,
+      "hoodPosition": 0.17
+    },
+    {
+      "distance": 142,
+      "rpm": 1765,
+      "hoodPosition": 0.17
+    }
+  ]
+}

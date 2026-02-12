@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.Hardware;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
@@ -39,6 +40,12 @@ public class Teleop extends LinearOpMode {
     public static Vector2d RED_GOAL = new Vector2d(53, 54);
     public static Vector2d BLUE_GOAL = new Vector2d(-40, 59);
 
+    public int ballCount = 3;
+
+    // Debounce timer for beam sensor (prevents multiple triggers within 0.25s)
+    private double lastBeamTime = -1.0;
+    private static final double BEAM_DEBOUNCE = 0.25; // seconds
+
     public enum Alliance {
         RED, BLUE
     }
@@ -64,6 +71,9 @@ public class Teleop extends LinearOpMode {
         // Ensure subsystems are in starting state
         transfer.triggerClose();
 
+        // Initialize LEDs to reflect initial ball count
+        updateLeds(robot, ballCount, isBlue);
+
         waitForStart();
         runtime.reset();
 
@@ -71,6 +81,21 @@ public class Teleop extends LinearOpMode {
         loopTimer.reset();
 
         while (opModeIsActive()) {
+            boolean beamBroken = (robot.distanceSensor.getDistance(DistanceUnit.INCH) < 4);
+            telemetry.addData("Distance Sensor", robot.distanceSensor.getDistance(DistanceUnit.INCH));
+
+            // Debounced beam logic: only register a beam break if more than BEAM_DEBOUNCE
+            // seconds have passed since the last registered break.
+            if (beamBroken && (runtime.seconds() - lastBeamTime) > BEAM_DEBOUNCE) {
+                lastBeamTime = runtime.seconds();
+
+                if (ballCount > 0) {
+                    ballCount -= 1;
+                    // Turn off the appropriate LED(s) to reflect the new ball count
+                    updateLeds(robot, ballCount, isBlue);
+                }
+            }
+
             double dt = loopTimer.seconds();
             loopTimer.reset();
 
@@ -102,7 +127,7 @@ public class Teleop extends LinearOpMode {
                 // Intake Logic: Intake Only
                 intake.in();
                 transfer.run();
-                shooter.update(isShooting, (int) shooterRPM);
+                updateShooterAndLeds(shooter, isShooting, (int) shooterRPM, robot);
             } else if (gamepad2.circle && leftTriggerVal == 0) {
                 // Reverse Logic: Outtake and Reverse Systems
                 intake.out();
@@ -114,15 +139,16 @@ public class Teleop extends LinearOpMode {
                 transfer.stop();
                 transfer.triggerClose();
                 telemetry.addLine("Trigger closed");
-                shooter.update(isShooting, (int) shooterRPM);
+                updateShooterAndLeds(shooter, isShooting, (int) shooterRPM, robot);
             } else if (rightTriggerVal == 0 && leftTriggerVal == 0) {
                 // Idle State
                 intake.stop();
                 transfer.stop();
-                shooter.update(isShooting, 0);
+                shooterRPM  = 0;
+                updateShooterAndLeds(shooter, isShooting, 0, robot);
             } else {
                 // Default: Update shooter state
-                shooter.update(isShooting, (int) shooterRPM);
+                updateShooterAndLeds(shooter, isShooting, (int) shooterRPM, robot);
             }
 
             // Transfer Logic: Run transfer when shooting
@@ -139,6 +165,16 @@ public class Teleop extends LinearOpMode {
             // --- TURRET CONTROL ---
             double targetAnlge = findTargetAngle(new Pose2d(targetX, targetY, 0), pose);
             if (!autoTurret) {
+                if (leftTriggerVal > 0.1) {
+                    shooterRPM = Constants.SHOOTER_VELOCITY;
+                    updateShooterAndLeds(shooter, true, (int) Constants.SHOOTER_VELOCITY, robot);
+                } else {
+                    if (shooterRPM != 0) {
+                        updateShooterAndLeds(shooter, true, 0, robot);
+                    } else {
+                        shooterRPM = 0;
+                    }
+                }
                 double stick = gamepad2.left_stick_x;
                 double deadzone = 0.05;
                 if (stick < -deadzone) {
@@ -146,7 +182,6 @@ public class Teleop extends LinearOpMode {
                 } else if (stick > deadzone) {
                     turret.increment(gamepad2.left_stick_x);
                 }
-                shooterRPM = 1400;
             } else {
                 double adjustment = 0;
                 if (isBlue)
@@ -193,11 +228,17 @@ public class Teleop extends LinearOpMode {
 
             if (gamepad1.triangle) {
                 if (isBlue) {
+                    robot.led1.setPosition(0.611);
+                    robot.led2.setPosition(0.611);
+                    robot.led3.setPosition(0.611);
                     gamepad1.setLedColor(0, 0, 255, -1);
                     drive.setPose(new Pose2d(0, 63, Math.toRadians(90)));
                     targetX = -67;
                 }
                 else {
+                    robot.led1.setPosition(0.29);
+                    robot.led2.setPosition(0.29);
+                    robot.led3.setPosition(0.29);
                     gamepad1.setLedColor(255, 0, 0, -1);
                     drive.setPose(new Pose2d(0, 63, Math.toRadians(90)));
                     targetX = 67;
@@ -208,13 +249,16 @@ public class Teleop extends LinearOpMode {
             if (gamepad1.circle) {
                 gamepad1.setLedColor(255, 0, 0, -1);
                 isBlue = false;
+                // update LEDs to reflect alliance change without changing ball count
+                updateLeds(robot, ballCount, isBlue);
             }
 
             if (gamepad1.cross) {
                 gamepad1.setLedColor(0, 0, 255, -1);
                 isBlue = true;
+                // update LEDs to reflect alliance change without changing ball count
+                updateLeds(robot, ballCount, isBlue);
             }
-
 
 
 
@@ -226,6 +270,7 @@ public class Teleop extends LinearOpMode {
             telemetry.addData("Velocity", drive.shooter.getVelocity());
             telemetry.addData("Target Velo", (leftTriggerVal > 0.001) ? shooterRPM : 0.0);
             telemetry.addData("Hood Pos", hood.getPosition());
+            telemetry.addData("Turret Position", robot.turret.getPosition());
             telemetry.addData("isBlue", isBlue);
             telemetry.addData("hoodDistance", distance);
             telemetry.addData("Distance from Blue Goal", calculateGoalDistance(pose, Alliance.BLUE));
@@ -252,15 +297,7 @@ public class Teleop extends LinearOpMode {
      */
     public static double getShooterRPM(Pose2d currentPose, Alliance alliance) {
         double dist = calculateGoalDistance(currentPose, alliance);
-        return clamp(
-                -0.0000157674 * Math.pow(dist, 4)
-                        + 0.0055938887 * Math.pow(dist, 3)
-                        - 0.6430763463 * Math.pow(dist, 2)
-                        + 31.7028994 * dist
-                        + 626.17196,
-                Constants.MIN_RPM,
-                Constants.MAX_RPM
-        );
+        return clamp(0.0019379771 * Math.pow(dist, 2) + 5.3780724 * dist + 848.22413, Constants.MIN_RPM, Constants.MAX_RPM);
     }
 
     /**
@@ -268,14 +305,31 @@ public class Teleop extends LinearOpMode {
      */
     public static double getHoodPosition(Pose2d currentPose, Alliance alliance) {
         double dist = calculateGoalDistance(currentPose, alliance);
-        return clamp(
-                -0.0000000095 * Math.pow(dist, 4)
-                        + 0.0000032078 * Math.pow(dist, 3)
-                        - 0.0003702100 * Math.pow(dist, 2)
-                        + 0.0172479 * dist
-                        - 0.14375,
-                Constants.MIN_HOOD,
-                Constants.MAX_HOOD
-        );
+        return clamp(-0.0000275920 * Math.pow(dist, 2) + 0.0054981 * dist - 0.02812, Constants.MIN_HOOD, Constants.MAX_HOOD);
     }
-}
+
+    // Helper to update LEDs based on ball count and alliance color.
+    private void updateLeds(Hardware robot, int ballCount, boolean isBlue) {
+        double onPos = isBlue ? 0.611 : 0.29; // positions used elsewhere for blue/red
+        double offPos = 0; // position representing LED off
+
+        // Map led1..led3 to ball slots: led1 -> first ball, led2 -> second, led3 -> third
+        robot.led1.setPosition(ballCount >= 1 ? onPos : offPos);
+        robot.led2.setPosition(ballCount >= 2 ? onPos : offPos);
+        robot.led3.setPosition(ballCount >= 3 ? onPos : offPos);
+    }
+
+    // Helper to turn all LEDs on (used after shooting)
+    private void setAllLedsOn(Hardware robot, boolean isBlue) {
+        double onPos = isBlue ? 0.611 : 0.29;
+        robot.led1.setPosition(onPos);
+        robot.led2.setPosition(onPos);
+        robot.led3.setPosition(onPos);
+    }
+
+    // Wrapper that updates the shooter and then turns all LEDs back on.
+    private void updateShooterAndLeds(Shooter shooter, boolean isShooting, int rpm, Hardware robot) {
+        shooter.update(isShooting, rpm);
+        setAllLedsOn(robot, isBlue);
+    }
+ }

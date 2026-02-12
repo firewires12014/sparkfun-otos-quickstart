@@ -33,10 +33,10 @@ public final class blueCloseAuto extends LinearOpMode {
                 Pose2d startPose = new Pose2d(-53, -50, Math.toRadians(214));
                 MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
-                Action preload = drive.actionBuilder(new Pose2d(-53, -48, Math.toRadians(214)))
-                                .strafeToLinearHeading(new Vector2d(-19, -27), Math.toRadians(214))
+                Action preload = drive.actionBuilder(new Pose2d(-53, -50, Math.toRadians(214)))
+                                .strafeToLinearHeading(new Vector2d(-19, -26), Math.toRadians(214))
                                 .build();
-                Action lineUpWithRow2 = drive.actionBuilder(new Pose2d(-23, -22.5, Math.toRadians(214)))
+                Action lineUpWithRow2 = drive.actionBuilder(new Pose2d(-19, -26, Math.toRadians(214)))
                                 .strafeToLinearHeading(new Vector2d(3 + xOffset, -26 + yOffset), Math.toRadians(256))
                                 .build();
                 Action intakeRow2 = drive.actionBuilder(new Pose2d(3 + xOffset, -26 + yOffset, Math.toRadians(256)))
@@ -46,18 +46,18 @@ public final class blueCloseAuto extends LinearOpMode {
                                 .strafeToLinearHeading(new Vector2d(5 + xOffset, -26 + yOffset), Math.toRadians(214))
                                 .build();
                 Action row2ShootPosition = drive.actionBuilder(new Pose2d(5 + xOffset, -26 + yOffset, Math.toRadians(214)))
-                                .strafeToLinearHeading(new Vector2d(-13, -26), Math.toRadians(208))
+                                .strafeToLinearHeading(new Vector2d(-13, -27), Math.toRadians(214))
                                 .build();
-                Action row2LineUp = drive.actionBuilder(new Pose2d(-13, -26, Math.toRadians(208)))
-                                .strafeToLinearHeading(new Vector2d(-3, -26), Math.toRadians(256))
+                Action row1LineUp = drive.actionBuilder(new Pose2d(-13, -27, Math.toRadians(214)))
+                                .strafeToLinearHeading(new Vector2d(-10, -24), Math.toRadians(256))
                                 .build();
-                Action intakeRow1 = drive.actionBuilder(new Pose2d(-3, -26, Math.toRadians(256)))
-                        .strafeToLinearHeading(new Vector2d(-15, -67), Math.toRadians(256))
+                Action intakeRow1 = drive.actionBuilder(new Pose2d(-10, -24, Math.toRadians(256)))
+                        .strafeToLinearHeading(new Vector2d(-10, -67), Math.toRadians(256))
                         .build();
-                Action row1ShootPosition = drive.actionBuilder(new Pose2d(-15, -67, Math.toRadians(256)))
-                        .strafeToLinearHeading(new Vector2d(-10, -29), Math.toRadians(208))
+                Action row1ShootPosition = drive.actionBuilder(new Pose2d(-10, -67, Math.toRadians(256)))
+                        .strafeToLinearHeading(new Vector2d(-13, -28), Math.toRadians(208))
                         .build();
-                Action park = drive.actionBuilder(new Pose2d(-10, -29, Math.toRadians(208)))
+                Action park = drive.actionBuilder(new Pose2d(-13, -28, Math.toRadians(208)))
                         .strafeToLinearHeading(new Vector2d(0, -45), Math.toRadians(208))
                         .build();
 
@@ -84,7 +84,7 @@ public final class blueCloseAuto extends LinearOpMode {
                                 backupFromRow2,
                                 row2ShootPosition,
                                 shooter.shootAction2(),// Shoot 4-6
-                                row2LineUp,
+                                row1LineUp,
                                 new InstantAction(()-> intake.in()),
                                 intakeRow1,
                                 new InstantAction(()-> intake.stop()),

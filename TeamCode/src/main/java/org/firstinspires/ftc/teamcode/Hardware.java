@@ -3,9 +3,11 @@ package org.firstinspires.ftc.teamcode;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -33,6 +35,8 @@ public class Hardware {
     public Servo trigger;
     public Servo lift1;
     public Servo lift2;
+    public Servo led1, led2, led3;
+    public DistanceSensor distanceSensor;
 
     private final PIDFController.PIDCoefficients pidCoef = new PIDFController.PIDCoefficients();
     public PIDFController shooterPID;
@@ -71,6 +75,12 @@ public class Hardware {
 
         lift1 = hardwareMap.get(Servo.class, "lift1");
         lift2 = hardwareMap.get(Servo.class, "lift2");
+
+        led1 = hardwareMap.get(Servo.class, "led1");
+        led2 = hardwareMap.get(Servo.class, "led2");
+        led3 = hardwareMap.get(Servo.class, "led3");
+
+        distanceSensor = hardwareMap.get(DistanceSensor.class, "distanceSensor");
 
         pidCoef.kP = Constants.SHOOTER_KP;
         pidCoef.kD = Constants.SHOOTER_KD;

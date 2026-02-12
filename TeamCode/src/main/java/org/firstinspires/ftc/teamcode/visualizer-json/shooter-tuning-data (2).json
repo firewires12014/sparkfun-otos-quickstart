@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "exportDate": "2026-02-12T00:11:08.503Z",
+  "regressionType": "quadratic",
+  "dataPoints": [
+    {
+      "distance": 11,
+      "rpm": 900,
+      "hoodPosition": 0
+    },
+    {
+      "distance": 17,
+      "rpm": 950,
+      "hoodPosition": 0
+    },
+    {
+      "distance": 22.5,
+      "rpm": 1000,
+      "hoodPosition": 0.12
+    },
+    {
+      "distance": 29,
+      "rpm": 1000,
+      "hoodPosition": 0.16
+    },
+    {
+      "distance": 35,
+      "rpm": 1040,
+      "hoodPosition": 0.163
+    },
+    {
+      "distance": 43,
+      "rpm": 1060,
+      "hoodPosition": 0.167
+    },
+    {
+      "distance": 49,
+      "rpm": 1070,
+      "hoodPosition": 0.17
+    },
+    {
+      "distance": 54,
+      "rpm": 1160,
+      "hoodPosition": 0.186
+    },
+    {
+      "distance": 60,
+      "rpm": 1190,
+      "hoodPosition": 0.2
+    },
+    {
+      "distance": 67,
+      "rpm": 1230,
+      "hoodPosition": 0.2
+    },
+    {
+      "distance": 74,
+      "rpm": 1250,
+      "hoodPosition": 0.22
+    },
+    {
+      "distance": 80,
+      "rpm": 1275,
+      "hoodPosition": 0.23
+    },
+    {
+      "distance": 86,
+      "rpm": 1320,
+      "hoodPosition": 0.23
+    },
+    {
+      "distance": 92,
+      "rpm": 1375,
+      "hoodPosition": 0.24
+    },
+    {
+      "distance": 98,
+      "rpm": 1375,
+      "hoodPosition": 0.24
+    },
+    {
+      "distance": 105,
+      "rpm": 1475,
+      "hoodPosition": 0.24
+    },
+    {
+      "distance": 112,
+      "rpm": 1500,
+      "hoodPosition": 0.24
+    },
+    {
+      "distance": 118,
+      "rpm": 1510,
+      "hoodPosition": 0.24
+    },
+    {
+      "distance": 128,
+      "rpm": 1535,
+      "hoodPosition": 0.24
+    }
+  ]
+}
