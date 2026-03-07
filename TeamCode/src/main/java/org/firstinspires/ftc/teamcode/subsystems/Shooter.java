@@ -25,6 +25,9 @@ public class Shooter extends Hardware {
     public static double kf = .0004;
     public static double kv;
 
+    public static double BLUE_SHOT_VELOCITY = 1200;
+    public static double BLUE_HOOD_POSITION = 0;
+
     public Shooter(HardwareMap hardwareMap) {
         super(hardwareMap);
         pid = new PDFL(kp, kd, 0, 0);
@@ -159,38 +162,34 @@ public class Shooter extends Hardware {
 
         return new ParallelAction(
                 new SequentialAction(
-                    new InstantAction(()-> hood.setPosition(0)),
-                    new InstantAction(()-> transfer.setPower(-1)),
-                    new InstantAction(() -> gate.setPosition(Constants.TRIGGER_OPEN)),
-                    new Action() {
-                        @Override
-                        public boolean run(@NonNull TelemetryPacket packet) {
-                            return (shooter.getVelocity() < 1200 &&
-                                    shooter2.getVelocity() < 1200);
-                        }
-                    },
-                    new ParallelAction(new SequentialAction(
-                            new InstantAction(() -> transfer.setPower(Constants.TRANSFER_SPEED)),
-                            new InstantAction(()-> intake.setPower(1)),
-                            new SleepAction(3),
-                            new InstantAction(() -> shoot(0)),
-                            new InstantAction(()-> intake.setPower(0)),
-                            new InstantAction(()-> transfer.setPower(0)),
-                            new InstantAction(() -> gate.setPosition(Constants.TRIGGER_CLOSE))),
-
-                            new SequentialAction(
-                                    new SleepAction(.2),
-                                    new InstantAction(()-> hood.setPosition(0))
-                            ),
-                            new InstantAction(() -> done[0] = true)
-                    )
+                        new InstantAction(()-> hood.setPosition(BLUE_HOOD_POSITION)),
+                        new InstantAction(()-> transfer.setPower(-1)),
+                        new InstantAction(() -> gate.setPosition(Constants.TRIGGER_OPEN)),
+                        new Action() {
+                            @Override
+                            public boolean run(@NonNull TelemetryPacket packet) {
+                                return (shooter.getVelocity() < BLUE_SHOT_VELOCITY ||
+                                        shooter2.getVelocity() < BLUE_SHOT_VELOCITY);
+                            }
+                        },
+                        new InstantAction(() -> transfer.setPower(Constants.TRANSFER_SPEED)),
+                        new InstantAction(()-> intake.setPower(1)),
+                        new SleepAction(3),
+                        new InstantAction(() -> shoot(0)),
+                        new InstantAction(()-> intake.setPower(0)),
+                        new InstantAction(()-> transfer.setPower(0)),
+                        new InstantAction(() -> gate.setPosition(Constants.TRIGGER_CLOSE)),
+                        new SleepAction(.2),
+                        new InstantAction(()-> hood.setPosition(0)),
+                        new InstantAction(() -> done[0] = true)
                 ),
                 new Action() {
                     @Override
                     public boolean run(@NonNull TelemetryPacket packet) {
-                        setVelocity(1200);
+                        if (done[0]) return false;
+                        setVelocity(BLUE_SHOT_VELOCITY);
                         packet.put("Shooter Velocity:", shooter.getVelocity());
-                        return !done[0];
+                        return true;
                     }
                 }
         );
