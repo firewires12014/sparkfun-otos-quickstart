@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Hood;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.subsystems.Transfer;
+import org.firstinspires.ftc.teamcode.subsystems.Turret;
 
 @Autonomous
 public final class blueCloseAuto extends LinearOpMode {
@@ -26,6 +27,7 @@ public final class blueCloseAuto extends LinearOpMode {
                 Shooter shooter = new Shooter(hardwareMap);
                 Intake intake = new Intake(hardwareMap);
                 Transfer transfer = new Transfer(hardwareMap);
+                Turret turret = new Turret(hardwareMap);
 
                 int xOffset = Constants.BLUE_CLOSE_X_OFFSET;
                 int yOffset = Constants.BLUE_CLOSE_Y_OFFSET;
@@ -37,27 +39,27 @@ public final class blueCloseAuto extends LinearOpMode {
                                 .strafeToLinearHeading(new Vector2d(-19, -26), Math.toRadians(214))
                                 .build();
                 Action lineUpWithRow2 = drive.actionBuilder(new Pose2d(-19, -26, Math.toRadians(214)))
-                                .strafeToLinearHeading(new Vector2d(3 + xOffset, -26 + yOffset), Math.toRadians(256))
+                                .strafeToLinearHeading(new Vector2d(4 + xOffset, -26 + yOffset), Math.toRadians(253))
                                 .build();
-                Action intakeRow2 = drive.actionBuilder(new Pose2d(3 + xOffset, -26 + yOffset, Math.toRadians(256)))
-                                .strafeToLinearHeading(new Vector2d(3, -72 + yOffset), Math.toRadians(256))
+                Action intakeRow2 = drive.actionBuilder(new Pose2d(4 + xOffset, -26 + yOffset, Math.toRadians(253)))
+                                .strafeToLinearHeading(new Vector2d(4, -74 + yOffset), Math.toRadians(253))
                                 .build();
-                Action backupFromRow2 = drive.actionBuilder(new Pose2d(3, -72 + yOffset, Math.toRadians(256)))
+                Action backupFromRow2 = drive.actionBuilder(new Pose2d(3, -72 + yOffset, Math.toRadians(253)))
                                 .strafeToLinearHeading(new Vector2d(5 + xOffset, -26 + yOffset), Math.toRadians(214))
                                 .build();
                 Action row2ShootPosition = drive.actionBuilder(new Pose2d(5 + xOffset, -26 + yOffset, Math.toRadians(214)))
-                                .strafeToLinearHeading(new Vector2d(-13, -27), Math.toRadians(214))
+                                .strafeToLinearHeading(new Vector2d(-19, -26), Math.toRadians(214))
                                 .build();
-                Action row1LineUp = drive.actionBuilder(new Pose2d(-13, -27, Math.toRadians(214)))
-                                .strafeToLinearHeading(new Vector2d(-10, -24), Math.toRadians(256))
+                Action row1LineUp = drive.actionBuilder(new Pose2d(-19, -26, Math.toRadians(214)))
+                                .strafeToLinearHeading(new Vector2d(-1.5, -20), Math.toRadians(253))
                                 .build();
-                Action intakeRow1 = drive.actionBuilder(new Pose2d(-10, -24, Math.toRadians(256)))
-                        .strafeToLinearHeading(new Vector2d(-10, -67), Math.toRadians(256))
+                Action intakeRow1 = drive.actionBuilder(new Pose2d(-1.5, -20, Math.toRadians(253)))
+                        .strafeToLinearHeading(new Vector2d(-17, -73), Math.toRadians(253))
                         .build();
-                Action row1ShootPosition = drive.actionBuilder(new Pose2d(-10, -67, Math.toRadians(256)))
-                        .strafeToLinearHeading(new Vector2d(-13, -28), Math.toRadians(208))
+                Action row1ShootPosition = drive.actionBuilder(new Pose2d(-17, -73, Math.toRadians(253)))
+                        .strafeToLinearHeading(new Vector2d(-19, -26), Math.toRadians(214))
                         .build();
-                Action park = drive.actionBuilder(new Pose2d(-13, -28, Math.toRadians(208)))
+                Action park = drive.actionBuilder(new Pose2d(-19, -26, Math.toRadians(214)))
                         .strafeToLinearHeading(new Vector2d(0, -45), Math.toRadians(208))
                         .build();
 
@@ -72,29 +74,30 @@ public final class blueCloseAuto extends LinearOpMode {
 
                 waitForStart();
 
-                hood.setPosition(Constants.HOOD_MIDDLE_LIMIT);
+                hood.setPosition(0);
+                turret.turret.setPosition(Turret.middle);
 
                 Actions.runBlocking(new SequentialAction(
                                 preload,
-                                shooter.shootAction2(), // Shoot preload
+                                shooter.shootActionBlue(), // Shoot preload
                                 lineUpWithRow2,
                                 new InstantAction(()-> intake.in()),
                                 intakeRow2,
+                                new SleepAction(.5),
                                 new InstantAction(()-> intake.stop()),
                                 backupFromRow2,
                                 row2ShootPosition,
-                                shooter.shootAction2(),// Shoot 4-6
+                                shooter.shootActionBlue(),// Shoot 4-6
                                 row1LineUp,
                                 new InstantAction(()-> intake.in()),
                                 intakeRow1,
+                                new SleepAction(.5),
                                 new InstantAction(()-> intake.stop()),
                                 row1ShootPosition,
-                                shooter.shootAction2(),
+                                shooter.shootActionBlue(),
                                 park,
                                 new InstantAction(()->  AutoTelopSaveState.END_AUTO_STATE = new Pose2d(0, -45, 208)
 
-
-//                                shooter.shootAction() // Shoot 7-9
 
                 )));
 

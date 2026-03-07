@@ -43,8 +43,8 @@ public final class Constants {
     public static int RED_CLOSE_X_OFFSET = 12;
     public static int RED_CLOSE_Y_OFFSET = 14;
 
-    public static double TRIGGER_OPEN = 0.06;
-    public static double TRIGGER_CLOSE = .45;
+    public static double TRIGGER_OPEN = 0.635;
+    public static double TRIGGER_CLOSE = .35;
 
     public static double TRANSFER_SPEED = 1;
 

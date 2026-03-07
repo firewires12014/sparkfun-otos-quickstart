@@ -4,6 +4,7 @@ import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -16,6 +17,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Hood;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.subsystems.Transfer;
+import org.firstinspires.ftc.teamcode.subsystems.Turret;
 
 @Autonomous
 public final class redCloseAuto extends LinearOpMode {
@@ -27,6 +29,7 @@ public final class redCloseAuto extends LinearOpMode {
         Shooter shooter = new Shooter(hardwareMap);
         Intake intake = new Intake(hardwareMap);
         Transfer transfer = new Transfer(hardwareMap);
+        Turret turret = new Turret(hardwareMap);
 
         int xOffset = Constants.RED_CLOSE_X_OFFSET;
         int yOffset = Constants.RED_CLOSE_Y_OFFSET;
@@ -36,53 +39,55 @@ public final class redCloseAuto extends LinearOpMode {
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
         Action preload = drive.actionBuilder(new Pose2d(-50.1, 50, Math.toRadians(130)))
-                .strafeToLinearHeading(new Vector2d(-21, 10), Math.toRadians(130))
+                .strafeToLinearHeading(new Vector2d(-19, 13), Math.toRadians(130))
                 .build();
-        Action lineUpWithRow2 = drive.actionBuilder(new Pose2d(-20, 10, Math.toRadians(130)))
-                .strafeToLinearHeading(new Vector2d(13, 26), Math.toRadians(83))
+        Action lineUpWithRow2 = drive.actionBuilder(new Pose2d(-21, 10, Math.toRadians(130)))
+                .strafeToLinearHeading(new Vector2d(13, 26), Math.toRadians(88))
                 .build();
-        Action intakeRow2 = drive.actionBuilder(new Pose2d(13, 26, Math.toRadians(83)))
-                .strafeToLinearHeading(new Vector2d(13, 72), Math.toRadians(83))
+        Action intakeRow2 = drive.actionBuilder(new Pose2d(13, 26, Math.toRadians(88)))
+                .strafeToLinearHeading(new Vector2d(13, 72), Math.toRadians(88))
                 .build();
-        Action backupFromRow2 = drive.actionBuilder(new Pose2d(14, 60, Math.toRadians(83)))
-                .strafeToLinearHeading(new Vector2d(13, 26), Math.toRadians(130))
+        Action backupFromRow2 = drive.actionBuilder(new Pose2d(13, 72, Math.toRadians(88)))
+                .strafeToLinearHeading(new Vector2d(15, 26), Math.toRadians(130))
                 .build();
-        Action shootPosition = drive.actionBuilder(new Pose2d(13, 26, Math.toRadians(125)))
-                .strafeToLinearHeading(new Vector2d(-21, 10), Math.toRadians(130))
+        Action shootPosition = drive.actionBuilder(new Pose2d(15, 26, Math.toRadians(130)))
+                .strafeToLinearHeading(new Vector2d(-20, 14), Math.toRadians(130))
                 .build();
-        Action toRow1 = drive.actionBuilder(new Pose2d(-23.5, 10, Math.toRadians(130)))
-                .strafeToLinearHeading(new Vector2d(-12, 25), Math.toRadians(83))
+        Action toRow1 = drive.actionBuilder(new Pose2d(-23, 12, Math.toRadians(130)))
+                .strafeToLinearHeading(new Vector2d(-10, 25), Math.toRadians(86))
                 .build();
-        Action intakeRow1 = drive.actionBuilder(new Pose2d(-12, 25, Math.toRadians(83)))
-                        .strafeToLinearHeading(new Vector2d(-12, 60), Math.toRadians(83))
+        Action intakeRow1 = drive.actionBuilder(new Pose2d(-10, 25, Math.toRadians(86)))
+                        .strafeToLinearHeading(new Vector2d(-10, 60), Math.toRadians(86))
                                 .build();
-        Action shoot1position = drive.actionBuilder(new Pose2d(-14, 60, Math.toRadians(83)))
-                        .strafeToLinearHeading(new Vector2d( -21, 10), Math.toRadians(130))
+        Action shoot1position = drive.actionBuilder(new Pose2d(-10 , 60, Math.toRadians(86)))
+                        .strafeToLinearHeading(new Vector2d( -20, 14), Math.toRadians(130))
                                 .build();
-        Action park = drive.actionBuilder(new Pose2d(-23.5, 10, Math.toRadians(125)))
-                        .strafeToLinearHeading(new Vector2d(-7, 29), Math.toRadians(125))
+        Action park = drive.actionBuilder(new Pose2d(-23, 12, Math.toRadians(130)))
+                        .strafeToLinearHeading(new Vector2d(-4, 32), Math.toRadians(125))
                                 .build();
 
         hood.setPosition(Constants.HOOD_MIDDLE_LIMIT);
+        turret.turret.setPosition(.495);
+
 
         waitForStart();
 
         Actions.runBlocking(new SequentialAction(
                 preload,
-                shooter.shootAction2(), // Shoot preload
+                shooter.shootActionRed(), // Shoot preload
                 lineUpWithRow2,
                 new InstantAction(()-> intake.in()),
                 intakeRow2,
-                new InstantAction(()-> intake.stop()),
                 backupFromRow2,
+                new InstantAction(()-> intake.stop()),
                 shootPosition,
-                shooter.shootAction2(), // Shoot 4-6
+                shooter.shootActionRed2(), // Shoot 4-6
                 toRow1,
                 new InstantAction(()-> intake.in()),
                 intakeRow1,
-                new InstantAction(()-> intake.stop()),
                 shoot1position,
-                shooter.shootAction2(),
+                new InstantAction(()-> intake.stop()),
+                shooter.shootActionRed2(),
                 park
 
 

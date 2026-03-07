@@ -14,12 +14,12 @@ public class Turret extends Hardware {
     public double angle = 0;
     public static double joystickReductionFactor = 0.9;
 
-    public static double hardLeft = 0.2888; //-45
-    public static double hardRight = .638; //47
-    public static double middle = .465; // 0
+    public static double hardLeft = 0.34; //-45
+    public static double hardRight = .68; //47
+    public static double middle = .495; // 0
 
     public double lerp (double inputAngle) {
-        return 0.00195531 * inputAngle + 0.463978;
+        return 0.0021393 * inputAngle + 0.497156;
         //return 0.0108726 * inputAngle + .482752;
     }
 

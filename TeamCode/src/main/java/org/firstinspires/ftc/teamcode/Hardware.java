@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -32,7 +31,7 @@ public class Hardware {
     public CRServo transfer1; // closest to intake
     public CRServo transfer2; // farther from intake
     public Servo hood;
-    public Servo trigger;
+    public Servo gate;
     public Servo lift1;
     public Servo lift2;
     public Servo led1, led2, led3;
@@ -61,17 +60,17 @@ public class Hardware {
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
 
         shooter = hardwareMap.get(DcMotorEx.class, "shooter");
-        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooter.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
-        shooter2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        shooter.setDirection(DcMotorSimple.Direction.REVERSE);
-        shooter2.setDirection(DcMotorSimple.Direction.FORWARD);
+        shooter2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        shooter.setDirection(DcMotorSimple.Direction.FORWARD);
+        shooter2.setDirection(DcMotorSimple.Direction.REVERSE);
 
         turret = hardwareMap.get(Servo.class, "turret");
         turretEncoder = intake; // reuse intake motor for turret encoder reading
         hood = hardwareMap.get(Servo.class, "hood");
 
-        trigger = hardwareMap.get(Servo.class, "trigger");
+        gate = hardwareMap.get(Servo.class, "gate");
 
         lift1 = hardwareMap.get(Servo.class, "lift1");
         lift2 = hardwareMap.get(Servo.class, "lift2");

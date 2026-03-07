@@ -32,6 +32,6 @@ public class Transfer extends Hardware {
         transfer.setPower(0);
     }
 
-    public void triggerOpen() { trigger.setPosition(TRIGGER_OPEN); }
-    public void triggerClose() { trigger.setPosition(TRIGGER_CLOSE);}
+    public void triggerOpen() { gate.setPosition(TRIGGER_OPEN); }
+    public void triggerClose() { gate.setPosition(TRIGGER_CLOSE);}
 }

@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Turret;
 @TeleOp
 @Config
 public class turretTesting extends LinearOpMode {
-    public static double turretPosition = 1;
+    public static double turretPosition = 0;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -19,6 +19,8 @@ public class turretTesting extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
+            telemetry.addData("Changing to: ", turretPosition);
+            telemetry.update();
             turret.turret.setPosition(turretPosition);
         }
 
