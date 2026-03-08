@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.Pose2d;
@@ -80,21 +81,24 @@ public final class blueCloseAuto extends LinearOpMode {
                 Actions.runBlocking(new SequentialAction(
                                 preload,
                                 shooter.shootActionBlue(), // Shoot preload
+                                new InstantAction(()-> shooter.stop()),
                                 lineUpWithRow2,
                                 new InstantAction(()-> intake.in()),
                                 intakeRow2,
                                 new SleepAction(.5),
-                                new InstantAction(()-> intake.stop()),
                                 backupFromRow2,
+                                new InstantAction(()-> intake.stop()),
                                 row2ShootPosition,
-                                shooter.shootActionBlue(),// Shoot 4-6
+                                shooter.shootActionBlue2(),// Shoot 4-6
+                                new InstantAction(()-> shooter.stop()),
                                 row1LineUp,
                                 new InstantAction(()-> intake.in()),
                                 intakeRow1,
                                 new SleepAction(.5),
-                                new InstantAction(()-> intake.stop()),
                                 row1ShootPosition,
-                                shooter.shootActionBlue(),
+                                new InstantAction(()-> intake.stop()),
+                                shooter.shootActionBlue2(),
+                                new InstantAction(()-> shooter.stop()),
                                 park,
                                 new InstantAction(()->  AutoTelopSaveState.END_AUTO_STATE = new Pose2d(0, -45, 208)
 
