@@ -26,7 +26,7 @@ public class Shooter extends Hardware {
     public static double kv;
 
     public static double BLUE_SHOT_VELOCITY = 1200;
-    public static double BLUE_HOOD_POSITION = 0.13;
+    public static double BLUE_HOOD_POSITION = 0.11;
 
     public Shooter(HardwareMap hardwareMap) {
         super(hardwareMap);
@@ -37,9 +37,9 @@ public class Shooter extends Hardware {
 
 
     public void shoot(double velocity) {
-        shooter.setVelocity(velocity);
-        shooter2.setVelocity(velocity);
-        //setVelocity(velocity);
+//        shooter.setVelocity(velocity);
+//        shooter2.setVelocity(velocity);
+        setVelocity(velocity);
     }
 
     public void setVelocity (double velocity) {
@@ -54,8 +54,7 @@ public class Shooter extends Hardware {
 
     public void update(boolean shoot, int velocity) {
         if (shoot) {
-            shooter.setVelocity(velocity);
-            shooter2.setVelocity(velocity);
+            shoot(velocity);
             gate.setPosition(Constants.TRIGGER_OPEN);
 
             intake.setPower(-1);
@@ -201,7 +200,7 @@ public class Shooter extends Hardware {
 
         return new ParallelAction(
                 new SequentialAction(
-                        new InstantAction(()-> hood.setPosition(.13)),
+                        new InstantAction(()-> hood.setPosition(.1)),
                         new InstantAction(()-> transfer.setPower(-1)),
                         new InstantAction(() -> gate.setPosition(Constants.TRIGGER_OPEN)),
                         new Action() {
@@ -268,9 +267,9 @@ public class Shooter extends Hardware {
 
     public Action shootActionBlueFar() {
         return new SequentialAction(
-                new InstantAction(()-> turret.setPosition(.415)),
+                new InstantAction(()-> turret.setPosition(.63)),
                 new InstantAction(()-> hood.setPosition(.24)),
-                new InstantAction(() -> shoot(1725)),
+                new InstantAction(() -> shoot(1875)),
                 new InstantAction(() -> gate.setPosition(Constants.TRIGGER_OPEN)),
                 new SleepAction(3),
                 new Action() {
@@ -291,7 +290,7 @@ public class Shooter extends Hardware {
 
                         new SequentialAction(
                                 new SleepAction(.2),
-                                new InstantAction(()-> hood.setPosition(.24))
+                                new InstantAction(()-> hood.setPosition(.63))
                         )));
     }
 

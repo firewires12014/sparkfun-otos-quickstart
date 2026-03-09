@@ -32,17 +32,27 @@ public final class blueFarAuto extends LinearOpMode {
         int xOffset = Constants.BLUE_CLOSE_X_OFFSET;
         int yOffset = Constants.BLUE_CLOSE_Y_OFFSET;
 
-        Pose2d startPose = new Pose2d(72, -15, Math.toRadians(180));
+        Pose2d startPose = new Pose2d(63, -15, Math.toRadians(270));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
 
-        Action ToStack = drive.actionBuilder(new Pose2d(72, -15, Math.toRadians(180)))
-                .strafeToSplineHeading(new Vector2d(47, -15), Math.toRadians(270))
+
+        Action intakeHumanPlayer = drive.actionBuilder(new Pose2d(63, -15, Math.toRadians(270)))
+                .strafeToSplineHeading(new Vector2d(63, -60), Math.toRadians(270))
                 .build();
-        Action intakeRow = drive.actionBuilder(new Pose2d(45, -15, Math.toRadians(270)))
-                .strafeToSplineHeading(new Vector2d(47, -70), Math.toRadians(270))
+        Action backUp = drive.actionBuilder(new Pose2d(63, -60, Math.toRadians(270)))
+                .strafeToSplineHeading(new Vector2d(63, -49), Math.toRadians(270))
                 .build();
-        Action shootPosition = drive.actionBuilder(new Pose2d(47, -70, Math.toRadians(270)))
+        Action forward = drive.actionBuilder(new Pose2d(63, -49, Math.toRadians(270)))
+                .strafeToSplineHeading(new Vector2d(63, -60), Math.toRadians(270))
+                .build();
+        Action toRow = drive.actionBuilder(new Pose2d(63, -15, Math.toRadians(270)))
+                .strafeToSplineHeading(new Vector2d(34, -20), Math.toRadians(270))
+                .build();
+        Action intakeRow = drive.actionBuilder(new Pose2d(34, -20, Math.toRadians(270)))
+                .strafeToSplineHeading(new Vector2d(34, -70), Math.toRadians(270))
+                .build();
+        Action shootPosition = drive.actionBuilder(new Pose2d(43, -70, Math.toRadians(270)))
                         .strafeToSplineHeading(new Vector2d(72, -15), Math.toRadians(180))
                                 .build();
 
@@ -57,12 +67,18 @@ public final class blueFarAuto extends LinearOpMode {
 
         Actions.runBlocking(new SequentialAction(
                 shooter.shootActionBlueFar(),
-                ToStack,
+                toRow,
                 new InstantAction(()-> intake.in()),
                 intakeRow,
-                new InstantAction(()-> intake.stop()),
-                shootPosition,
-                shooter.shootActionBlueFar(),
+
+//                intakeHumanPlayer,
+//                new InstantAction(()-> intake.in()),
+//                backUp,
+//                forward,
+//                shootPosition,
+//                new InstantAction(()-> intake.stop()),
+//                shootPosition,
+//                shooter.shootActionBlueFar(),
 //                shooter.shootActionBlue(),// Shoot 4-6
 //                row1LineUp,
 //                new InstantAction(()-> intake.in()),

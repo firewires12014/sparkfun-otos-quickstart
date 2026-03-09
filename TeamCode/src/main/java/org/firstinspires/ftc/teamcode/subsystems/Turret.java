@@ -19,7 +19,7 @@ public class Turret extends Hardware {
     public static double middle = .495; // 0
 
     public double lerp (double inputAngle) {
-        return 0.0021393 * inputAngle + 0.497156;
+        return 0.00198878 * inputAngle + 0.498367;
         //return 0.0108726 * inputAngle + .482752;
     }
 

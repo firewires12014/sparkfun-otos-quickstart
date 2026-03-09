@@ -6,11 +6,13 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.Twist2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.Hardware;
@@ -23,6 +25,9 @@ import org.firstinspires.ftc.teamcode.subsystems.Transfer;
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
 import org.firstinspires.ftc.teamcode.subsystems.Lift;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
+import org.firstinspires.ftc.teamcode.util.TurretLUT;
+
+import java.util.List;
 
 @Config
 @TeleOp(name = "Teleop", group = "Linear OpMode")
@@ -47,11 +52,13 @@ public class Teleop extends LinearOpMode {
     public static boolean autoTurret = true;
 
     public static Vector2d RED_GOAL = new Vector2d(-67, 67);
-    public static Vector2d BLUE_GOAL = new Vector2d(-67, 67);
+    public static Vector2d BLUE_GOAL = new Vector2d(-67, -67);
 
     public static float deadband = 0f;
     public static float offset = .02f;
     public static float gain = .7f;
+
+    public TurretLUT turretLUT;
 
     public enum Alliance {
         RED, BLUE
@@ -81,6 +88,23 @@ public class Teleop extends LinearOpMode {
 
         // Initialize LEDs to reflect initial ball count
         updateLeds(robot, ballCount, isBlue);
+
+        turretLUT = new TurretLUT(List.of(
+                new TurretLUT.Datapoint(37.7, new TurretLUT.ShooterConfiguration(1100, 0)),
+                new TurretLUT.Datapoint(43, new TurretLUT.ShooterConfiguration(1100, 0)),
+                new TurretLUT.Datapoint(59, new TurretLUT.ShooterConfiguration(1100, 0)),
+                new TurretLUT.Datapoint(71, new TurretLUT.ShooterConfiguration(1150, 0.06)),
+                new TurretLUT.Datapoint(80, new TurretLUT.ShooterConfiguration(1150, 0.06)),
+                new TurretLUT.Datapoint(91, new TurretLUT.ShooterConfiguration(1250, 0.07)),
+                new TurretLUT.Datapoint(100.7, new TurretLUT.ShooterConfiguration(1350, 0.12)),
+                new TurretLUT.Datapoint(133.9, new TurretLUT.ShooterConfiguration(1550, 0.2)),
+                new TurretLUT.Datapoint(144.5, new TurretLUT.ShooterConfiguration(1550, 0.19)),
+                new TurretLUT.Datapoint(145, new TurretLUT.ShooterConfiguration(1600, 0.19)),
+                new TurretLUT.Datapoint(148.9, new TurretLUT.ShooterConfiguration(1625, 0.18)),
+                new TurretLUT.Datapoint(141.68, new TurretLUT.ShooterConfiguration(1600, 0.18))
+                ));
+
+
 
         waitForStart();
         runtime.reset();
@@ -205,10 +229,13 @@ public class Teleop extends LinearOpMode {
                     adjustment = -2;
                 else adjustment = -5;
 
-                turret.setAngle(-targetAngle + adjustment);
+                turret.setAngle(targetAngle + adjustment);
 
-                shooterRPM = getShooterRPM(pose, (isBlue) ? Alliance.BLUE : Alliance.RED);
-                hoodPosition = getHoodPosition(pose, (isBlue) ? Alliance.BLUE : Alliance.RED);
+                double dist = calculateGoalDistance(pose, (isBlue) ? Alliance.BLUE : Alliance.RED);
+                TurretLUT.ShooterConfiguration config = turretLUT.calculate(dist);
+
+                shooterRPM = config.getFlywheelRPM();
+                hoodPosition = config.getHoodServoPosition();
 
             }
 
@@ -250,16 +277,16 @@ public class Teleop extends LinearOpMode {
                     robot.led2.setPosition(0.611);
                     robot.led3.setPosition(0.611);
                     gamepad1.setLedColor(0, 0, 255, -1);
-                    drive.setPose(new Pose2d(63, 0, Math.toRadians(90)));
-                    targetX = -67;
+                    drive.setPose(new Pose2d(0, 0, Math.toRadians(90)));
+                    targetY = -67;
                 }
                 else {
                     robot.led1.setPosition(0.29);
                     robot.led2.setPosition(0.29);
                     robot.led3.setPosition(0.29);
                     gamepad1.setLedColor(255, 0, 0, -1);
-                    drive.setPose(new Pose2d(63, 0, Math.toRadians(90)));
-                    targetX = 67;
+                    drive.setPose(new Pose2d(0, 0, Math.toRadians(90)));
+                    targetY = 67;
                 }
 
             }
@@ -284,6 +311,7 @@ public class Teleop extends LinearOpMode {
             // --- TELEMETRY ---
             telemetry.addData("Status", "Run Time: " + runtime);
             telemetry.addData("Velocity", robot.shooter.getVelocity());
+            telemetry.addData("Target Angle", targetAngle);
             telemetry.addData("Target Velo", (leftTriggerVal > 0.001) ? shooterRPM : 0.0);
             telemetry.addData("Hood Pos", hood.getPosition());
             telemetry.addData("Turret Position", robot.turret.getPosition());
@@ -297,8 +325,15 @@ public class Teleop extends LinearOpMode {
         }
     }
     public double findTargetAngle (Pose2d target, Pose2d current) {
-        Pose2d delta = Pose2d.exp(target.minus(current));
-        return Math.toDegrees(Math.atan2(delta.position.y, delta.position.x));
+        double dx = target.position.x;
+        double dy = target.position.y;
+        double relativeAngle = Math.atan2(dy, dx);
+        double turretAngle = AngleUnit.normalizeRadians(relativeAngle - current.heading.toDouble() - Math.toRadians(90));
+        return Math.toDegrees(-turretAngle);
+
+
+
+
     }
 
     // java
