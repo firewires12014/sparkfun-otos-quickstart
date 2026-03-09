@@ -325,18 +325,15 @@ public class Teleop extends LinearOpMode {
         }
     }
     public double findTargetAngle (Pose2d target, Pose2d current) {
-        double dx = target.position.x;
-        double dy = target.position.y;
+        double dx = target.position.x - current.position.x;
+        double dy = target.position.y - current.position.y;
+//        double dx = target.position.x;
+//        double dy = target.position.y;
         double relativeAngle = Math.atan2(dy, dx);
         double turretAngle = AngleUnit.normalizeRadians(relativeAngle - current.heading.toDouble() - Math.toRadians(90));
         return Math.toDegrees(-turretAngle);
-
-
-
-
     }
 
-    // java
     public static double calculateGoalDistance(Pose2d currentPose, Alliance alliance) {
         Vector2d goalPos = (alliance == Alliance.RED) ? RED_GOAL : BLUE_GOAL;
         double dx = currentPose.position.x - goalPos.x;
