@@ -51,8 +51,8 @@ public class Teleop extends LinearOpMode {
 
     public static boolean autoTurret = true;
 
-    public static Vector2d RED_GOAL = new Vector2d(-67, 67);
-    public static Vector2d BLUE_GOAL = new Vector2d(-67, -67);
+    public static Vector2d RED_GOAL = new Vector2d(-58.3727, 55.6425);
+    public static Vector2d BLUE_GOAL = new Vector2d(-58.3727, -55.6425);
 
     public static float deadband = 0f;
     public static float offset = .02f;
@@ -204,7 +204,8 @@ public class Teleop extends LinearOpMode {
             if (gamepad2.square) autoTurret = true;
 
             // --- TURRET CONTROL ---
-            double targetAngle = findTargetAngle(new Pose2d(targetX, targetY, 0), pose);
+            Vector2d goalPos = isBlue ? BLUE_GOAL : RED_GOAL;
+            double targetAngle = findTargetAngle(new Pose2d(goalPos, 0), pose);
             if (!autoTurret) {
                 if (leftTriggerVal > 0.1) {
                     shooterRPM = Constants.SHOOTER_VELOCITY;
@@ -276,16 +277,14 @@ public class Teleop extends LinearOpMode {
                     robot.led2.setPosition(0.611);
                     robot.led3.setPosition(0.611);
                     gamepad1.setLedColor(0, 0, 255, -1);
-                    drive.setPose(new Pose2d(0, 0, Math.toRadians(90)));
-                    targetY = -67;
+                    drive.setPose(new Pose2d(-63, 0, Math.toRadians(90)));
                 }
                 else {
                     robot.led1.setPosition(0.29);
                     robot.led2.setPosition(0.29);
                     robot.led3.setPosition(0.29);
                     gamepad1.setLedColor(255, 0, 0, -1);
-                    drive.setPose(new Pose2d(0, 0, Math.toRadians(90)));
-                    targetY = 67;
+                    drive.setPose(new Pose2d(-63, 0, Math.toRadians(90)));
                 }
 
             }
@@ -324,12 +323,19 @@ public class Teleop extends LinearOpMode {
         }
     }
     public double findTargetAngle (Pose2d target, Pose2d current) {
-//        double dx = target.position.x - current.position.x;
-//        double dy = target.position.y - current.position.y;
-        double dx = target.position.x;
-        double dy = target.position.y;
+        double dx = target.position.x - current.position.x;
+        double dy = target.position.y - current.position.y;
+//        double dx = target.position.x;
+//        double dy = target.position.y;
         double relativeAngle = Math.atan2(dy, dx);
-        double turretAngle = AngleUnit.normalizeRadians(relativeAngle - current.heading.toDouble() - Math.toRadians(90));
+        double turretAngle = AngleUnit.normalizeRadians(relativeAngle - current.heading.toDouble());
+
+        telemetry.addData("Relative Angle (rad)", relativeAngle);
+        telemetry.addData("Current Heading (rad)", current.heading);
+        telemetry.addData("Turret Angle (rad)", turretAngle);
+        telemetry.addData("dx", dx);
+        telemetry.addData("dy", dy);
+
         return Math.toDegrees(-turretAngle);
     }
 
