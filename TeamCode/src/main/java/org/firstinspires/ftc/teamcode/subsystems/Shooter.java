@@ -57,15 +57,15 @@ public class Shooter extends Hardware {
             shoot(velocity);
             gate.setPosition(Constants.TRIGGER_OPEN);
 
-            intake.setPower(-1);
-            new SleepAction(1);
-            intake.setPower(0);
+//            intake.setPower(-1);
+//            new SleepAction(1);
+//            intake.setPower(0);
 
             if (shooter.getVelocity() >= velocity) {
 
-                shooter.setPower(1);
-                shooter2.setPower(1);
-                transfer.setPower(Constants.TRANSFER_SPEED);
+//                shooter.setPower(1);
+//                shooter2.setPower(1);
+//                transfer.setPower(Constants.TRANSFER_SPEED);
                 intake.setPower(1);
             }
         } else {

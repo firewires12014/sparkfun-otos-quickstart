@@ -193,7 +193,7 @@ public class Teleop extends LinearOpMode {
 
 
             // Transfer Logic: Run transfer when shooting
-            if (leftTriggerVal > 0.001) {
+            if (leftTriggerVal > 0.1) {
 //                transfer.run();
 //                intake.in();
             } else if (!gamepad2.cross && !gamepad2.circle && rightTriggerVal == 0) {
@@ -308,6 +308,7 @@ public class Teleop extends LinearOpMode {
 
             // --- TELEMETRY ---
             telemetry.addData("Status", "Run Time: " + runtime);
+            telemetry.addData("Is Shooting", isShooting);
             telemetry.addData("Velocity", robot.shooter.getVelocity());
             telemetry.addData("Target Angle", targetAngle);
             telemetry.addData("Target Velo", (leftTriggerVal > 0.001) ? shooterRPM : 0.0);
