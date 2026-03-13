@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -15,9 +17,10 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.Hardware;
 import org.firstinspires.ftc.teamcode.util.PDFL;
+
 @Config
 public class Shooter extends Hardware {
-    // Transfer transfer = new Transfer(hardwareMap);
+     //Transfer transfer = new Transfer(hardwareMap);
 
     PDFL pid;
     public static double kp = 0.01;
@@ -27,6 +30,8 @@ public class Shooter extends Hardware {
 
     public static double BLUE_SHOT_VELOCITY = 1200;
     public static double BLUE_HOOD_POSITION = 0.11;
+
+
 
     public Shooter(HardwareMap hardwareMap) {
         super(hardwareMap);
@@ -55,21 +60,20 @@ public class Shooter extends Hardware {
     public void update(boolean shoot, int velocity) {
         if (shoot) {
             shoot(velocity);
-            gate.setPosition(Constants.TRIGGER_OPEN);
 
 //            intake.setPower(-1);
 //            new SleepAction(1);
 //            intake.setPower(0);
 
-            if (shooter.getVelocity() >= velocity) {
-
-//                shooter.setPower(1);
-//                shooter2.setPower(1);
-//                transfer.setPower(Constants.TRANSFER_SPEED);
+            if (shooter.getVelocity() >= velocity && velocity != 0) {
+                //gate.setPosition(Constants.TRIGGER_OPEN);
+                transfer.setPower(Constants.TRANSFER_SPEED);
                 intake.setPower(1);
             }
         } else {
-            stop();
+            shooter.setPower(0);
+            shooter2.setPower(0);
+            gate.setPosition(Constants.TRIGGER_CLOSE);
         }
     }
 
@@ -266,32 +270,42 @@ public class Shooter extends Hardware {
     }
 
     public Action shootActionBlueFar() {
-        return new SequentialAction(
-                new InstantAction(()-> turret.setPosition(.63)),
-                new InstantAction(()-> hood.setPosition(.24)),
-                new InstantAction(() -> shoot(1875)),
-                new InstantAction(() -> gate.setPosition(Constants.TRIGGER_OPEN)),
-                new SleepAction(3),
-                new Action() {
-                    @Override
-                    public boolean run(@NonNull TelemetryPacket packet) {
-                        return (shooter.getVelocity() < Constants.SHOOTER_VELOCITY &&
-                                shooter2.getVelocity() < Constants.SHOOTER_VELOCITY);
-                    }
-                },
-                new ParallelAction(new SequentialAction(
+        final boolean[] done = {false};
+
+        return new ParallelAction(
+                new SequentialAction(
+                        new InstantAction(()-> hood.setPosition(.22)),
+                        new InstantAction(()-> transfer.setPower(-1)),
+                        new InstantAction(() -> gate.setPosition(Constants.TRIGGER_OPEN)),
+                        new Action() {
+                            @Override
+                            public boolean run(@NonNull TelemetryPacket packet) {
+                                return (shooter.getVelocity() < 1600 ||
+                                        shooter2.getVelocity() < 1600);
+                            }
+                        },
                         new InstantAction(() -> transfer.setPower(Constants.TRANSFER_SPEED)),
                         new InstantAction(()-> intake.setPower(1)),
-                        new SleepAction(2),
+                        new SleepAction(1.75),
                         new InstantAction(() -> shoot(0)),
                         new InstantAction(()-> intake.setPower(0)),
                         new InstantAction(()-> transfer.setPower(0)),
-                        new InstantAction(() -> gate.setPosition(Constants.TRIGGER_CLOSE))),
-
-                        new SequentialAction(
-                                new SleepAction(.2),
-                                new InstantAction(()-> hood.setPosition(.63))
-                        )));
+                        new InstantAction(() -> gate.setPosition(Constants.TRIGGER_CLOSE)),
+                        new InstantAction(() -> done[0] = true)
+                ),
+                new Action() {
+                    @Override
+                    public boolean run(@NonNull TelemetryPacket packet) {
+                        if (done[0]) {
+                            setVelocity(0);
+                            return false;
+                        }
+                        setVelocity(1600);
+                        packet.put("Shooter Velocity:", shooter.getVelocity());
+                        return true;
+                    }
+                }
+        );
     }
 
     public Action shootActionBlueFarModified() {

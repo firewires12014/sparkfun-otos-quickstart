@@ -35,26 +35,31 @@ public final class blueFarAuto extends LinearOpMode {
         Pose2d startPose = new Pose2d(63, -15, Math.toRadians(270));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
-
-
-        Action intakeHumanPlayer = drive.actionBuilder(new Pose2d(63, -15, Math.toRadians(270)))
-                .strafeToSplineHeading(new Vector2d(63, -60), Math.toRadians(270))
-                .build();
-        Action backUp = drive.actionBuilder(new Pose2d(63, -60, Math.toRadians(270)))
-                .strafeToSplineHeading(new Vector2d(63, -49), Math.toRadians(270))
-                .build();
-        Action forward = drive.actionBuilder(new Pose2d(63, -49, Math.toRadians(270)))
-                .strafeToSplineHeading(new Vector2d(63, -60), Math.toRadians(270))
-                .build();
         Action toRow = drive.actionBuilder(new Pose2d(63, -15, Math.toRadians(270)))
                 .strafeToSplineHeading(new Vector2d(34, -20), Math.toRadians(270))
                 .build();
         Action intakeRow = drive.actionBuilder(new Pose2d(34, -20, Math.toRadians(270)))
                 .strafeToSplineHeading(new Vector2d(34, -70), Math.toRadians(270))
                 .build();
-        Action shootPosition = drive.actionBuilder(new Pose2d(43, -70, Math.toRadians(270)))
-                        .strafeToSplineHeading(new Vector2d(72, -15), Math.toRadians(180))
-                                .build();
+        Action shootPosition = drive.actionBuilder(new Pose2d(34, -70, Math.toRadians(270)))
+                .strafeToSplineHeading(new Vector2d(63, -15), Math.toRadians(270))
+                .build();
+
+        Action intakeHumanPlayer = drive.actionBuilder(new Pose2d(63, -15, Math.toRadians(270)))
+                .strafeToSplineHeading(new Vector2d(63, -60), Math.toRadians(275))
+                .build();
+        Action backUp = drive.actionBuilder(new Pose2d(63, -60, Math.toRadians(275)))
+                .strafeToSplineHeading(new Vector2d(63, -45), Math.toRadians(270))
+                .build();
+        Action forward = drive.actionBuilder(new Pose2d(63, -49, Math.toRadians(270)))
+                .strafeToSplineHeading(new Vector2d(63, -59), Math.toRadians(270))
+                .build();
+        Action shootPosition2 = drive.actionBuilder(new Pose2d(63, -60, Math.toRadians(270)))
+                .strafeToSplineHeading(new Vector2d(63, -15), Math.toRadians(270))
+                .build();
+
+
+
 
 
 
@@ -63,13 +68,29 @@ public final class blueFarAuto extends LinearOpMode {
         waitForStart();
 
         //hood.setPosition(Constants.HOOD_MIDDLE_LIMIT);
-        //turret.turret.setPosition(Turret.middle);
+        turret.turret.setPosition(.63);
 
         Actions.runBlocking(new SequentialAction(
                 shooter.shootActionBlueFar(),
                 toRow,
                 new InstantAction(()-> intake.in()),
+                new InstantAction(()-> shooter.stop()),
                 intakeRow,
+                shootPosition,
+                new InstantAction(()-> intake.stop()),
+                shooter.shootActionBlueFar(),
+                new InstantAction(()-> intake.in()),
+                new InstantAction(()-> shooter.stop()),
+                intakeHumanPlayer,
+                backUp,
+                new InstantAction(()-> intake.out()),
+                //new SleepAction(.),
+                new InstantAction(()-> intake.in()),
+                forward,
+                shootPosition2,
+                shooter.shootActionBlueFar(),
+
+
 
 //                intakeHumanPlayer,
 //                new InstantAction(()-> intake.in()),
@@ -91,7 +112,7 @@ public final class blueFarAuto extends LinearOpMode {
 
 
                 )));
-
+sleep(3000000);
         // double check if this works
     }
 }

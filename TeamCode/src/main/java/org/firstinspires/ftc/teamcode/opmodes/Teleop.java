@@ -51,8 +51,8 @@ public class Teleop extends LinearOpMode {
 
     public static boolean autoTurret = true;
 
-    public static Vector2d RED_GOAL = new Vector2d(-58.3727, 55.6425);
-    public static Vector2d BLUE_GOAL = new Vector2d(-58.3727, -55.6425);
+    public static Vector2d RED_GOAL = new Vector2d(-72, 72);
+    public static Vector2d BLUE_GOAL = new Vector2d(-72, -72);
 
     public static float deadband = 0f;
     public static float offset = .02f;
@@ -90,18 +90,18 @@ public class Teleop extends LinearOpMode {
         updateLeds(robot, ballCount, isBlue);
 
         turretLUT = new TurretLUT(List.of(
-                new TurretLUT.Datapoint(37.7, new TurretLUT.ShooterConfiguration(1100, 0)),
-                new TurretLUT.Datapoint(43, new TurretLUT.ShooterConfiguration(1100, 0)),
-                new TurretLUT.Datapoint(59, new TurretLUT.ShooterConfiguration(1100, 0)),
-                new TurretLUT.Datapoint(71, new TurretLUT.ShooterConfiguration(1150, 0.06)),
-                new TurretLUT.Datapoint(80, new TurretLUT.ShooterConfiguration(1150, 0.06)),
-                new TurretLUT.Datapoint(91, new TurretLUT.ShooterConfiguration(1250, 0.07)),
-                new TurretLUT.Datapoint(100.7, new TurretLUT.ShooterConfiguration(1350, 0.12)),
-                new TurretLUT.Datapoint(133.9, new TurretLUT.ShooterConfiguration(1550, 0.2)),
-                new TurretLUT.Datapoint(144.5, new TurretLUT.ShooterConfiguration(1550, 0.19)),
-                new TurretLUT.Datapoint(145, new TurretLUT.ShooterConfiguration(1600, 0.19)),
-                new TurretLUT.Datapoint(148.9, new TurretLUT.ShooterConfiguration(1625, 0.18)),
-                new TurretLUT.Datapoint(141.68, new TurretLUT.ShooterConfiguration(1600, 0.18))
+                new TurretLUT.Datapoint(37.7, new TurretLUT.ShooterConfiguration(1150, 0.04)),
+                new TurretLUT.Datapoint(43, new TurretLUT.ShooterConfiguration(1150, 0.04)),
+                new TurretLUT.Datapoint(59, new TurretLUT.ShooterConfiguration(1150, 0.04)),
+                new TurretLUT.Datapoint(71, new TurretLUT.ShooterConfiguration(1200, 0.1)),
+                new TurretLUT.Datapoint(80, new TurretLUT.ShooterConfiguration(1200, 0.11)),
+                new TurretLUT.Datapoint(91, new TurretLUT.ShooterConfiguration(1300, 0.12)),
+                new TurretLUT.Datapoint(100.7, new TurretLUT.ShooterConfiguration(1400, 0.16)),
+                new TurretLUT.Datapoint(133.9, new TurretLUT.ShooterConfiguration(1600, 0.24)),
+                new TurretLUT.Datapoint(144.5, new TurretLUT.ShooterConfiguration(1600, 0.23)),
+                new TurretLUT.Datapoint(145, new TurretLUT.ShooterConfiguration(1650, 0.23)),
+                new TurretLUT.Datapoint(148.9, new TurretLUT.ShooterConfiguration(1675, 0.22)),
+                new TurretLUT.Datapoint(141.68, new TurretLUT.ShooterConfiguration(1650, 0.22))
                 ));
 
 
@@ -162,7 +162,7 @@ public class Teleop extends LinearOpMode {
                 // Intake Logic: Intake Only
                 intake.in();
                 transfer.run();
-                shooter.update(isShooting, (int) shooterRPM);
+               // shooter.update(isShooting, (int) shooterRPM);
             } else if (gamepad2.circle && leftTriggerVal == 0) {
                 // Reverse Logic: Outtake and Reverse Systems
                 intake.out();
@@ -174,16 +174,19 @@ public class Teleop extends LinearOpMode {
                 transfer.stop();
                 transfer.triggerClose();
                 telemetry.addLine("Trigger closed");
-                shooter.update(isShooting, (int) shooterRPM);
+               // shooter.update(isShooting, (int) shooterRPM);
             } else if (rightTriggerVal == 0 && leftTriggerVal == 0) {
                 // Idle State
                 intake.stop();
                 transfer.stop();
                 shooterRPM  = 0;
-                shooter.update(isShooting, (int) shooterRPM);
+             //   shooter.update(isShooting, (int) shooterRPM);
             } else {
-                shooter.update(isShooting, (int) shooterRPM);
+                transfer.triggerOpen();
+              //  shooter.update(isShooting, (int) shooterRPM);
             }
+
+
 
             if (!isShooting && wasShooting) {
                 setAllLedsOn(robot, isBlue);
@@ -209,10 +212,10 @@ public class Teleop extends LinearOpMode {
             if (!autoTurret) {
                 if (leftTriggerVal > 0.1) {
                     shooterRPM = Constants.SHOOTER_VELOCITY;
-                    shooter.update(isShooting, (int) shooterRPM);
+                  //  shooter.update(isShooting, (int) shooterRPM);
                 } else {
                     if (shooterRPM != 0) {
-                        shooter.update(isShooting, (int) shooterRPM);
+                      //  shooter.update(isShooting, (int) shooterRPM);
                     } else {
                         shooterRPM = 0;
                     }
@@ -227,8 +230,8 @@ public class Teleop extends LinearOpMode {
             } else {
                 double adjustment = 0;
                 if (isBlue)
-                    adjustment = -2;
-                else adjustment = -5;
+                    adjustment = 0;
+                else adjustment = 0;
 
                 turret.setAngle(targetAngle + adjustment);
 
@@ -239,6 +242,7 @@ public class Teleop extends LinearOpMode {
                 hoodPosition = config.getHoodServoPosition();
             }
 
+            shooter.update(isShooting, (int) shooterRPM);
 
             // --- HOOD CONTROL (D-Pad) ---
             double distance = Math.sqrt(Math.pow(targetX - pose.position.x, 2)+Math.pow(targetY - pose.position.y, 2));
