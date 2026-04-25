@@ -105,60 +105,45 @@ public class Shooter extends Hardware {
                 new InstantAction(()-> intake.setPower(0)),
                 new InstantAction(() -> gate.setPosition(Constants.TRIGGER_CLOSE)));
     }
+
     public Action shootActionRed() {
-        return new SequentialAction(
-                new InstantAction(()-> hood.setPosition(.15)),
-                new InstantAction(() -> setVelocity(1110)),
-                new InstantAction(() -> gate.setPosition(Constants.TRIGGER_OPEN)),
-                //new SleepAction(1),
-                new Action() {
-                    @Override
-                    public boolean run(@NonNull TelemetryPacket packet) {
-                        return (shooter.getVelocity() < Constants.SHOOTER_VELOCITY &&
-                               shooter2.getVelocity() < Constants.SHOOTER_VELOCITY);
-                    }
-                },
-                new ParallelAction(new SequentialAction(
-                        new InstantAction(() -> transfer.setPower(Constants.TRANSFER_SPEED)),
-                        new SleepAction(2),
-                        new InstantAction(() -> shoot(0)),
-                        new InstantAction(()-> intake.setPower(0)),
-                        new InstantAction(()-> transfer.setPower(0)),
-                        new InstantAction(() -> gate.setPosition(Constants.TRIGGER_CLOSE))),
+        final boolean[] done = {false};
 
+        return new ParallelAction(
                 new SequentialAction(
-                        new SleepAction(.2),
-                        new InstantAction(()-> hood.setPosition(.15))
-                )));
-    }
-
-    public Action shootActionRed2() {
-        return new SequentialAction(
-                new InstantAction(()-> hood.setPosition(.15)),
-                new InstantAction(() -> shoot(1110)),
-                new InstantAction(() -> gate.setPosition(Constants.TRIGGER_OPEN)),
-                //new SleepAction(1),
-                new Action() {
-                    @Override
-                    public boolean run(@NonNull TelemetryPacket packet) {
-                        return (shooter.getVelocity() < Constants.SHOOTER_VELOCITY &&
-                                shooter2.getVelocity() < Constants.SHOOTER_VELOCITY);
-                    }
-                },
-                new ParallelAction(new SequentialAction(
+                        new InstantAction(()-> hood.setPosition(.15)),
+                        new InstantAction(()-> transfer.setPower(-1)),
+                        new InstantAction(() -> gate.setPosition(Constants.TRIGGER_OPEN)),
+                        new Action() {
+                            @Override
+                            public boolean run(@NonNull TelemetryPacket packet) {
+                                return (shooter.getVelocity() < 1175 ||
+                                        shooter2.getVelocity() < 1175);
+                            }
+                        },
                         new InstantAction(() -> transfer.setPower(Constants.TRANSFER_SPEED)),
                         new InstantAction(()-> intake.setPower(1)),
-                        new SleepAction(2),
-                        new InstantAction(() -> shoot(0)),
+                        new SleepAction(1.75),
                         new InstantAction(()-> intake.setPower(0)),
                         new InstantAction(()-> transfer.setPower(0)),
-                        new InstantAction(() -> gate.setPosition(Constants.TRIGGER_CLOSE))),
-
-                        new SequentialAction(
-                                new SleepAction(.2),
-                                new InstantAction(()-> hood.setPosition(.15))
-                        )));
+                        new InstantAction(() -> gate.setPosition(Constants.TRIGGER_CLOSE)),
+                        new InstantAction(() -> done[0] = true)
+                ),
+                new Action() {
+                    @Override
+                    public boolean run(@NonNull TelemetryPacket packet) {
+                        if (done[0]) {
+                            //setVelocity(0);
+                            return false;
+                        }
+//                        setVelocity(1100);
+                        packet.put("Shooter Velocity:", shooter.getVelocity());
+                        return true;
+                    }
+                }
+        );
     }
+//
 
     public Action shootActionBlue() {
         final boolean[] done = {false};
@@ -171,14 +156,13 @@ public class Shooter extends Hardware {
                         new Action() {
                             @Override
                             public boolean run(@NonNull TelemetryPacket packet) {
-                                return (shooter.getVelocity() < BLUE_SHOT_VELOCITY ||
-                                        shooter2.getVelocity() < BLUE_SHOT_VELOCITY);
+                                return (shooter.getVelocity() < 1200 ||
+                                        shooter2.getVelocity() < 1200);
                             }
                         },
                         new InstantAction(() -> transfer.setPower(Constants.TRANSFER_SPEED)),
                         new InstantAction(()-> intake.setPower(1)),
                         new SleepAction(1.75),
-                        new InstantAction(() -> shoot(0)),
                         new InstantAction(()-> intake.setPower(0)),
                         new InstantAction(()-> transfer.setPower(0)),
                         new InstantAction(() -> gate.setPosition(Constants.TRIGGER_CLOSE)),
@@ -188,10 +172,10 @@ public class Shooter extends Hardware {
                     @Override
                     public boolean run(@NonNull TelemetryPacket packet) {
                         if (done[0]) {
-                            setVelocity(0);
+                          //  setVelocity(0);
                             return false;
                         }
-                        setVelocity(BLUE_SHOT_VELOCITY);
+                        //setVelocity(BLUE_SHOT_VELOCITY);
                         packet.put("Shooter Velocity:", shooter.getVelocity());
                         return true;
                     }
@@ -238,37 +222,6 @@ public class Shooter extends Hardware {
         );
     }
 
-
-
-    public Action shootActionBlue3() {
-        return new SequentialAction(
-                new InstantAction(()-> hood.setPosition(0.05)),
-                new InstantAction(()-> transfer.setPower(-1)),
-                new InstantAction(() -> shoot(980)),
-                new InstantAction(() -> gate.setPosition(Constants.TRIGGER_OPEN)),
-                new SleepAction(1.5),
-                new Action() {
-                    @Override
-                    public boolean run(@NonNull TelemetryPacket packet) {
-                        return (shooter.getVelocity() < Constants.SHOOTER_VELOCITY &&
-                                shooter2.getVelocity() < Constants.SHOOTER_VELOCITY);
-                    }
-                },
-                new ParallelAction(new SequentialAction(
-                        new InstantAction(() -> transfer.setPower(Constants.TRANSFER_SPEED)),
-                        new InstantAction(()-> intake.setPower(1)),
-                        new SleepAction(2),
-                        new InstantAction(() -> shoot(0)),
-                        new InstantAction(()-> intake.setPower(0)),
-                        new InstantAction(()-> transfer.setPower(0)),
-                        new InstantAction(() -> gate.setPosition(Constants.TRIGGER_CLOSE))),
-
-                        new SequentialAction(
-                                new SleepAction(.2),
-                                new InstantAction(()-> hood.setPosition(0))
-                        )));
-    }
-
     public Action shootActionBlueFar() {
         final boolean[] done = {false};
 
@@ -287,7 +240,6 @@ public class Shooter extends Hardware {
                         new InstantAction(() -> transfer.setPower(Constants.TRANSFER_SPEED)),
                         new InstantAction(()-> intake.setPower(1)),
                         new SleepAction(1.75),
-                        new InstantAction(() -> shoot(0)),
                         new InstantAction(()-> intake.setPower(0)),
                         new InstantAction(()-> transfer.setPower(0)),
                         new InstantAction(() -> gate.setPosition(Constants.TRIGGER_CLOSE)),
@@ -297,7 +249,7 @@ public class Shooter extends Hardware {
                     @Override
                     public boolean run(@NonNull TelemetryPacket packet) {
                         if (done[0]) {
-                            setVelocity(0);
+                           // setVelocity(0);
                             return false;
                         }
                         setVelocity(1600);

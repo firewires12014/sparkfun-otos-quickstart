@@ -93,7 +93,7 @@ public class Teleop extends LinearOpMode {
                 new TurretLUT.Datapoint(37.7, new TurretLUT.ShooterConfiguration(1150, 0.04)),
                 new TurretLUT.Datapoint(43, new TurretLUT.ShooterConfiguration(1150, 0.04)),
                 new TurretLUT.Datapoint(59, new TurretLUT.ShooterConfiguration(1150, 0.04)),
-                new TurretLUT.Datapoint(71, new TurretLUT.ShooterConfiguration(1200, 0.1)),
+                new TurretLUT.Datapoint(71, new TurretLUT.ShooterConfiguration(1165, 0.1)),
                 new TurretLUT.Datapoint(80, new TurretLUT.ShooterConfiguration(1200, 0.11)),
                 new TurretLUT.Datapoint(91, new TurretLUT.ShooterConfiguration(1300, 0.12)),
                 new TurretLUT.Datapoint(100.7, new TurretLUT.ShooterConfiguration(1400, 0.16)),
@@ -157,6 +157,8 @@ public class Teleop extends LinearOpMode {
             boolean isShooting = leftTriggerVal > 0.001;
 
             //shooter.setVelocity(testingVelocity);
+
+            shooter.setVelocity(shooterRPM);
 
             if (gamepad2.cross && leftTriggerVal == 0) {
                 // Intake Logic: Intake Only

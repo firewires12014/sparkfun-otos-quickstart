@@ -32,43 +32,69 @@ public final class redFarAuto extends LinearOpMode {
         int xOffset = Constants.BLUE_CLOSE_X_OFFSET;
         int yOffset = Constants.BLUE_CLOSE_Y_OFFSET;
 
-        Pose2d startPose = new Pose2d(72, 15, Math.toRadians(180));
+        Pose2d startPose = new Pose2d(-53, 15, Math.toRadians(90));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
 
-        Action ToStack = drive.actionBuilder(new Pose2d(72, 15, Math.toRadians(180)))
-                .strafeToSplineHeading(new Vector2d(47, 15), Math.toRadians(90))
+        Action toRow = drive.actionBuilder(new Pose2d(-63, 15, Math.toRadians(90)))
+                .strafeToSplineHeading(new Vector2d(34, 20), Math.toRadians(90))
                 .build();
-        Action intakeRow = drive.actionBuilder(new Pose2d(45, 15, Math.toRadians(90)))
-                .strafeToSplineHeading(new Vector2d(47, 70), Math.toRadians(90))
+        Action intakeRow = drive.actionBuilder(new Pose2d(34, 20, Math.toRadians(90)))
+                .strafeToSplineHeading(new Vector2d(34, 70), Math.toRadians(90))
                 .build();
-        Action shootPosition = drive.actionBuilder(new Pose2d(47, 70, Math.toRadians(90)))
-                .strafeToSplineHeading(new Vector2d(72, 15), Math.toRadians(180))
+        Action shootPosition = drive.actionBuilder(new Pose2d(34, 70, Math.toRadians(90)))
+                .strafeToSplineHeading(new Vector2d(63, 15), Math.toRadians(90))
                 .build();
-        Action park = drive.actionBuilder(new Pose2d(72, 15, Math.toRadians(180)))
-                .strafeToSplineHeading(new Vector2d(72, 30), Math.toRadians(180))
+
+        Action intakeHumanPlayer = drive.actionBuilder(new Pose2d(63, 15, Math.toRadians(90)))
+                .strafeToSplineHeading(new Vector2d(63, 60), Math.toRadians(85))
+                .build();
+        Action backUp = drive.actionBuilder(new Pose2d(63, 60, Math.toRadians(85)))
+                .strafeToSplineHeading(new Vector2d(63, 45), Math.toRadians(90))
+                .build();
+        Action forward = drive.actionBuilder(new Pose2d(63, 45, Math.toRadians(90)))
+                .strafeToSplineHeading(new Vector2d(63, 59), Math.toRadians(90))
+                .build();
+        Action shootPosition2 = drive.actionBuilder(new Pose2d(63, 59, Math.toRadians(90)))
+                .strafeToSplineHeading(new Vector2d(63, 15), Math.toRadians(90))
+                .build();
+        Action park = drive.actionBuilder(new Pose2d(63, 15, Math.toRadians(90)))
+                .strafeToSplineHeading(new Vector2d(60, 35), Math.toRadians(90))
                 .build();
 
 
 
-        turret.turret.setPosition(.365);
+
+
+
 
 
 
         waitForStart();
 
         //hood.setPosition(Constants.HOOD_MIDDLE_LIMIT);
-
+        turret.turret.setPosition(.4);
 
         Actions.runBlocking(new SequentialAction(
-                shooter.shootActionRedFar(),
-//                ToStack,
-//                new InstantAction(()-> intake.in()),
-//                intakeRow,
-//                new InstantAction(()-> intake.stop()),
-//                shootPosition,
-//                shooter.shootActionRedFar2(),
-//                park,
+                shooter.shootActionBlueFar(),
+                toRow,
+                new InstantAction(()-> intake.in()),
+                new InstantAction(()-> shooter.stop()),
+                intakeRow,
+                shootPosition,
+                new InstantAction(()-> intake.stop()),
+                shooter.shootActionBlueFar(),
+                new InstantAction(()-> intake.in()),
+                new InstantAction(()-> shooter.stop()),
+                intakeHumanPlayer,
+                backUp,
+                new InstantAction(()-> intake.out()),
+                //new SleepAction(.),
+                new InstantAction(()-> intake.in()),
+                forward,
+                shootPosition2,
+                shooter.shootActionBlueFar(),
+                park,
 
                 new InstantAction(()->  AutoTelopSaveState.END_AUTO_STATE = new Pose2d(0, -45, 208)
 

@@ -1,7 +1,11 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import androidx.annotation.NonNull;
+
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
+import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
@@ -51,7 +55,7 @@ public final class redCloseAuto extends LinearOpMode {
                 .strafeToLinearHeading(new Vector2d(15, 26), Math.toRadians(130))
                 .build();
         Action shootPosition = drive.actionBuilder(new Pose2d(15, 26, Math.toRadians(130)))
-                .strafeToLinearHeading(new Vector2d(-20, 14), Math.toRadians(130))
+                .strafeToLinearHeading(new Vector2d(-21, 15), Math.toRadians(130))
                 .build();
         Action toRow1 = drive.actionBuilder(new Pose2d(-23, 12, Math.toRadians(130)))
                 .strafeToLinearHeading(new Vector2d(-10, 25), Math.toRadians(86))
@@ -72,7 +76,9 @@ public final class redCloseAuto extends LinearOpMode {
 
         waitForStart();
 
-        Actions.runBlocking(new SequentialAction(
+        Actions.runBlocking(new ParallelAction(
+
+                new SequentialAction(
                 preload,
                 shooter.shootActionRed(), // Shoot preload
                 lineUpWithRow2,
@@ -80,20 +86,40 @@ public final class redCloseAuto extends LinearOpMode {
                 intakeRow2,
                 backupFromRow2,
                 new InstantAction(()-> intake.stop()),
-                shootPosition,
-                shooter.shootActionRed2(), // Shoot 4-6
+
+                new ParallelAction(
+                        shootPosition,
+                        new SequentialAction(
+                                new InstantAction(()-> intake.out()),
+                                new SleepAction(.05),
+                                new InstantAction(()-> intake.stop())
+                                )
+
+                ),
+                shooter.shootActionRed(), // Shoot 4-6
                 toRow1,
                 new InstantAction(()-> intake.in()),
                 intakeRow1,
-                shoot1position,
+                        new ParallelAction(
+                                shoot1position,
+                                new SequentialAction(
+                                        new InstantAction(()-> intake.out()),
+                                        new SleepAction(.05),
+                                        new InstantAction(()-> intake.stop())
+                                )
+
+                        ),
                 new InstantAction(()-> intake.stop()),
-                shooter.shootActionRed2(),
+                shooter.shootActionRed(),
                 park
-
-
-//
-//                shootPosition,
-//                shooter.shootAction() // Shoot 7-9
+        ),
+        new Action() {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                shooter.setVelocity(1175);
+                return true;
+            }
+        }
         ));
         AutoTelopSaveState.END_AUTO_STATE = new Pose2d(29, -15, 125); // double check if this works
     }

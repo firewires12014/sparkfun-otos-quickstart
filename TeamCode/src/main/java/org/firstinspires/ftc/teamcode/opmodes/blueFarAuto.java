@@ -1,7 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
+import androidx.annotation.NonNull;
+
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
+import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
@@ -57,6 +61,10 @@ public final class blueFarAuto extends LinearOpMode {
         Action shootPosition2 = drive.actionBuilder(new Pose2d(63, -60, Math.toRadians(270)))
                 .strafeToSplineHeading(new Vector2d(63, -15), Math.toRadians(270))
                 .build();
+        Action park = drive.actionBuilder(new Pose2d(63, -15, Math.toRadians(270)))
+                .strafeToSplineHeading(new Vector2d(60, -35), Math.toRadians(270))
+                .build();
+
 
 
 
@@ -68,19 +76,20 @@ public final class blueFarAuto extends LinearOpMode {
         waitForStart();
 
         //hood.setPosition(Constants.HOOD_MIDDLE_LIMIT);
-        turret.turret.setPosition(.63);
+        turret.turret.setPosition(.625);
 
-        Actions.runBlocking(new SequentialAction(
+        Actions.runBlocking(new ParallelAction(
+                new SequentialAction(
                 shooter.shootActionBlueFar(),
                 toRow,
                 new InstantAction(()-> intake.in()),
-                new InstantAction(()-> shooter.stop()),
+                //new InstantAction(()-> shooter.stop()),
                 intakeRow,
                 shootPosition,
                 new InstantAction(()-> intake.stop()),
                 shooter.shootActionBlueFar(),
                 new InstantAction(()-> intake.in()),
-                new InstantAction(()-> shooter.stop()),
+                //new InstantAction(()-> shooter.stop()),
                 intakeHumanPlayer,
                 backUp,
                 new InstantAction(()-> intake.out()),
@@ -89,25 +98,15 @@ public final class blueFarAuto extends LinearOpMode {
                 forward,
                 shootPosition2,
                 shooter.shootActionBlueFar(),
-
-
-
-//                intakeHumanPlayer,
-//                new InstantAction(()-> intake.in()),
-//                backUp,
-//                forward,
-//                shootPosition,
-//                new InstantAction(()-> intake.stop()),
-//                shootPosition,
-//                shooter.shootActionBlueFar(),
-//                shooter.shootActionBlue(),// Shoot 4-6
-//                row1LineUp,
-//                new InstantAction(()-> intake.in()),
-//                intakeRow1,
-//                new InstantAction(()-> intake.stop()),
-//                row1ShootPosition,
-//                shooter.shootActionBlue(),
-//                park,
+                park
+                        ),
+        new Action() {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                shooter.setVelocity(1600);
+                return true;
+            }
+        },
                 new InstantAction(()->  AutoTelopSaveState.END_AUTO_STATE = new Pose2d(0, -45, 208)
 
 
