@@ -35,7 +35,6 @@ public class LimelightTurret extends OpMode {
 
     // Pipeline 0 is configured as a QR / barcode pipeline. Lock onto this QR data string.
     private static final int TARGET_PIPELINE = 0;
-    private static final String TARGET_QR_DATA = "24";
 
     private Servo turret;
     private Limelight3A limelight;
@@ -61,26 +60,53 @@ public class LimelightTurret extends OpMode {
 
     @Override
     public void loop() {
+        LLStatus status = limelight.getStatus();
+        telemetry.addData("LL Status", status.getName());
+        telemetry.addData("LL Pipeline", status.getPipelineIndex());
+        telemetry.addData("LL Temp (C)", status.getTemp());
+
         LLResult llResult = limelight.getLatestResult();
-        if (llResult != null && llResult.isValid()) {
-            double tx = llResult.getTx();
+        if (llResult != null) {
+            telemetry.addData("Result Valid", llResult.isValid());
+            
+            if (llResult.isValid()) {
+                double tx = llResult.getTx();
+                double ty = llResult.getTy();
+                double ta = llResult.getTa();
 
-            if (Math.abs(tx) > DEADBAND_DEGREES) {
-                double step = DIRECTION * KP * tx;
-                step = Range.clip(step, -MAX_STEP_PER_LOOP, MAX_STEP_PER_LOOP);
-                servoPosition += step;
-                servoPosition = Range.clip(servoPosition, SERVO_MIN, SERVO_MAX);
-                turret.setPosition(servoPosition);
+                telemetry.addData("Target", "LOCKED");
+                telemetry.addData("Tx", tx);
+                telemetry.addData("Ty", ty);
+                telemetry.addData("Ta", ta);
+
+                // AprilTag specific debug
+                List<LLResultTypes.FiducialResult> fiducials = llResult.getFiducialResults();
+                telemetry.addData("Fiducials count", fiducials.size());
+                for (LLResultTypes.FiducialResult fr : fiducials) {
+                    telemetry.addData("Fid ID", fr.getFiducialId());
+                    telemetry.addData("Fid Family", fr.getFamily());
+                }
+
+                if (Math.abs(tx) > DEADBAND_DEGREES) {
+                    double step = DIRECTION * KP * tx;
+                    step = Range.clip(step, -MAX_STEP_PER_LOOP, MAX_STEP_PER_LOOP);
+                    servoPosition += step;
+                    servoPosition = Range.clip(servoPosition, SERVO_MIN, SERVO_MAX);
+                    turret.setPosition(servoPosition);
+                }
+            } else {
+                telemetry.addLine("No valid target found");
+                // Even if not "valid" (main target), check if any fiducials are seen at all
+                List<LLResultTypes.FiducialResult> fiducials = llResult.getFiducialResults();
+                if (!fiducials.isEmpty()) {
+                    telemetry.addData("Fiducials seen (but invalid)", fiducials.size());
+                }
             }
-
-            telemetry.addData("Tx", tx);
-            telemetry.addData("Ty", llResult.getTy());
-            telemetry.addData("Ta", llResult.getTa());
-            telemetry.addData("Servo", "%.3f", servoPosition);
         } else {
-            telemetry.addLine("None found");
-            telemetry.addData("Servo", "%.3f", servoPosition);
+            telemetry.addLine("LL Result is NULL");
         }
+        
+        telemetry.addData("Servo Position", "%.3f", servoPosition);
     }
 
     @Override

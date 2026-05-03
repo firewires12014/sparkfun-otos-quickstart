@@ -26,6 +26,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Turret;
 import org.firstinspires.ftc.teamcode.subsystems.Lift;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.util.TurretLUT;
+import org.firstinspires.ftc.teamcode.subsystems.Vision;
 
 import java.util.List;
 
@@ -39,10 +40,11 @@ public class Teleop extends LinearOpMode {
     private boolean prevBeamBroken = false; // rising-edge state
     public int ballCount = 3;
     private final ElapsedTime runtime = new ElapsedTime();
+    private Vision vision;
 
     public static double targetX = -67;
     public static double targetY = 67;
-    public static boolean isBlue = true;
+    public static boolean isBlue = false;
     public static double hoodPosition = 0;
     public static double shooterRPM = 0;
 
@@ -79,6 +81,8 @@ public class Teleop extends LinearOpMode {
         Shooter shooter = new Shooter(hardwareMap);
         Hardware robot = new Hardware(hardwareMap);
         FireBot FireBot = new FireBot();
+        vision = new Vision(robot.limelight, robot.turret);
+
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -111,6 +115,17 @@ public class Teleop extends LinearOpMode {
 
         ElapsedTime loopTimer = new ElapsedTime();
         loopTimer.reset();
+        vision.start();
+        vision.updatePoseAndAimFromLimelight(drive, isBlue);
+
+        Double tx = vision.getLatestTx();
+        if (tx != null && turret != null) {
+            telemetry.addData("LL tx", tx);
+            telemetry.addData("Turret Servo", vision.getTurretServoPosition());
+        } else {
+            telemetry.addData("LL tx", "no target");
+            telemetry.addData("Turret Servo", vision.getTurretServoPosition());
+        }
 
         while (opModeIsActive()) {
 
@@ -207,6 +222,19 @@ public class Teleop extends LinearOpMode {
 
             if (gamepad2.triangle) autoTurret = false;
             if (gamepad2.square) autoTurret = true;
+
+            if (gamepad1.right_trigger > 0) {
+                vision.updatePoseAndAimFromLimelight(drive, isBlue);
+                pose = drive.getPose();
+                tx = vision.getLatestTx();
+                if (tx != null && turret != null) {
+                    telemetry.addData("LL tx", tx);
+                    telemetry.addData("Turret Servo", vision.getTurretServoPosition());
+                } else {
+                    telemetry.addData("LL tx", "no target");
+                    telemetry.addData("Turret Servo", vision.getTurretServoPosition());
+                }
+            }
 
             // --- TURRET CONTROL ---
             Vector2d goalPos = isBlue ? BLUE_GOAL : RED_GOAL;

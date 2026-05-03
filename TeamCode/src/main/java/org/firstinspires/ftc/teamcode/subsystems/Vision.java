@@ -22,8 +22,8 @@ public class Vision {
     public static int MIN_FIDUCIALS_FOR_POSE = 1;
 
     // Only trust pose estimates when at least one alliance-specific AprilTag ID is visible.
-    public static String TRUSTED_BLUE_TAG_IDS_CSV = "11,12,13";
-    public static String TRUSTED_RED_TAG_IDS_CSV  = "14,15,16";
+    public static String TRUSTED_BLUE_TAG_IDS_CSV = "20";
+    public static String TRUSTED_RED_TAG_IDS_CSV  = "24";
 
     // Limelight turret-centering settings.
     public static double SERVO_MIN = 0.034;
@@ -83,7 +83,7 @@ public class Vision {
         }
 
         latestTx = result.getTx();
-        aimTurretFromTx(latestTx);
+//        aimTurretFromTx(latestTx);
 
         Pose3D botpose = result.getBotpose();
         if (botpose == null) {
@@ -95,7 +95,7 @@ public class Vision {
         double yIn = DistanceUnit.INCH.fromMeters(botpose.getPosition().y);
         double headingRad = botpose.getOrientation().getYaw(AngleUnit.RADIANS);
 
-        drive.setPose(new Pose2d(xIn, yIn, headingRad));
+//        drive.setPose(new Pose2d(xIn, yIn, headingRad));
         return true;
     }
 

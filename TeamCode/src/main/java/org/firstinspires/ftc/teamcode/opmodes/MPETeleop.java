@@ -35,7 +35,7 @@ import java.util.List;
  */
 @Config
 @TeleOp(name = "01. MPE-Teleop", group = "MPE")
-public class Teleop extends LinearOpMode {
+public class MPETeleop extends LinearOpMode {
 
     // =========================================================================
     // DASHBOARD-TUNABLE CONFIG (edit live from FTC Dashboard while disabled)
