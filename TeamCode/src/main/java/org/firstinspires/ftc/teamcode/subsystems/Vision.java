@@ -64,6 +64,33 @@ public class Vision {
         return servoPosition;
     }
 
+    /**
+     * Attempts to correct odometry drift by resetting the robot's pose from a Limelight AprilTag fix.
+     * Safe to call every loop — returns quickly when no tag is visible.
+     *
+     * @return true if a valid pose was obtained and applied, false otherwise.
+     */
+    public boolean tryResetPoseFromAprilTag(Drive drive, boolean isBlueAlliance) {
+        LLResult result = limelight.getLatestResult();
+        if (result == null || !result.isValid()) return false;
+
+        List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
+        if (fiducials == null || fiducials.size() < MIN_FIDUCIALS_FOR_POSE) return false;
+
+        if (!containsTrustedTag(fiducials, isBlueAlliance)) return false;
+
+        Pose3D botpose = result.getBotpose();
+        if (botpose == null) return false;
+
+        double xIn        = DistanceUnit.INCH.fromMeters(botpose.getPosition().x);
+        double yIn        = DistanceUnit.INCH.fromMeters(botpose.getPosition().y);
+        double headingRad = botpose.getOrientation().getYaw(AngleUnit.RADIANS);
+
+        drive.setPose(new Pose2d(xIn, yIn, headingRad));
+        latestTx = result.getTx();
+        return true;
+    }
+
     public boolean updatePoseAndAimFromLimelight(Drive drive, boolean isBlueAlliance) {
         LLResult result = limelight.getLatestResult();
         if (result == null || !result.isValid()) {

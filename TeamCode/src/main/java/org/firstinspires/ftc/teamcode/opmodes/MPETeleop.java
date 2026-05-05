@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.Hardware;
@@ -30,6 +31,12 @@ import java.util.List;
  *   Driver 1 (gamepad1): drives the robot, picks alliance, and resets pose.
  *   Driver 2 (gamepad2): runs intake, transfer, shooter, turret, hood, lift.
  *
+ * Aiming strategy:
+ *   - At init, the Limelight polls for an AprilTag to establish the starting pose.
+ *   - During the match, turret aim and shooter RPM are computed from odometry (fast).
+ *   - Every loop the Limelight checks for an AprilTag; if one is visible it resets
+ *     the odometry pose to correct any accumulated drift.
+ *
  * The @Config annotation exposes the public-static fields below to FTC Dashboard
  * so they can be tuned live without rebuilding.
  */
@@ -47,8 +54,8 @@ public class MPETeleop extends LinearOpMode {
     public static float gain     = 0.7f;
 
     // Beam-break (distance-sensor) tuning for the ball counter.
-    public static final double BEAM_DEBOUNCE      = 0.25;  // seconds between counts
-    public static final double BEAM_THRESHOLD_INCH = 4.0;  // ball "seen" closer than this
+    public static final double BEAM_DEBOUNCE       = 0.25;  // seconds between counts
+    public static final double BEAM_THRESHOLD_INCH = 4.0;   // ball "seen" closer than this
 
     // Goal positions on the field (used for auto-aim + LUT distance lookup).
     public static Vector2d RED_GOAL  = new Vector2d(-72,  72);
@@ -58,16 +65,16 @@ public class MPETeleop extends LinearOpMode {
     // RUNTIME STATE (changes during the match)
     // =========================================================================
 
-    public static boolean isBlue       = true;   // current alliance color
-    public static boolean autoTurret   = true;   // true = auto-aim, false = manual stick
-    public static double  hoodPosition = 0;      // commanded hood servo position
-    public static double  shooterRPM   = 0;      // commanded flywheel RPM
+    public static boolean isBlue      = true;   // current alliance color
+    public static boolean autoTurret  = true;   // true = auto-aim, false = manual stick
+    public static double  hoodPosition = 0;     // commanded hood servo position
+    public static double  shooterRPM   = 0;     // commanded flywheel RPM
 
-    public int ballCount = 3;                    // balls remaining (counted by beam break)
+    public int ballCount = 3;                   // balls remaining (counted by beam break)
 
     // Beam-break debounce state.
-    private double  lastBeamTime    = -1.0;
-    private boolean prevBeamBroken  = false;
+    private double  lastBeamTime   = -1.0;
+    private boolean prevBeamBroken = false;
 
     // Tracks the falling edge of the shoot trigger so we can refill LEDs once.
     private boolean wasShooting = false;
@@ -91,11 +98,11 @@ public class MPETeleop extends LinearOpMode {
         Drive    drive    = new Drive(hardwareMap);
         Intake   intake   = new Intake(hardwareMap);
         Transfer transfer = new Transfer(hardwareMap);
-        Turret   turret   = new Turret(hardwareMap);   // kept so the motor inits; rotation will be Limelight-driven
+        Turret   turret   = new Turret(hardwareMap);
         Hood     hood     = new Hood(hardwareMap);
         Shooter  shooter  = new Shooter(hardwareMap);
         Hardware robot    = new Hardware(hardwareMap);
-        FireBot  FireBot  = new FireBot();   // helper for joystick conditioning
+        FireBot  fireBot  = new FireBot();   // helper for joystick conditioning
         vision = new Vision(robot.limelight, robot.turret);
 
         // Make sure the transfer's trigger is closed before we move balls.
@@ -107,8 +114,7 @@ public class MPETeleop extends LinearOpMode {
         // ---------------------------------------------------------------------
         // SHOOTER LOOKUP TABLE
         // For each measured distance to the goal (inches), the LUT stores the
-        // flywheel RPM and hood servo position that scored cleanly. The Turret
-        // subsystem interpolates between these points at runtime.
+        // flywheel RPM and hood servo position that scored cleanly.
         // ---------------------------------------------------------------------
         turretLUT = new TurretLUT(List.of(
                 new TurretLUT.Datapoint(37.7,   new TurretLUT.ShooterConfiguration(1150, 0.04)),
@@ -119,36 +125,84 @@ public class MPETeleop extends LinearOpMode {
                 new TurretLUT.Datapoint(91,     new TurretLUT.ShooterConfiguration(1300, 0.12)),
                 new TurretLUT.Datapoint(100.7,  new TurretLUT.ShooterConfiguration(1400, 0.16)),
                 new TurretLUT.Datapoint(133.9,  new TurretLUT.ShooterConfiguration(1600, 0.24)),
+                new TurretLUT.Datapoint(141.68, new TurretLUT.ShooterConfiguration(1650, 0.22)),
                 new TurretLUT.Datapoint(144.5,  new TurretLUT.ShooterConfiguration(1600, 0.23)),
                 new TurretLUT.Datapoint(145,    new TurretLUT.ShooterConfiguration(1650, 0.23)),
-                new TurretLUT.Datapoint(148.9,  new TurretLUT.ShooterConfiguration(1675, 0.22)),
-                new TurretLUT.Datapoint(141.68, new TurretLUT.ShooterConfiguration(1650, 0.22))
+                new TurretLUT.Datapoint(148.9,  new TurretLUT.ShooterConfiguration(1675, 0.22))
         ));
 
-        telemetry.addData("Status", "Initialized");
+        // ---------------------------------------------------------------------
+        // INIT-TIME APRIL TAG POSE FIX
+        // Start the Limelight now and poll for an AprilTag to establish the
+        // robot's starting position. The loop keeps refreshing until the driver
+        // presses Start, so the last good fix wins.
+        // ---------------------------------------------------------------------
+        vision.start();
+        telemetry.addData("Status", "Searching for AprilTag pose fix... select alliance then press Start");
         telemetry.update();
 
-        waitForStart();
-        runtime.reset();
-        vision.start();
+        while (!isStarted() && !isStopRequested()) {
+            // Allow alliance selection during init so the correct trusted tag IDs are used.
+            if (gamepad1.circle) {
+                isBlue = false;
+                gamepad1.setLedColor(255, 0, 0, -1);
+                updateLeds(robot, ballCount, false);
+            }
+            if (gamepad1.cross) {
+                isBlue = true;
+                gamepad1.setLedColor(0, 0, 255, -1);
+                updateLeds(robot, ballCount, true);
+            }
+
+            boolean gotFix = vision.tryResetPoseFromAprilTag(drive, isBlue);
+            Pose2d initPose = drive.getPose();
+
+            telemetry.addData("Alliance",     isBlue ? "BLUE" : "RED");
+            telemetry.addData("AprilTag Fix", gotFix ? "YES — pose updated" : "searching...");
+            telemetry.addData("Init Pose X",  "%.1f in", initPose.position.x);
+            telemetry.addData("Init Pose Y",  "%.1f in", initPose.position.y);
+            telemetry.addData("Init Heading", "%.1f deg", Math.toDegrees(initPose.heading.toDouble()));
+            telemetry.update();
+
+            sleep(50);
+        }
 
         // =====================================================================
         // MAIN LOOP -- runs many times per second until the OpMode is stopped.
         // =====================================================================
+        runtime.reset();
+
         while (opModeIsActive()) {
 
             // -----------------------------------------------------------------
             // 1) SENSORS & ODOMETRY
             // -----------------------------------------------------------------
 
+            // Read triggers once at the top so all sections share the same values.
+            double  leftTriggerVal  = Math.max(gamepad1.left_trigger,  gamepad2.left_trigger);
+            double  rightTriggerVal = Math.max(gamepad1.right_trigger, gamepad2.right_trigger);
+            boolean isShooting      = leftTriggerVal > 0.001;
+
+            // Update odometry dead-reckoning from the wheel/pinpoint encoder.
+            drive.update();
+            Pose2d pose = drive.getPose();
+
+            // Opportunistically correct drift: if the Limelight sees a trusted
+            // AprilTag this loop, reset the odometry pose to the vision fix.
+            boolean aprilTagFix = vision.tryResetPoseFromAprilTag(drive, isBlue);
+            if (aprilTagFix) {
+                pose = drive.getPose(); // re-read the corrected pose
+            }
+
+            // Compute once here; reused by auto-aim and telemetry.
+            double dist = calculateGoalDistance(pose, isBlue ? Alliance.BLUE : Alliance.RED);
+
             // Count balls passing the intake distance sensor (rising-edge + debounce).
             // Only check while the driver is actively intaking (right trigger).
-            if (gamepad2.right_trigger > 0) {
+            if (rightTriggerVal > 0) {
                 double sensorInches = robot.distanceSensor.getDistance(DistanceUnit.INCH);
                 boolean beamBroken  = sensorInches > 0 && sensorInches < BEAM_THRESHOLD_INCH;
 
-                // Trigger only the moment the beam goes from clear -> broken,
-                // and only if BEAM_DEBOUNCE seconds have passed since the last count.
                 if (beamBroken && !prevBeamBroken
                         && (runtime.seconds() - lastBeamTime) > BEAM_DEBOUNCE) {
                     lastBeamTime = runtime.seconds();
@@ -159,36 +213,21 @@ public class MPETeleop extends LinearOpMode {
                 }
                 prevBeamBroken = beamBroken;
             } else {
-                // Trigger released: reset beam-break state so next intake has a clean rising-edge.
-                // This prevents stale edge-state from blocking the next ball count.
+                // Trigger released: reset edge-state so the next intake has a clean rising edge.
                 prevBeamBroken = false;
             }
-
-            // Update odometry and read the latest pose for turret/aim math.
-            drive.update();
-            Pose2d pose = drive.getPose();
 
             // -----------------------------------------------------------------
             // 2) GAMEPAD 1 -- DRIVE STICKS
             // -----------------------------------------------------------------
-            // Joystick values are smoothed/deadbanded by FireBot.joystick_conditioning.
-            double axial   = FireBot.joystick_conditioning(-gamepad1.left_stick_y, deadband, offset, gain);
-            double lateral = FireBot.joystick_conditioning( gamepad1.left_stick_x, deadband, offset, gain);
-            double yaw     = FireBot.joystick_conditioning( gamepad1.right_stick_x, deadband, offset, gain);
+            double axial   = fireBot.joystick_conditioning(-gamepad1.left_stick_y, deadband, offset, gain);
+            double lateral = fireBot.joystick_conditioning( gamepad1.left_stick_x, deadband, offset, gain);
+            double yaw     = fireBot.joystick_conditioning( gamepad1.right_stick_x, deadband, offset, gain);
             drive.drive(axial, lateral, yaw);
 
             // -----------------------------------------------------------------
-            // 3) GAMEPAD 2 -- GAME PIECE CONTROLS
+            // 3) BOTH GAMEPADS -- GAME PIECE CONTROLS
             // -----------------------------------------------------------------
-
-            // --- READ TRIGGER STATE ---
-            double  leftTriggerVal  = gamepad2.left_trigger;   // shoot
-            double  rightTriggerVal = gamepad2.right_trigger;  // intake
-            boolean isShooting      = leftTriggerVal > 0.001;
-
-            // NOTE: shooter.setVelocity() is deferred until AFTER the LUT lookup in auto mode.
-            // This ensures the shooter uses the current loop's RPM, not the previous loop's value.
-            // See below in the auto-turret block (line ~258).
 
             // --- INTAKE / TRANSFER STATE MACHINE ---
             // Priority order: cross > circle > right-trigger > idle.
@@ -208,7 +247,6 @@ public class MPETeleop extends LinearOpMode {
                 intake.in();
                 transfer.stop();
                 transfer.triggerClose();
-                telemetry.addLine("Trigger closed");
             } else if (rightTriggerVal == 0 && leftTriggerVal == 0) {
                 // Idle: stop everything and zero shooter RPM.
                 intake.stop();
@@ -220,17 +258,11 @@ public class MPETeleop extends LinearOpMode {
             }
 
             // --- LED REFILL ON SHOT-RELEASE ---
-            // When the driver lets off the shoot trigger, assume we just emptied
-            // the magazine and reset to 3 balls (matches our reload workflow).
-            // The all-on LED shows momentarily as a visual confirmation of the refill.
             if (!isShooting && wasShooting) {
                 setAllLedsOn(robot, isBlue);
                 ballCount = 3;
             }
             wasShooting = isShooting;
-            
-            // NOTE: Ball count varies (1-3 balls) depending on intake timing and beam-break sensor.
-            // The LED display accurately reflects actual ball count; inconsistency is expected.
 
             // Safety stop: if no input is active, force the intake to idle.
             if (leftTriggerVal <= 0.1 && !gamepad2.cross && !gamepad2.circle && rightTriggerVal == 0) {
@@ -238,50 +270,43 @@ public class MPETeleop extends LinearOpMode {
             }
 
             // --- TURRET MODE TOGGLE ---
-            if (gamepad2.triangle) autoTurret = false;   // manual mode
-            if (gamepad2.square)   autoTurret = true;    // auto mode (LUT-driven shooter)
+            if (gamepad2.triangle) autoTurret = false;   // manual
+            if (gamepad2.square)   autoTurret = true;    // auto
 
-            // --- TURRET CONTROL ---
-            // Turret rotation is driven by the Limelight3A.
-
+            // --- TURRET / SHOOTER CONTROL ---
+            double targetAngle = 0; // populated in auto mode; used in telemetry
             if (!autoTurret) {
-                // Manual: hold left trigger to spin the flywheel at SHOOTER_VELOCITY.
+                // Manual: left stick X steers the turret; left trigger spins the flywheel.
                 if (leftTriggerVal > 0.1) {
                     shooterRPM = Constants.SHOOTER_VELOCITY;
                 }
-                // Push shooter RPM every loop (whether trigger is pressed or released).
-                shooter.setVelocity(shooterRPM);
-            } else {
-                // Auto: aim via Limelight, look up RPM + hood from the LUT.
-                vision.updatePoseAndAimFromLimelight(drive, isBlue);
-                // CRITICAL: Re-read pose AFTER vision update to get vision-corrected position.
-                // Otherwise, distance calculation uses stale pre-update odometry.
-                pose = drive.getPose();
-                Double tx = vision.getLatestTx();
-                if (tx != null && turret != null) {
-                    telemetry.addData("LL tx", tx);
-                    telemetry.addData("Turret Servo", vision.getTurretServoPosition());
-                } else {
-                    telemetry.addData("LL tx", "no target");
-                    telemetry.addData("Turret Servo", vision.getTurretServoPosition());
-                }
 
-                double dist = calculateGoalDistance(pose, isBlue ? Alliance.BLUE : Alliance.RED);
+                double stick    = gamepad2.left_stick_x;
+                double deadzone = 0.05;
+                if (Math.abs(stick) > deadzone) {
+                    turret.increment(stick);
+                }
+            } else {
+                // Auto: compute turret angle from odometry, look up RPM + hood from LUT.
+                // Pose was already corrected by AprilTag above (if a tag was visible).
+                Vector2d goalPos = isBlue ? BLUE_GOAL : RED_GOAL;
+                targetAngle      = findTargetAngle(new Pose2d(goalPos, 0), pose);
+                turret.setAngle(targetAngle);
+
                 TurretLUT.ShooterConfiguration config = turretLUT.calculate(dist);
                 shooterRPM   = config.getFlywheelRPM();
                 hoodPosition = config.getHoodServoPosition();
-                // NOW push the shooter RPM after the LUT has set it for this loop.
-                shooter.setVelocity(shooterRPM);
             }
+
+            // Drive the flywheel: spins up when trigger is held, cuts power when released.
+            shooter.update(isShooting, (int) shooterRPM);
 
             // --- HOOD CONTROL ---
             if (!autoTurret) {
-                // Manual: D-pad picks one of three preset hood positions.
                 if (gamepad2.dpad_up)    hood.setPosition(Constants.HOOD_UPPER_LIMIT);
                 if (gamepad2.dpad_right) hood.setPosition(Constants.HOOD_MIDDLE_LIMIT);
                 if (gamepad2.dpad_down)  hood.setPosition(Constants.HOOD_LOWER_LIMIT);
             } else {
-                // Auto: use whatever the LUT gave us.
                 hood.setPosition(hoodPosition);
             }
 
@@ -300,9 +325,6 @@ public class MPETeleop extends LinearOpMode {
             // Runs LAST so its LED writes override the ball-count LEDs above.
             // -----------------------------------------------------------------
 
-            // Circle = RED alliance.
-            // All-on momentary indicator to confirm alliance selection to driver.
-            // After this, LEDs revert to ball-count display on next beam-break or shot-release.
             if (gamepad1.circle) {
                 gamepad1.setLedColor(255, 0, 0, -1);
                 isBlue = false;
@@ -311,9 +333,6 @@ public class MPETeleop extends LinearOpMode {
                 robot.led3.setPosition(0.29);
             }
 
-            // Cross = BLUE alliance.
-            // All-on momentary indicator to confirm alliance selection to driver.
-            // After this, LEDs revert to ball-count display on next beam-break or shot-release.
             if (gamepad1.cross) {
                 gamepad1.setLedColor(0, 0, 255, -1);
                 isBlue = true;
@@ -323,21 +342,26 @@ public class MPETeleop extends LinearOpMode {
             }
 
             // -----------------------------------------------------------------
-            // 5) APPLY FINAL COMMANDED VALUES
+            // 5) TELEMETRY
             // -----------------------------------------------------------------
-            shooter.update(isShooting, (int) shooterRPM);
+            Double tx = vision.getLatestTx();
 
-            // -----------------------------------------------------------------
-            // 6) TELEMETRY
-            // -----------------------------------------------------------------
-            telemetry.addData("Status",          "Run Time: " + runtime);
-            telemetry.addData("Is Shooting",     isShooting);
-            telemetry.addData("Velocity",        robot.shooter.getVelocity());
-            telemetry.addData("Target Velo",     (leftTriggerVal > 0.001) ? shooterRPM : 0.0);
-            telemetry.addData("Hood Pos",        hood.getPosition());
-            telemetry.addData("Ball Count",      ballCount);
-            telemetry.addData("distanceToGoal",  calculateGoalDistance(pose, isBlue ? Alliance.BLUE : Alliance.RED));
-            telemetry.addData("position",        pose.position);
+            telemetry.addData("",  "[%s | %s]  %.0fs",
+                    isBlue ? "BLU" : "RED", autoTurret ? "AUTO" : "MAN", runtime.seconds());
+            telemetry.addData("Balls",  ballCount + " / 3");
+            telemetry.addData("RPM",   "%.0f → %.0f",
+                    robot.shooter.getVelocity(), isShooting ? shooterRPM : 0.0);
+            telemetry.addData("Hood",  "%.3f", hood.getPosition());
+            telemetry.addData("Dist",  "%.1f in", dist);
+            if (autoTurret) {
+                telemetry.addData("Turret", "%.1f°", targetAngle);
+            }
+            telemetry.addData("LL",    tx != null
+                    ? String.format("YES  tx=%.1f°", tx)
+                    : "no tag");
+            telemetry.addData("Pose",  "(%.1f, %.1f)  %.1f°",
+                    pose.position.x, pose.position.y,
+                    Math.toDegrees(pose.heading.toDouble()));
             telemetry.update();
         }
 
@@ -347,6 +371,18 @@ public class MPETeleop extends LinearOpMode {
     // =========================================================================
     // HELPER METHODS
     // =========================================================================
+
+    /**
+     * Computes the turret angle (degrees) needed to point from the robot's current
+     * pose toward the target pose, expressed in the robot's heading frame.
+     */
+    public double findTargetAngle(Pose2d target, Pose2d current) {
+        double dx = target.position.x - current.position.x;
+        double dy = target.position.y - current.position.y;
+        double relativeAngle = Math.atan2(dy, dx);
+        double turretAngle   = AngleUnit.normalizeRadians(relativeAngle - current.heading.toDouble());
+        return Math.toDegrees(-turretAngle);
+    }
 
     /** Straight-line distance from the robot to the given alliance's goal. */
     public static double calculateGoalDistance(Pose2d currentPose, Alliance alliance) {
@@ -358,7 +394,7 @@ public class MPETeleop extends LinearOpMode {
 
     /** Light up one LED per remaining ball (alliance-colored). 0 balls = all off. */
     private void updateLeds(Hardware robot, int ballCount, boolean isBlue) {
-        double onPos  = isBlue ? 0.611 : 0.29;   // servo positions for blue / red
+        double onPos  = isBlue ? 0.611 : 0.29;
         double offPos = 0;
         robot.led1.setPosition(ballCount >= 1 ? onPos : offPos);
         robot.led2.setPosition(ballCount >= 2 ? onPos : offPos);

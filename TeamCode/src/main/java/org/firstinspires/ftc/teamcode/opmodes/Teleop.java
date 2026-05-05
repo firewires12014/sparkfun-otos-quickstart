@@ -33,6 +33,9 @@ import java.util.List;
 @Config
 @TeleOp(name = "Teleop", group = "Linear OpMode")
 public class Teleop extends LinearOpMode {
+    public static final double BLUELEDCOLOR = 0.611;
+    public static final double REDLEDCOLOR = 0.29;
+    public static final double DEADZONE = 0.05;
     private boolean wasShooting = false; // track previous shooting state
     private double lastBeamTime = -1.0;
     public static final double BEAM_DEBOUNCE = 0.25; // seconds
@@ -251,7 +254,7 @@ public class Teleop extends LinearOpMode {
                     }
                 }
                 double stick = gamepad2.left_stick_x;
-                double deadzone = 0.05;
+                double deadzone = DEADZONE;
                 if (stick < -deadzone) {
                     turret.increment(gamepad2.left_stick_x);
                 } else if (stick > deadzone) {
@@ -307,16 +310,16 @@ public class Teleop extends LinearOpMode {
 
             if (gamepad1.triangle) {
                 if (isBlue) {
-                    robot.led1.setPosition(0.611);
-                    robot.led2.setPosition(0.611);
-                    robot.led3.setPosition(0.611);
+                    robot.led1.setPosition(BLUELEDCOLOR);
+                    robot.led2.setPosition(BLUELEDCOLOR);
+                    robot.led3.setPosition(BLUELEDCOLOR);
                     gamepad1.setLedColor(0, 0, 255, -1);
                     drive.setPose(new Pose2d(-63, 0, Math.toRadians(90)));
                 }
                 else {
-                    robot.led1.setPosition(0.29);
-                    robot.led2.setPosition(0.29);
-                    robot.led3.setPosition(0.29);
+                    robot.led1.setPosition(REDLEDCOLOR);
+                    robot.led2.setPosition(REDLEDCOLOR);
+                    robot.led3.setPosition(REDLEDCOLOR);
                     gamepad1.setLedColor(255, 0, 0, -1);
                     drive.setPose(new Pose2d(-63, 0, Math.toRadians(90)));
                 }
