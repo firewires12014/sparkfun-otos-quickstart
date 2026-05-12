@@ -53,6 +53,9 @@ public class MPETeleop extends LinearOpMode {
     public static float offset   = 0.02f;
     public static float gain     = 0.7f;
 
+    public static final double BLUELEDCOLOR = 0.611;
+    public static final double REDLEDCOLOR = 0.29;
+
     // Beam-break (distance-sensor) tuning for the ball counter.
     public static final double BEAM_DEBOUNCE       = 0.25;  // seconds between counts
     public static final double BEAM_THRESHOLD_INCH = 4.0;   // ball "seen" closer than this
@@ -141,6 +144,8 @@ public class MPETeleop extends LinearOpMode {
         telemetry.addData("Status", "Searching for AprilTag pose fix... select alliance then press Start");
         telemetry.update();
 
+        boolean aprilTagDetected = false;
+
         while (!isStarted() && !isStopRequested()) {
             // Allow alliance selection during init so the correct trusted tag IDs are used.
             if (gamepad1.circle) {
@@ -154,16 +159,32 @@ public class MPETeleop extends LinearOpMode {
                 updateLeds(robot, ballCount, true);
             }
 
-            boolean gotFix = vision.tryResetPoseFromAprilTag(drive, isBlue);
-            Pose2d initPose = drive.getPose();
+            // Update position only once when an AprilTag is detected.
+            if (!aprilTagDetected) {
+                boolean gotFix = vision.tryResetPoseFromAprilTag(drive, isBlue);
+                if (gotFix) {
+                    aprilTagDetected = true;
 
-            telemetry.addData("Alliance",     isBlue ? "BLUE" : "RED");
-            telemetry.addData("AprilTag Fix", gotFix ? "YES — pose updated" : "searching...");
-            telemetry.addData("Init Pose X",  "%.1f in", initPose.position.x);
-            telemetry.addData("Init Pose Y",  "%.1f in", initPose.position.y);
-            telemetry.addData("Init Heading", "%.1f deg", Math.toDegrees(initPose.heading.toDouble()));
+                    // Blink LEDs green to indicate AprilTag detection.
+                    for (int i = 0; i < 3; i++) {
+                        setAllLedsGreen(robot);
+                        sleep(200);
+                        setAllLedsOff(robot);
+                        sleep(200);
+                    }
+
+                    Pose2d initPose = drive.getPose();
+                    telemetry.addData("AprilTag Fix", "YES — pose updated");
+                    telemetry.addData("Init Pose X", "%.1f in", initPose.position.x);
+                    telemetry.addData("Init Pose Y", "%.1f in", initPose.position.y);
+                    telemetry.addData("Init Heading", "%.1f deg", Math.toDegrees(initPose.heading.toDouble()));
+                } else {
+                    telemetry.addData("AprilTag Fix", "searching...");
+                }
+            }
+
+            telemetry.addData("Alliance", isBlue ? "BLUE" : "RED");
             telemetry.update();
-
             sleep(50);
         }
 
@@ -189,10 +210,10 @@ public class MPETeleop extends LinearOpMode {
 
             // Opportunistically correct drift: if the Limelight sees a trusted
             // AprilTag this loop, reset the odometry pose to the vision fix.
-            boolean aprilTagFix = vision.tryResetPoseFromAprilTag(drive, isBlue);
-            if (aprilTagFix) {
-                pose = drive.getPose(); // re-read the corrected pose
-            }
+            //boolean aprilTagFix = vision.tryResetPoseFromAprilTag(drive, isBlue);
+            //if (aprilTagFix) {
+            //    pose = drive.getPose(); // re-read the corrected pose
+            //}
 
             // Compute once here; reused by auto-aim and telemetry.
             double dist = calculateGoalDistance(pose, isBlue ? Alliance.BLUE : Alliance.RED);
@@ -328,17 +349,21 @@ public class MPETeleop extends LinearOpMode {
             if (gamepad1.circle) {
                 gamepad1.setLedColor(255, 0, 0, -1);
                 isBlue = false;
-                robot.led1.setPosition(0.29);
-                robot.led2.setPosition(0.29);
-                robot.led3.setPosition(0.29);
+                robot.led1.setPosition(REDLEDCOLOR);
+                robot.led2.setPosition(REDLEDCOLOR);
+                robot.led3.setPosition(REDLEDCOLOR);
             }
 
             if (gamepad1.cross) {
                 gamepad1.setLedColor(0, 0, 255, -1);
                 isBlue = true;
-                robot.led1.setPosition(0.611);
-                robot.led2.setPosition(0.611);
-                robot.led3.setPosition(0.611);
+                robot.led1.setPosition(BLUELEDCOLOR);
+                robot.led2.setPosition(BLUELEDCOLOR);
+                robot.led3.setPosition(BLUELEDCOLOR);
+            }
+
+            if (gamepad1.triangle) {
+                drive.setPose(new Pose2d(-63, 0, Math.toRadians(90)));
             }
 
             // -----------------------------------------------------------------
@@ -407,5 +432,21 @@ public class MPETeleop extends LinearOpMode {
         robot.led1.setPosition(onPos);
         robot.led2.setPosition(onPos);
         robot.led3.setPosition(onPos);
+    }
+
+    /** Blink LEDs green to indicate AprilTag detection. */
+    private void setAllLedsGreen(Hardware robot) {
+        double greenPos = 0.5; // Adjust this value for green LED position.
+        robot.led1.setPosition(greenPos);
+        robot.led2.setPosition(greenPos);
+        robot.led3.setPosition(greenPos);
+    }
+
+    /** Turn off all LEDs. */
+    private void setAllLedsOff(Hardware robot) {
+        double offPos = 0;
+        robot.led1.setPosition(offPos);
+        robot.led2.setPosition(offPos);
+        robot.led3.setPosition(offPos);
     }
 }
